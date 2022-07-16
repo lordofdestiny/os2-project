@@ -1,6 +1,6 @@
 #include "../h/syscall_c.h"
-#include "../h/MemoryAllocator.h"
-#include "../h/RegisterUtils.h"
+#include "../h/kernel/MemoryAllocator.h"
+#include "../h/kernel/RegisterUtils.h"
 
 void* mem_alloc(size_t size){
     size_t blockCount = kernel::MemoryAllocator::byteSizeToBlockCount(size);

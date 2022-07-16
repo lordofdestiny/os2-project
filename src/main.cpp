@@ -1,6 +1,6 @@
-#include "../h/BitMasks.h"
-#include "../h/RegisterUtils.h"
-#include "../h/TrapHandles.h"
+#include "../h/kernel/BitMasks.h"
+#include "../h/kernel/RegisterUtils.h"
+#include "../h/kernel/TrapHandles.h"
 
 void enableInterrupts() {
     using namespace kernel::BitMasks;
