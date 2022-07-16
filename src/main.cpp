@@ -1,3 +1,5 @@
-void main() {
+#include "../h/MemoryAllocator.h"
 
+int main() {
 }
+
