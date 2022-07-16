@@ -1,5 +1,7 @@
 #include "../h/MemoryAllocator.h"
 
+using kernel::MemoryAllocator;
+
 void* malloc(size_t size){
     static auto& allocator = MemoryAllocator::getInstance();
     size_t blockCount = MemoryAllocator::byteSizeToBlockCount(size);
@@ -8,7 +10,7 @@ void* malloc(size_t size){
 
 int free(void* mem){
     static auto& allocator = MemoryAllocator::getInstance();
-    return allocator.freeBlocks(mem);
+    return allocator.deallocateBlocks(mem);
 }
 
 int test() {
