@@ -11,7 +11,7 @@ int free(void* mem){
     return allocator.freeBlocks(mem);
 }
 
-int main() {
+int test() {
     auto arr = (int*) malloc(25*sizeof (int));
     auto arr2 = (short *) malloc(10*sizeof (short ));
     auto pi = (size_t *) malloc(sizeof (size_t ));
