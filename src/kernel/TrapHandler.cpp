@@ -22,8 +22,8 @@ extern "C" void incrementSEPC();
                 break;
             case TrapType::ExternalHardwareTrap:
                 break;
-            case TrapType::UserSystemCall:
-            case TrapType::SystemSystemCall:
+            case TrapType::UserEnvironmentCall:
+            case TrapType::SystemEnvironmentCall:
                 return kernel::SystemCalls::handle();
             case TrapType::IllegalInstruction:
             case TrapType::IllegalReadAddress:

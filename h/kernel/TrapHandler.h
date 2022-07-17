@@ -22,8 +22,8 @@ namespace kernel {
             IllegalInstruction = 0x02,
             IllegalReadAddress = 0x05,
             IllegalWriteAddress = 0x07,
-            UserSystemCall = 0x08,
-            SystemSystemCall = 0x09
+            UserEnvironmentCall = 0x08,
+            SystemEnvironmentCall = 0x09
         };
     };
 }
