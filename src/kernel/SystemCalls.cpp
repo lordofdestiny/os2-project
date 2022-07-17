@@ -30,7 +30,7 @@ namespace kernel {
     void SystemCalls::thread_create() {
         thread_t* handle;
         asm volatile("ld %[dest], 0x58(t0)":[dest]"=r"(handle));
-        TCB::Task task;
+        TCB::ThreadTask task;
         asm volatile("ld %[ptr], 0x60(t0)":[ptr]"=r"(task));
         void* argument;
         asm volatile("ld %[arg], 0x68(t0)":[arg]"=r"(argument));

@@ -9,7 +9,7 @@
 namespace kernel {
     class TCB {
     public:
-        using Task = void(*)(void*);
+        using ThreadTask = void(*)(void*);
 
         enum class ThreadStatus {
             CREATED, READY, RUNNING, SLEEPING
@@ -43,7 +43,7 @@ namespace kernel {
 
         static uint64 threadIdSource;
     private:
-        Task task;
+        ThreadTask task;
         void* arg;
         uint64* stack;
         struct ThreadContext {
@@ -56,7 +56,7 @@ namespace kernel {
         TCB* next = nullptr;
         ThreadStatus status = ThreadStatus::READY;
     public:
-        TCB(Task function, void* argument, void* stack);
+        TCB(ThreadTask function, void* argument, void* stack);
         TCB(TCB const&)=delete;
         TCB& operator=(TCB const&)=delete;
         ~TCB();

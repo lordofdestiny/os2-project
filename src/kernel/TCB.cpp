@@ -12,7 +12,7 @@ namespace kernel {
     TCB* TCB::mainThread;
     uint64 TCB::threadIdSource = 0;
 
-    TCB::TCB(Task function, void *argument, void *stack) :
+    TCB::TCB(ThreadTask function, void *argument, void *stack) :
         task(function), arg(argument),
         stack((size_t*) stack) {
         auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
