@@ -11,14 +11,13 @@ namespace kernel {
     public:
         Scheduler(Scheduler const&)=delete;
         Scheduler& operator=(Scheduler const&)=delete;
+//        ~Scheduler();
 
         static Scheduler& getInstance();
 
         TCB* get();
         void put(TCB* thread);
     private:
-        ~Scheduler();
-
         Scheduler()=default;
 
         TCB* readyHead = nullptr;

@@ -6,7 +6,6 @@
 #include "../../h/kernel/MemoryAllocator.h"
 
 namespace kernel {
-
     Scheduler& kernel::Scheduler::getInstance() {
         static Scheduler instance{};
         return instance;
@@ -46,9 +45,9 @@ namespace kernel {
         return idleThread;
     }
 
-    Scheduler::~Scheduler() {
-        if(idleThread != nullptr) {
-            // Delete idle thread
-        }
-    }
+//    Scheduler::~Scheduler() {
+//        if(idleThread != nullptr) {
+//            // Delete idle thread
+//        }
+//    }
 }
