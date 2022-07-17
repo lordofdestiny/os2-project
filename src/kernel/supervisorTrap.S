@@ -2,6 +2,10 @@
 .extern _ZN6kernel11TrapHandler20supervisorTrapHandleEv
 .set supervisorTrapHandle, _ZN6kernel11TrapHandler20supervisorTrapHandleEv
 
+# systemStack
+.extern systemStack
+.align 16
+
 # void kernel::supervisorTrap()
 .global _ZN6kernel11TrapHandler14supervisorTrapEv
 .type supervisorTrapHandle, @function
