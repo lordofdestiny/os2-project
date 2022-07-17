@@ -1,10 +1,16 @@
-#include "../h/BitMasks.h"
-#include "../h/RegisterUtils.h"
-#include "../h/TrapHandles.h"
+#include "../h/kernel/BitMasks.h"
+#include "../h/kernel/RegisterUtils.h"
+#include "../h/kernel/TrapHandles.h"
+#include "../h/kernel/Collector.h"
 
 void enableInterrupts() {
     using namespace kernel::BitMasks;
     SYS_REGISTER_SET_BITS(sstatus, sstatus::SIE);
+}
+
+void disableInterrupts() {
+    using namespace kernel::BitMasks;
+    SYS_REGISTER_CLEAR_BITS(sstatus, sstatus::SIE);
 }
 
 void main() {
@@ -15,5 +21,9 @@ void main() {
 
     void userMain();
     userMain();
+
+    //disableInterrupts();
+
+    kernel::Collector::cleanup();
 }
 

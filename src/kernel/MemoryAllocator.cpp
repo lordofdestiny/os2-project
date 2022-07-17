@@ -2,7 +2,7 @@
 // Created by os on 7/15/22.
 //
 
-#include "../h/MemoryAllocator.h"
+#include "../../h/kernel/MemoryAllocator.h"
 
 namespace kernel {
     MemoryAllocator::MemoryAllocator() {
@@ -148,5 +148,10 @@ namespace kernel {
         }
 
         return 0;
+    }
+
+    void *MemoryAllocator::allocateBytes(size_t byteCount) {
+        auto blockCount = byteSizeToBlockCount(byteCount);
+        return allocateBlocks(blockCount);
     }
 }

@@ -1,9 +1,9 @@
 //
 // Created by os on 7/16/22.
 //
-#include "../h/SystemCalls.h"
-#include "../h/TrapHandles.h"
-#include "../h/RegisterUtils.h"
+#include "../../h/kernel/SystemCalls.h"
+#include "../../h/kernel/TrapHandles.h"
+#include "../../h/kernel/RegisterUtils.h"
 
 extern "C" void incrementSEPC();
 

@@ -1,5 +1,6 @@
 .extern handleSupervisorTrap
 .global supervisorTrap
+.type supervisorTrap, @function
 .align 4
 .global incrementSEPC
 

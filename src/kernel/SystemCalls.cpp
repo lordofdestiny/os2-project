@@ -2,10 +2,12 @@
 // Created by os on 7/16/22.
 //
 
-#include "../h/SystemCalls.h"
-#include "../h/MemoryAllocator.h"
-#include "../h/RegisterUtils.h"
-#include "../lib/hw.h"
+#include "../../h/kernel/SystemCalls.h"
+#include "../../h/kernel/MemoryAllocator.h"
+#include "../../h/kernel/RegisterUtils.h"
+#include "../../h/kernel/TCB.h"
+#include "../../lib/hw.h"
+#include "../../h/syscall_c.h"
 
 extern "C" void incrementSEPC();
 
@@ -25,6 +27,27 @@ namespace kernel {
         asm volatile("sd %0, 0x50(t0)"::"r"(code));
     }
 
+    void SystemCalls::thread_create() {
+        thread_t* handle;
+        asm volatile("ld %[dest], 0x58(t0)":[dest]"=r"(handle));
+        TCB::Task task;
+        asm volatile("ld %[ptr], 0x60(t0)":[ptr]"=r"(task));
+        void* argument;
+        asm volatile("ld %[arg], 0x68(t0)":[arg]"=r"(argument));
+        void* stack;
+        asm volatile("ld %[stack], 0x70(t0)":[stack]"=r"(stack));
+
+        *handle = (thread_t) new TCB(task,argument,stack);
+        int returnCode;
+        if(*handle) {
+            // Add to sheduler
+            returnCode = 0x00;
+        }else {
+            returnCode = -0x01;
+        }
+        asm volatile("sd %0, 0x50(t0)"::"r"(returnCode));
+    }
+
     void SystemCalls::handle() {
         incrementSEPC();
 
@@ -38,7 +61,7 @@ namespace kernel {
             case Type::MemoryFree:
                 return mem_free();
             case Type::ThreadCreate:
-                break;
+                return thread_create();
             case Type::ThreadExit:
                 break;
             case Type::ThreadDispatch:

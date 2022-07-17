@@ -4,8 +4,8 @@
 
 #ifndef PROJECT_TRAPHANDLES_H
 #define PROJECT_TRAPHANDLES_H
-#include "../lib/hw.h"
-#include "../h/BitMasks.h"
+#include "../../lib/hw.h"
+#include "BitMasks.h"
 
 extern "C" void supervisorTrap();
 
