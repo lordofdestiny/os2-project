@@ -1,6 +1,6 @@
 #include "../h/kernel/BitMasks.h"
 #include "../h/kernel/RegisterUtils.h"
-#include "../h/kernel/TrapHandles.h"
+#include "../h/kernel/TrapHandler.h"
 #include "../h/kernel/Collector.h"
 
 void enableInterrupts() {
@@ -14,8 +14,9 @@ void disableInterrupts() {
 }
 
 void main() {
-    // Set supervisorTrap as a trap handler
-    WRITE_TO_SYS_REGISTER(&supervisorTrap, stvec);
+    // Set main trap handler
+    using kernel::TrapHandler;
+    WRITE_TO_SYS_REGISTER(&TrapHandler::supervisorTrap, stvec);
 
     //enableInterrupts();
 
