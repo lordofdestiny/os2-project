@@ -9,7 +9,6 @@
 #include "../../lib/hw.h"
 #include "../../h/syscall_c.h"
 
-extern "C" void incrementSEPC();
 
 namespace kernel {
 
@@ -48,8 +47,8 @@ namespace kernel {
         asm volatile("sd %0, 0x50(t0)"::"r"(returnCode));
     }
 
-    void SystemCalls::handle() {
-        incrementSEPC();
+void kernel::SystemCalls::handle() {
+    kernel::TrapHandler::incrementPC();
 
         Type type;
         asm volatile("csrr t0, sscratch");
