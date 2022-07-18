@@ -20,7 +20,7 @@ void disableInterrupts() {
 void main() {
     // Set main trap handler
     using kernel::TrapHandler;
-    WRITE_TO_SYS_REGISTER(&TrapHandler::supervisorTrap, stvec);
+    WRITE_TO_SYS_REGISTER(stvec, &TrapHandler::supervisorTrap);
 
     //enableInterrupts();
 

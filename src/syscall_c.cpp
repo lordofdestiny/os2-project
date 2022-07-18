@@ -32,11 +32,10 @@ int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
         return -0x02;
     }
 
-    WRITE_TO_REGISTER(stack_space, a4);
-    WRITE_TO_REGISTER(arg, a3);
-    WRITE_TO_REGISTER(start_routine, a2);
-    WRITE_TO_REGISTER(handle, a1);
-    asm volatile("li a0, 0x11");
+    WRITE_TO_REGISTER(a4, stack_space);
+    WRITE_TO_REGISTER(a3, arg);
+    WRITE_TO_REGISTER(a2, start_routine);
+    WRITE_TO_REGISTER(a1, handle);
 
     asm volatile("ecall");
 
