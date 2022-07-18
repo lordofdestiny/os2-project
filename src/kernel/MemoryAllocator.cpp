@@ -75,11 +75,13 @@ namespace kernel {
     }
 
     int MemoryAllocator::deallocateBlocks(void* address) {
+        if(address == nullptr) return -1;
+
         char* blockAddress = (char*)address - sizeof(size_t);
 
         // If address was not in heap range
         if(HEAP_START_ADDR > blockAddress || blockAddress >= HEAP_END_ADDR){
-            return -1;
+            return -2;
         }
 
         size_t blockCount = *((size_t*) blockAddress);
@@ -87,7 +89,7 @@ namespace kernel {
 
         // If end of address is after end of the heap
         if((char*)blockAddress + blocksSizeBytes >= HEAP_END_ADDR) {
-            return  -2;
+            return  -3;
         }
 
         // Find the place where to insert new free segment
