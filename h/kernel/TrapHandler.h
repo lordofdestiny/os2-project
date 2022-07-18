@@ -16,6 +16,8 @@ namespace kernel {
 
         static void supervisorTrapHandle();
 
+        static void incrementPC();
+
         enum class TrapType : size_t {
             TimerTrap = (size_t) BitMasks::scause::BNT | 0x01,
             ExternalHardwareTrap = (size_t) BitMasks::scause::BNT | (size_t) 0x09,

@@ -28,12 +28,4 @@ _ZN6kernel11TrapHandler14supervisorTrapEv:
 
     sret
 
-.global incrementSEPC
-incrementSEPC:
-    csrr t0, sepc
-    addi t0, t0, 4
-    csrw sepc, t0
-    ret
-
-
 

@@ -5,7 +5,6 @@
 #include "../../h/kernel/TrapHandler.h"
 #include "../../h/kernel/RegisterUtils.h"
 
-extern "C" void incrementSEPC();
 
     void kernel::TrapHandler::instructionErrorHandle() {
         incrementSEPC();
@@ -32,3 +31,9 @@ extern "C" void incrementSEPC();
                 instructionErrorHandle();
         }
     }
+
+void kernel::TrapHandler::incrementPC(){
+    auto runningThread = kernel::TCB::getRunningThread();
+    auto pc = (uint64) runningThread->getPC();
+    runningThread->setPC((uint64*)(pc + 4));
+}
