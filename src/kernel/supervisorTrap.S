@@ -6,7 +6,7 @@
 
 .align 16
 .space 0x100 * 8
-kernel_stack:
+systemStack:
 
 # TCB::runningThread
 .extern _ZN6kernel3TCB13runningThreadE
@@ -31,7 +31,7 @@ _ZN6kernel11TrapHandler14supervisorTrapEv:
     sd t5, offsetTCBpc(t6)
     csrr t5, sstatus
     sd t5, offsetTCBsstatus(t6)
-    la sp, kernel_stack
+    la sp, systemStack
 
     call supervisorTrapHandle
 
