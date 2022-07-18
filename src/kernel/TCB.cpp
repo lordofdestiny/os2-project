@@ -12,6 +12,11 @@ namespace kernel {
     TCB* TCB::mainThread;
     uint64 TCB::threadIdSource = 0;
 
+    uint64 TCB::getStartingStatus() {
+        auto mask = (uint64)BitMasks::sstatus::SPP | (uint64) BitMasks::sstatus::SPIE;
+        return runningThread->getsstatus() & mask;
+    }
+
     TCB::TCB(ThreadTask function, void *argument, void *stack) :
         task(function), arg(argument),
         stack((size_t*) stack) {
