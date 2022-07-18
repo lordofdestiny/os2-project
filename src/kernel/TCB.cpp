@@ -24,10 +24,6 @@ namespace kernel {
         context.registers.sp = stackTop;
     }
 
-    TCB::TCB() :
-        task(nullptr), arg(nullptr),
-        stack(nullptr) { }
-
     TCB::ThreadContext::ThreadContext(uint64 status, uint64* pc) :
             programCounter(pc), sstatus(status), registers() { }
 
