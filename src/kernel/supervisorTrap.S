@@ -17,7 +17,7 @@ kernel_stack:
 
 # void kernel::supervisorTrap()
 .global _ZN6kernel11TrapHandler14supervisorTrapEv
-.type supervisorTrapHandle, @function
+.type _ZN6kernel11TrapHandler14supervisorTrapEv, @function
 .align 4
 _ZN6kernel11TrapHandler14supervisorTrapEv:
     # Store registers
