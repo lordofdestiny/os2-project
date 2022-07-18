@@ -5,6 +5,7 @@
 #include "../../h/kernel/TCB.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/MemoryAllocator.h"
+#include "../../h/kernel/BitMasks.h"
 
 namespace kernel {
     TCB* TCB::runningThread;
@@ -12,16 +13,20 @@ namespace kernel {
     TCB* TCB::mainThread;
     uint64 TCB::threadIdSource = 0;
 
-    TCB::TCB(Task function, void *argument, void *stack) :
-        task(function), arg(argument),
-        stack((size_t*) stack) {
+    uint64 TCB::getStartingStatus() {
+        auto mask = (uint64)BitMasks::sstatus::SPP | (uint64) BitMasks::sstatus::SPIE;
+        return runningThread->getsstatus() & mask;
+    }
+
+    TCB::TCB(ThreadTask function, void *argument, void *stack) :
+        context(getStartingStatus(), (uint64*)taskWrapper),
+        task(function), arg(argument), stack((size_t*) stack) {
         auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
         context.registers.sp = stackTop;
     }
 
-    TCB::ThreadContext::ThreadContext() :
-        registers(),
-        programCounter((uint64*) &taskWrapper){ }
+    TCB::ThreadContext::ThreadContext(uint64 status, uint64* pc) :
+            programCounter(pc), sstatus(status), registers() { }
 
     TCB::Registers::Registers() {
         for(int i = 0; i < 32; i++){
@@ -81,5 +86,31 @@ namespace kernel {
         runningThread = newThread;
         runningThread->status = ThreadStatus::RUNNING;
         runningTimeLeft = DEFAULT_TIME_SLICE;
+    }
+
+    uint64 TCB::getThreadId() const {
+        return threadId;
+    }
+
+    TCB::Registers& TCB::getRegisters() {
+        return context.registers;
+    }
+
+    uint64* TCB::getPC() const {
+        return context.programCounter;
+    }
+    void TCB::setPC(uint64* value) {
+        context.programCounter = value;
+    }
+
+    uint64 TCB::getsstatus() const {
+        return context.sstatus;
+    }
+    void TCB::setStatus(ThreadStatus newStatus) {
+        status = newStatus;
+    }
+    
+    TCB::ThreadStatus TCB::getStatus() {
+        return status;
     }
 } // kernel
