@@ -44,14 +44,15 @@ namespace kernel {
 
         static uint64 threadIdSource;
     private:
+        struct ThreadContext {
+            uint64* programCounter = nullptr;
+            uint64 sstatus;
+            Registers registers;
+            explicit ThreadContext(uint64 status = 0, uint64* pc = nullptr);
+        } context;
         ThreadTask task;
         void* arg;
         uint64* stack;
-        struct ThreadContext {
-            Registers registers;
-            uint64* programCounter;
-            ThreadContext();
-        } context{};
         uint64 threadId = threadIdSource++;
 
         TCB* next = nullptr;
