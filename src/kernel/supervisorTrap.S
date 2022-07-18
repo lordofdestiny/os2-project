@@ -3,9 +3,17 @@
 .set supervisorTrapHandle, _ZN6kernel11TrapHandler20supervisorTrapHandleEv
 .type _ZN6kernel11TrapHandler20supervisorTrapHandleEv, @function
 
-# systemStack
-.extern systemStack
+
 .align 16
+.space 0x100 * 8
+kernel_stack:
+
+# TCB::runningThread
+.extern _ZN6kernel3TCB13runningThreadE
+.set runningThread, _ZN6kernel3TCB13runningThreadE
+.set offsetTCBpc, 0x00
+.set offsetTCBsstatus, 0x08
+.set offsetTCBregisters, 0x10
 
 # void kernel::supervisorTrap()
 .global _ZN6kernel11TrapHandler14supervisorTrapEv
