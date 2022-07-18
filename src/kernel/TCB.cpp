@@ -42,7 +42,7 @@ namespace kernel {
 
     void TCB::taskWrapper() {
         runningThread->task(runningThread->arg);
-        // kill thread
+        thread_exit();
     }
 
     void* TCB::operator new(size_t size) {
