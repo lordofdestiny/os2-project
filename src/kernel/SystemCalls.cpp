@@ -4,10 +4,10 @@
 
 #include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/MemoryAllocator.h"
-#include "../../h/kernel/RegisterUtils.h"
 #include "../../h/kernel/TCB.h"
-#include "../../lib/hw.h"
+#include "../../h/kernel/Scheduler.h"
 #include "../../h/syscall_c.h"
+#include "../../h/kernel/TrapHandler.h"
 
 
 namespace kernel {
