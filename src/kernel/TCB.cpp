@@ -5,6 +5,7 @@
 #include "../../h/kernel/TCB.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/MemoryAllocator.h"
+#include "../../h/kernel/BitMasks.h"
 
 namespace kernel {
     TCB* TCB::runningThread;
