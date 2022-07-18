@@ -1,6 +1,19 @@
 #include "../h/syscall_c.h"
 #include "../h/kernel/MemoryAllocator.h"
 #include "../h/kernel/RegisterUtils.h"
+#include "../h/kernel/SystemCalls.h"
+
+#define RETURN_AS(type)                 \
+   do {                                 \
+        type value;                     \
+        READ_FROM_REGISTER(a0, value);  \
+        return (type) value;            \
+   }while(0)                            \
+
+using kernel::SystemCalls;
+using kernel::MemoryAllocator;
+using CallType = SystemCalls::Type;
+auto environmentCall = SystemCalls::environmentCall;
 
 void* mem_alloc(size_t size){
     size_t blockCount = kernel::MemoryAllocator::byteSizeToBlockCount(size);
