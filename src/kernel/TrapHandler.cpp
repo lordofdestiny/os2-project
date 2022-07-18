@@ -4,11 +4,20 @@
 #include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/TrapHandler.h"
 #include "../../h/kernel/RegisterUtils.h"
+#include "../../h/kernel/TCB.h"
+#include "../../h/kernel/ConsoleUtils.h"
 
 
-    void kernel::TrapHandler::instructionErrorHandle() {
-        incrementSEPC();
-    }
+void kernel::TrapHandler::instructionErrorHandle() {
+    incrementPC();
+    uint64 temp;
+    asm volatile("csrr %0, scause":"=r"(temp));
+    printReg("scause",temp);
+    asm volatile("csrr  %0, sepc":"=r"(temp));
+    printReg("sepc",temp);
+    asm volatile("csrr %0, stval":"=r"(temp));
+    printReg("stval",temp);
+}
 
     void kernel::TrapHandler::supervisorTrapHandle() {
         using TrapType = TrapHandler::TrapType;
