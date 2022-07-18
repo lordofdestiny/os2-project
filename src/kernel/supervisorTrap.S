@@ -3,14 +3,12 @@
 .set supervisorTrapHandle, _ZN6kernel11TrapHandler20supervisorTrapHandleEv
 .type _ZN6kernel11TrapHandler20supervisorTrapHandleEv, @function
 
-
-.align 16
-.space 0x100 * 8
-systemStack:
+.extern systemStackTopAddress
 
 # TCB::runningThread
 .extern _ZN6kernel3TCB13runningThreadE
 .set runningThread, _ZN6kernel3TCB13runningThreadE
+
 .set offsetTCBpc, 0x00
 .set offsetTCBsstatus, 0x08
 .set offsetTCBregisters, 0x10
@@ -31,7 +29,7 @@ _ZN6kernel11TrapHandler14supervisorTrapEv:
     sd t5, offsetTCBpc(t6)
     csrr t5, sstatus
     sd t5, offsetTCBsstatus(t6)
-    la sp, systemStack
+    ld sp, systemStackTopAddress
 
     call supervisorTrapHandle
 
@@ -45,5 +43,3 @@ _ZN6kernel11TrapHandler14supervisorTrapEv:
     .endr
 
     sret
-
-
