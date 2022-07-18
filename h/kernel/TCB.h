@@ -37,7 +37,8 @@ namespace kernel {
         static void operator delete(void* ptr) noexcept;
     private:
         static void taskWrapper();
-        static uint64 getStartingStatus();
+        static uint64 sstatusGetInitial();
+        static uint64* pcGetInitial(ThreadTask function);
 
         static TCB* mainThread;
         static TCB* runningThread;

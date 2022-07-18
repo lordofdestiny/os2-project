@@ -13,13 +13,19 @@ namespace kernel {
     TCB* TCB::mainThread;
     uint64 TCB::threadIdSource = 0;
 
-    uint64 TCB::getStartingStatus() {
+    uint64 TCB::sstatusGetInitial() {
+        if(runningThread == nullptr) return 0;
         auto mask = (uint64)BitMasks::sstatus::SPP | (uint64) BitMasks::sstatus::SPIE;
         return runningThread->getsstatus() & mask;
     }
 
+    uint64* TCB::pcGetInitial(ThreadTask function) {
+        if(function == nullptr) return nullptr;
+        return (uint64*) taskWrapper;
+    }
+
     TCB::TCB(ThreadTask function, void *argument, void *stack) :
-        context(getStartingStatus(), (uint64*)taskWrapper),
+        context(sstatusGetInitial(), pcGetInitial(function)),
         task(function), arg(argument), stack((size_t*) stack) {
         auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
         context.registers.sp = stackTop;
