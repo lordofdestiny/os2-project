@@ -42,3 +42,8 @@ int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
     READ_FROM_REGISTER(a0,code);
     return code;
 }
+
+void thread_dispatch() {
+    asm volatile("li a0, 0x13");
+    asm volatile("ecall");
+}

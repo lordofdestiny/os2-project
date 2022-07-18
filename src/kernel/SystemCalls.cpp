@@ -55,32 +55,32 @@ namespace kernel {
         asm volatile("csrr t0, sscratch");
         asm volatile("ld %[count], 0x50(t0)":[count]"=r"(type));
 
-        switch (type) {
-            case Type::MemoryAllocate:
-                return mem_alloc();
-            case Type::MemoryFree:
-                return mem_free();
-            case Type::ThreadCreate:
-                return thread_create();
-            case Type::ThreadExit:
-                break;
-            case Type::ThreadDispatch:
-                break;
-            case Type::SemaphoreOpen:
-                break;
-            case Type::SemaphoreClose:
-                break;
-            case Type::SemaphoreWait:
-                break;
-            case Type::SemaphoreSignal:
-                break;
-            case Type::TimeSleep:
-                break;
-            case Type::GetChar:
-                break;
-            case Type::PutChar:
-                break;
-        }
+    switch (type) {
+        case Type::MemoryAllocate:
+            return mem_alloc();
+        case Type::MemoryFree:
+            return mem_free();
+        case Type::ThreadCreate:
+            return thread_create();
+        case Type::ThreadExit:
+            break;
+        case Type::ThreadDispatch:
+            return TCB::dispatch();
+        case Type::SemaphoreOpen:
+            break;
+        case Type::SemaphoreClose:
+            break;
+        case Type::SemaphoreWait:
+            break;
+        case Type::SemaphoreSignal:
+            break;
+        case Type::TimeSleep:
+            break;
+        case Type::GetChar:
+            break;
+        case Type::PutChar:
+            break;
+    }
 
     }
 } // kernel
