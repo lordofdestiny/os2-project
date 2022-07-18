@@ -26,25 +26,6 @@ void main() {
 
     kernel::TCB::initializeMainThread();
 
-    thread_t thread1;
-    thread_create(&thread1,[](void*){
-        while(true) {
-            printString("Hello from A!\n");
-            thread_dispatch();
-        }
-    }, nullptr);
-
-
-    thread_t thread2;
-    thread_create(&thread2,[](void*){
-        while(true) {
-            printString("Hello from B!\n");
-            thread_dispatch();
-        }
-    }, nullptr);
-
-    while(true) thread_dispatch();
-
     void userMain();
     userMain();
 
