@@ -6,6 +6,7 @@
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/MemoryAllocator.h"
 #include "../../h/kernel/BitMasks.h"
+#include "../../h/syscall_c.h"
 
 namespace kernel {
     TCB* TCB::runningThread;
@@ -24,6 +25,11 @@ namespace kernel {
         return (uint64*) taskWrapper;
     }
 
+    TCB::ThreadType TCB::runningThreadType() {
+        auto status = runningThread->getsstatus();
+        return status | (uint64) BitMasks::sstatus::SPP?ThreadType::SYSTEM:ThreadType::USER;
+    }
+
     TCB::TCB(ThreadTask function, void *argument, void *stack) :
         context(sstatusGetInitial(), pcGetInitial(function)),
         task(function), arg(argument), stack((size_t*) stack) {
@@ -32,7 +38,7 @@ namespace kernel {
     }
 
     TCB::ThreadContext::ThreadContext(uint64 status, uint64* pc) :
-            programCounter(pc), sstatus(status), registers() { }
+            programCounter(pc), sstatus(status), registers(){ }
 
     TCB::Registers::Registers() {
         for(int i = 0; i < 32; i++){
@@ -118,5 +124,9 @@ namespace kernel {
     
     TCB::ThreadStatus TCB::getStatus() {
         return status;
+    }
+
+    bool TCB::isUserThread() const{
+        return threadType == ThreadType::USER;
     }
 } // kernel

@@ -2,6 +2,7 @@
 #include "../h/kernel/RegisterUtils.h"
 #include "../h/kernel/TrapHandler.h"
 #include "../h/kernel/Collector.h"
+#include "../h/kernel/Scheduler.h"
 #include "../h/kernel/TCB.h"
 #include "../h/syscall_c.h"
 #include "../lib/console.h"
@@ -18,8 +19,8 @@ void disableInterrupts() {
 }
 
 void main() {
+    using namespace kernel;
     // Set main trap handler
-    using kernel::TrapHandler;
     WRITE_TO_SYS_REGISTER(stvec, &TrapHandler::supervisorTrap);
 
     //enableInterrupts();
@@ -28,6 +29,9 @@ void main() {
 
     void userMain();
     userMain();
+    while(Scheduler::getInstance().hasUserThreads()){
+        thread_dispatch();
+    }
 
     //disableInterrupts();
 

@@ -12,16 +12,19 @@ namespace kernel {
     }
 
     TCB *kernel::Scheduler::get() {
-        if(readyHead == nullptr)return getIdleThread();
+        if(readyHead == nullptr) return getIdleThread();
 
-        auto result = readyHead;
-            readyHead = readyHead->next;
-            if(readyHead == nullptr) {
-                readyTail = nullptr;
-            }
-            result->next= nullptr;
+        auto thread = readyHead;
+        readyHead = readyHead->next;
+        if(readyHead == nullptr) {
+            readyTail = nullptr;
+        }
+        thread->next= nullptr;
+        if(thread->isUserThread()){
+            userThreadCount--;
+        }
 
-        return result;
+        return thread;
     }
 
     void Scheduler::put(kernel::TCB *thread) {
@@ -33,8 +36,10 @@ namespace kernel {
         }else {
             readyTail->next = thread;
         }
+        if(thread->isUserThread()){
+            userThreadCount++;
+        }
         readyTail = thread;
-
     }
 
     TCB* Scheduler::getIdleThread() {
@@ -43,6 +48,10 @@ namespace kernel {
             idleThread = new TCB([](void*){while(true);}, nullptr,stack);
         }
         return idleThread;
+    }
+
+    bool Scheduler::hasUserThreads() {
+        return userThreadCount != 0;
     }
 
 //    Scheduler::~Scheduler() {
