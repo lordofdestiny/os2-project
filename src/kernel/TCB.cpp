@@ -19,8 +19,8 @@ namespace kernel {
     }
 
     TCB::TCB(ThreadTask function, void *argument, void *stack) :
-        task(function), arg(argument),
-        stack((size_t*) stack) {
+        context(getStartingStatus(), (uint64*)taskWrapper),
+        task(function), arg(argument), stack((size_t*) stack) {
         auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
         context.registers.sp = stackTop;
     }
