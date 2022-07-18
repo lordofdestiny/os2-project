@@ -41,6 +41,16 @@ void kernel::SystemCalls::thread_create() {
     }
 }
 
+void kernel::SystemCalls::thread_exit() { // Handle if attempting to exit main
+    auto &registers = TCB::runningThread->getRegisters();
+    if(TCB::runningThread == TCB::mainThread){
+        registers.a0 = -0x01;
+    }else{
+        delete TCB::runningThread;
+        registers.a1 = -0x01;
+    }
+}
+
 void kernel::SystemCalls::handle() {
     kernel::TrapHandler::incrementPC();
 
@@ -54,7 +64,7 @@ void kernel::SystemCalls::handle() {
         case Type::ThreadCreate:
             return thread_create();
         case Type::ThreadExit:
-            break;
+            return thread_exit();
         case Type::ThreadDispatch:
             return TCB::dispatch();
         case Type::SemaphoreOpen:

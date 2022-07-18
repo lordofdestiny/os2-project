@@ -39,9 +39,10 @@ int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
 
     asm volatile("ecall");
 
-    int code;
-    READ_FROM_REGISTER(a0,code);
-    return code;
+
+int thread_exit() {
+    environmentCall(CallType::ThreadExit);
+    RETURN_AS(int);
 }
 
 void thread_dispatch() {
