@@ -28,9 +28,7 @@ int mem_free(void* address) {
 
 int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
     auto stack_space = mem_alloc(DEFAULT_STACK_SIZE);
-    if (stack_space == nullptr) {
-        return -0x02;
-    }
+    if (stack_space == nullptr) return -0x02;
 
     WRITE_TO_REGISTER(a4, stack_space);
     WRITE_TO_REGISTER(a3, arg);
