@@ -64,19 +64,13 @@ namespace kernel {
         TCB& operator=(TCB const&)=delete;
         ~TCB();
 
-        uint64 getThreadId() const {
-            return threadId;
-        }
-
-        Registers& getRegisters() {
-            return context.registers;
-        }
-        uint64* getPC() const {
-            return context.programCounter;
-        }
-        void setPC(uint64* value) {
-            context.programCounter = value;
-        }
+        uint64 getThreadId() const;
+        Registers& getRegisters();
+        uint64* getPC() const;
+        void setPC(uint64* value);
+        uint64 getsstatus() const ;
+        void setStatus(ThreadStatus newStatus);
+        ThreadStatus getStatus();
     };
 
 } // kernel

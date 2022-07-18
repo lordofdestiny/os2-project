@@ -90,4 +90,30 @@ namespace kernel {
         runningThread->status = ThreadStatus::RUNNING;
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
+
+    uint64 TCB::getThreadId() const {
+        return threadId;
+    }
+
+    TCB::Registers& TCB::getRegisters() {
+        return context.registers;
+    }
+
+    uint64* TCB::getPC() const {
+        return context.programCounter;
+    }
+    void TCB::setPC(uint64* value) {
+        context.programCounter = value;
+    }
+
+    uint64 TCB::getsstatus() const {
+        return context.sstatus;
+    }
+    void TCB::setStatus(ThreadStatus newStatus) {
+        status = newStatus;
+    }
+    
+    TCB::ThreadStatus TCB::getStatus() {
+        return status;
+    }
 } // kernel
