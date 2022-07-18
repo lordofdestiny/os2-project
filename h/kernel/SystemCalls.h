@@ -33,7 +33,6 @@ namespace kernel {
     static void mem_free();
     static void thread_create();
     static void thread_exit();
-    static void thread_dispatch();
     static void sem_open();
     static void sem_close();
     static void sem_wait();
