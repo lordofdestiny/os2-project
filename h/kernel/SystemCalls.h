@@ -27,7 +27,7 @@ namespace kernel {
         };
 
         static void handle();
-
+        static void environmentCall(Type type) asm("__environmentCall__");
     private:
     static void mem_alloc();
     static void mem_free();
