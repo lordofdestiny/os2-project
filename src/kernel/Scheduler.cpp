@@ -43,9 +43,13 @@ namespace kernel {
     }
 
     TCB* Scheduler::getIdleThread() {
+        auto& allocator = MemoryAllocator::getInstance();
+        auto task = [](void*) {
+            while(true);
+        };
         if(!idleThread) {
-            void* stack = MemoryAllocator::getInstance().allocateBytes(DEFAULT_STACK_SIZE);
-            idleThread = new TCB([](void*){while(true);}, nullptr,stack);
+            void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
+            idleThread = new TCB(task, nullptr, stack);
         }
         return idleThread;
     }
