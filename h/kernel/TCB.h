@@ -60,9 +60,9 @@ namespace kernel {
         ThreadTask task;
         void* arg;
         uint64* stack;
-        uint64 threadId = threadIdSource++;
-        ThreadType threadType;
+        ThreadType type;
         TCB* next = nullptr;
+        uint64 id = threadIdSource++;
         ThreadStatus status = ThreadStatus::READY;
     public:
         TCB(ThreadTask function, void* argument, void* stack);
