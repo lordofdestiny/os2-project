@@ -18,7 +18,7 @@ namespace kernel {
 
         TCB *get();
         void put(TCB *thread);
-        bool hasUserThreads();
+        bool hasUserThreads() const;
     private:
         Scheduler() = default;
         TCB *getIdleThread();

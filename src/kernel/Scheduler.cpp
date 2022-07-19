@@ -54,7 +54,7 @@ namespace kernel {
         return idleThread;
     }
 
-    bool Scheduler::hasUserThreads() {
+    bool Scheduler::hasUserThreads() const{
         return userThreadCount != 0;
     }
 
