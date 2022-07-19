@@ -66,6 +66,7 @@ namespace kernel {
         ThreadStatus status = ThreadStatus::READY;
     public:
         TCB(ThreadTask function, void* argument, void* stack);
+        TCB(ThreadTask function, void* argument, void* stack, ThreadType type);
         TCB(TCB const&)=delete;
         TCB& operator=(TCB const&)=delete;
         ~TCB();

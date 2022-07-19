@@ -30,11 +30,18 @@ namespace kernel {
         return status | (uint64) BitMasks::sstatus::SPP?ThreadType::SYSTEM:ThreadType::USER;
     }
 
+    /* Return to a single constructore once user mode is the default mode */
     TCB::TCB(ThreadTask function, void *argument, void *stack) :
-        context(sstatusGetInitial(), pcGetInitial(function)),
-        task(function), arg(argument), stack((size_t*) stack) {
-        auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
-        context.registers.sp = stackTop;
+            TCB::TCB(function,argument,stack, runningThreadType()){ }
+
+    TCB::TCB(ThreadTask function, void *argument, void *stack, ThreadType type) :
+            context(sstatusGetInitial(), pcGetInitial(function)),
+            task(function), arg(argument), stack((size_t*) stack),
+            type(type) {
+        if(stack != nullptr) {
+            auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
+            context.registers.sp = stackTop;
+        }
     }
 
     TCB::ThreadContext::ThreadContext(uint64 status, uint64* pc) :
