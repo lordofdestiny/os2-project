@@ -92,12 +92,10 @@ namespace kernel {
 
     TCB::~TCB() {
         if(stack != nullptr) {
-            MemoryAllocator::getInstance().deallocateBlocks(stack);
+            auto& allocator = MemoryAllocator::getInstance();
+            allocator.deallocateBlocks(stack);
         }
-        if(this == runningThread){
-            runningThread = nullptr;
-            dispatch();
-        }
+        if(this == runningThread) runningThread = nullptr;
     }
 
     TCB::ThreadContext::ThreadContext(uint64 status, uint64* pc) :

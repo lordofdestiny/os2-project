@@ -8,6 +8,15 @@
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/syscall_c.h"
 #include "../../h/kernel/TrapHandler.h"
+#include "../../h/kernel/Semaphore.h"
+
+#define EXIT_IF(test, value)        \
+    do{                             \
+        if((test)) {                \
+            registers.a0 = value;   \
+            return;                 \
+        }                           \
+    }while(0)                       \
 
 void kernel::SystemCalls::mem_alloc() {
     auto &registers = TCB::getRunningThread()->getRegisters();
@@ -31,23 +40,19 @@ void kernel::SystemCalls::thread_create() {
     auto argument = (void *) registers.a3;
     auto stack = (void *) registers.a4;
 
-    *handle = (thread_t) new TCB(task, argument, stack);
-    if (*handle) {
-        Scheduler::getInstance().put((TCB *) *handle);
-        registers.a0 = 0x00;
-    } else {
-        registers.a0 = -0x01;
-    }
+    auto thread = new TCB(task, argument, stack);
+    EXIT_IF(thread == nullptr, -0x01);
+    *handle = (thread_t) thread;
+    Scheduler::getInstance().put(thread);
+    registers.a0 = 0x00;
 }
 
 void kernel::SystemCalls::thread_exit() { // Handle if attempting to exit main
     auto &registers = TCB::runningThread->getRegisters();
-    if(TCB::runningThread == TCB::mainThread){
-        registers.a0 = -0x01;
-    }else{
-        delete TCB::runningThread;
-        registers.a1 = -0x01;
-    }
+    EXIT_IF(TCB::runningThread == TCB::mainThread, -0x01);
+    delete TCB::runningThread;
+    TCB::dispatch();
+    registers.a0 = 0x00;
 }
 
 void kernel::SystemCalls::handle() {
