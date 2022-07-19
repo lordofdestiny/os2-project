@@ -66,7 +66,8 @@ namespace kernel {
 
     uint64 TCB::sstatusGetInitial() {
         if(runningThread == nullptr) return 0;
-        auto mask = (uint64)BitMasks::sstatus::SPP | (uint64) BitMasks::sstatus::SPIE;
+        using BitMasks::sstatus;
+        auto mask = (uint64)sstatus::SPP | (uint64) sstatus::SPIE;
         return runningThread->getsstatus() & mask;
     }
 
