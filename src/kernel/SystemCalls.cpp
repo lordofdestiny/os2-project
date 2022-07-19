@@ -55,6 +55,41 @@ void kernel::SystemCalls::thread_exit() { // Handle if attempting to exit main
     registers.a0 = 0x00;
 }
 
+void kernel::SystemCalls::sem_open() {
+    auto &registers = TCB::getRunningThread()->getRegisters();
+    auto init = (unsigned ) registers.a2;
+    auto handle = (sem_t *) registers.a1;
+    auto semaphore = new Semaphore((int) init);
+    EXIT_IF(semaphore == nullptr, -0x01);
+    *handle = (sem_t) semaphore;
+    registers.a0 = 0x00;
+}
+
+void kernel::SystemCalls::sem_close() {
+    auto &registers = TCB::getRunningThread()->getRegisters();
+    auto handle = (Semaphore*) registers.a1;
+    EXIT_IF(handle == nullptr, -0x01);
+    delete handle;
+    registers.a0 = 0x00;
+}
+
+void kernel::SystemCalls::sem_wait() {
+    auto &registers = TCB::getRunningThread()->getRegisters();
+    auto id = (Semaphore*) registers.a1;
+    EXIT_IF(id == nullptr, -0x01);
+    registers.a0 = 0x00;
+    id->wait();
+}
+
+void kernel::SystemCalls::sem_signal() {
+    auto &registers = TCB::getRunningThread()->getRegisters();
+    auto id = (Semaphore*) registers.a1;
+    EXIT_IF(id == nullptr, -0x01);
+    registers.a0 = 0x00;
+    id->signal();
+}
+
+
 void kernel::SystemCalls::handle() {
     kernel::TrapHandler::incrementPC();
 
@@ -72,13 +107,13 @@ void kernel::SystemCalls::handle() {
         case Type::ThreadDispatch:
             return TCB::dispatch();
         case Type::SemaphoreOpen:
-            break;
+            return sem_open();
         case Type::SemaphoreClose:
-            break;
+            return sem_close();
         case Type::SemaphoreWait:
-            break;
+            return sem_wait();
         case Type::SemaphoreSignal:
-            break;
+            return sem_signal();
         case Type::TimeSleep:
             break;
         case Type::GetChar:

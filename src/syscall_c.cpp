@@ -51,3 +51,28 @@ int thread_exit() {
 void thread_dispatch() {
    environmentCall(CallType::ThreadDispatch);
 }
+
+int sem_open(sem_t* handle, unsigned init) {
+    WRITE_TO_REGISTER(a2, init);
+    WRITE_TO_REGISTER(a1, handle);
+    environmentCall(CallType::SemaphoreOpen);
+    RETURN_AS(int);
+}
+
+int sem_close(sem_t handle) {
+    WRITE_TO_REGISTER(a1, handle);
+    environmentCall(CallType::SemaphoreClose);
+    RETURN_AS(int);
+}
+
+int sem_wait(sem_t id) {
+    WRITE_TO_REGISTER(a1, id);
+    environmentCall(CallType::SemaphoreWait);
+    RETURN_AS(int);
+}
+
+int sem_signal(sem_t id) {
+    WRITE_TO_REGISTER(a1, id);
+    environmentCall(CallType::SemaphoreSignal);
+    RETURN_AS(int);
+}
