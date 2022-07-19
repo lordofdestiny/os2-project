@@ -4,7 +4,7 @@ __environmentCall__:
     ecall
     ret
 
-.extern systemStackTopAddress
+.extern __kernelStack
 
 # TCB::runningThread
 .extern __runningThread
@@ -33,7 +33,7 @@ __supervisorTrap__:
     sd t5, offsetTCBpc(t6)
     csrr t5, sstatus
     sd t5, offsetTCBsstatus(t6)
-    ld sp, systemStackTopAddress
+    ld sp, __kernelStack
 
     call __supervisorTrapHandle__
 
