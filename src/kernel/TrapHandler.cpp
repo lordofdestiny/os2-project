@@ -8,7 +8,7 @@
 #include "../../h/kernel/ConsoleUtils.h"
 
 void kernel::TrapHandler::incrementPC(){
-    auto runningThread = kernel::TCB::getRunningThread();
+    auto runningThread = TCB::getRunningThread();
     auto pc = (uint64) runningThread->getPC();
     runningThread->setPC((uint64*)(pc + 4));
 }
@@ -25,8 +25,7 @@ void kernel::TrapHandler::instructionErrorHandle() {
 }
 
 void kernel::TrapHandler::systemCallHandle() {
-    using namespace kernel::SystemCalls;
-    using CallType = SystemCalls::CallType;
+    using namespace SystemCalls;
     auto runningThread = TCB::getRunningThread();
     incrementPC();
 
