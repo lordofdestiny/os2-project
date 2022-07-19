@@ -23,7 +23,7 @@ namespace kernel {
         MemoryAllocator::getInstance().deallocateBlocks(ptr);
     }
 
-    void TCB::initializeMainThread() {
+    void TCB::initialize() {
         runningThread = getMainThread();
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }

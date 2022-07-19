@@ -25,7 +25,7 @@ void main() {
 
     //enableInterrupts();
 
-    kernel::TCB::initializeMainThread();
+    kernel::TCB::initialize();
 
     void userMain();
     userMain();

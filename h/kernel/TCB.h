@@ -34,7 +34,7 @@ namespace kernel {
         static void* operator new(size_t size) noexcept;
         static void operator delete(void* ptr) noexcept;
 
-        static void initializeMainThread();
+        static void initialize();
 
         static void tick();
         static void dispatch();
