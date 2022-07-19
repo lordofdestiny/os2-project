@@ -1,7 +1,6 @@
 #include "../h/kernel/BitMasks.h"
 #include "../h/kernel/RegisterUtils.h"
 #include "../h/kernel/TrapHandlers.h"
-#include "../h/kernel/Collector.h"
 #include "../h/kernel/Scheduler.h"
 #include "../h/kernel/TCB.h"
 #include "../h/syscall_c.h"
@@ -29,12 +28,10 @@ void main() {
 
     void userMain();
     userMain();
-    while(Scheduler::getInstance().hasUserThreads()){
+    while (Scheduler::getInstance().hasUserThreads()) {
         thread_dispatch();
     }
 
     //disableInterrupts();
-
-    kernel::Collector::cleanup();
 }
 
