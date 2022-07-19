@@ -6,12 +6,12 @@
 #include "../../h/kernel/MemoryAllocator.h"
 
 namespace kernel {
-    Scheduler& kernel::Scheduler::getInstance() {
+    Scheduler& Scheduler::getInstance() {
         static Scheduler instance{};
         return instance;
     }
 
-    TCB *kernel::Scheduler::get() {
+    TCB *Scheduler::get() {
         if(readyHead == nullptr) return getIdleThread();
 
         auto thread = readyHead;
