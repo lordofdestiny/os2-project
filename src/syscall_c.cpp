@@ -16,27 +16,16 @@ using CallType = SystemCalls::Type;
 auto environmentCall = SystemCalls::environmentCall;
 
 void* mem_alloc(size_t size){
-    size_t blockCount = kernel::MemoryAllocator::byteSizeToBlockCount(size);
-    WRITE_TO_REGISTER(blockCount, a1);
-    asm volatile("li a0, 0x01");
-
-    asm volatile("ecall");
-
-    void* address;
-    READ_FROM_REGISTER(a0,address);
-
-    return address;
+    auto blockCount = MemoryAllocator::byteSizeToBlockCount(size);
+    WRITE_TO_REGISTER(a1, blockCount);
+    environmentCall(CallType::MemoryAllocate);
+    RETURN_AS(void*);
 }
 
 int mem_free(void* address) {
-    WRITE_TO_REGISTER(address,a1);
-    asm volatile("li a0, 0x02");
-
-    asm volatile("ecall");
-
-    int code;
-    READ_FROM_REGISTER(a0, code);
-    return code;
+    WRITE_TO_REGISTER(a1, address);
+    environmentCall(CallType::MemoryFree);
+    RETURN_AS(int);
 }
 
 int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
@@ -48,7 +37,10 @@ int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
     WRITE_TO_REGISTER(a2, start_routine);
     WRITE_TO_REGISTER(a1, handle);
 
-    asm volatile("ecall");
+    environmentCall(CallType::ThreadCreate);
+
+    RETURN_AS(int);
+}
 
 
 int thread_exit() {
@@ -57,6 +49,5 @@ int thread_exit() {
 }
 
 void thread_dispatch() {
-    asm volatile("li a0, 0x13");
-    asm volatile("ecall");
+   environmentCall(CallType::ThreadDispatch);
 }
