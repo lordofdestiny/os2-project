@@ -49,7 +49,7 @@ namespace kernel {
         };
         if(!idleThread) {
             void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
-            idleThread = new TCB(task, nullptr, stack);
+            idleThread = new TCB(task, nullptr, stack, TCB::ThreadType::SYSTEM);
         }
         return idleThread;
     }
