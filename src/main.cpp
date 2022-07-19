@@ -1,37 +1,11 @@
-#include "../h/kernel/BitMasks.h"
-#include "../h/kernel/RegisterUtils.h"
-#include "../h/kernel/TrapHandlers.h"
-#include "../h/kernel/Scheduler.h"
-#include "../h/kernel/TCB.h"
-#include "../h/syscall_c.h"
-#include "../lib/console.h"
-#include "../h/kernel/ConsoleUtils.h"
+#include "../h/kernel/Kernel.h"
 
-void enableInterrupts() {
-    using namespace kernel::BitMasks;
-    SYS_REGISTER_SET_BITS(sstatus, sstatus::SIE);
-}
-
-void disableInterrupts() {
-    using namespace kernel::BitMasks;
-    SYS_REGISTER_CLEAR_BITS(sstatus, sstatus::SIE);
-}
+extern void userMain();
 
 void main() {
     using namespace kernel;
-    // Set main trap handler
-    WRITE_TO_SYS_REGISTER(stvec, &TrapHandlers::supervisorTrap);
-
-    //enableInterrupts();
-
-    kernel::TCB::initialize();
-
-    void userMain();
+    Kernel::initialize();
     userMain();
-    while (Scheduler::getInstance().hasUserThreads()) {
-        thread_dispatch();
-    }
-
-    //disableInterrupts();
+    Kernel::finalize();
 }
 
