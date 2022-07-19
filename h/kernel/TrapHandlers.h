@@ -8,16 +8,7 @@
 #include "BitMasks.h"
 
 namespace kernel {
-    class TrapHandlers{
-    public:
-        TrapHandlers()=delete;
-        static void supervisorTrap() asm("__supervisorTrap__");
-        static void supervisorTrapHandle() asm("__supervisorTrapHandle__");
-
-        static void instructionErrorHandle();
-        static void systemCallHandle();
-        static void incrementPC();
-
+    namespace TrapHandlers{
         enum class TrapType : size_t {
             TimerTrap = (size_t) BitMasks::scause::BNT | 0x01,
             ExternalHardwareTrap = (size_t) BitMasks::scause::BNT | (size_t) 0x09,
@@ -27,6 +18,9 @@ namespace kernel {
             UserEnvironmentCall = 0x08,
             SystemEnvironmentCall = 0x09
         };
+
+        void supervisorTrap() asm("__supervisorTrap__");
+        void supervisorTrapHandle() asm("__supervisorTrapHandle__");
     };
 }
 
