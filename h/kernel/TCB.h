@@ -48,7 +48,7 @@ namespace kernel {
         static ThreadType runningThreadType();
 
         static TCB* mainThread;
-        static TCB* runningThread;
+        static TCB* runningThread asm("__runningThread");
         static time_t runningTimeLeft;
 
         static uint64 threadIdSource;

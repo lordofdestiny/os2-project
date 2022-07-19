@@ -10,7 +10,9 @@
 namespace kernel {
     class TrapHandler{
     public:
-        static void supervisorTrap();
+        TrapHandler()=delete;
+        static void supervisorTrap() asm("__supervisorTrap__");
+        static void supervisorTrapHandle() asm("__supervisorTrapHandle__");
 
         static void instructionErrorHandle();
         static void systemCallHandle();
