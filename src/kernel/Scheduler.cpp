@@ -12,16 +12,19 @@ namespace kernel {
     }
 
     TCB *kernel::Scheduler::get() {
-        if(readyHead == nullptr)return getIdleThread();
+        if(readyHead == nullptr) return getIdleThread();
 
-        auto result = readyHead;
-            readyHead = readyHead->next;
-            if(readyHead == nullptr) {
-                readyTail = nullptr;
-            }
-            result->next= nullptr;
+        auto thread = readyHead;
+        readyHead = readyHead->next;
+        if(readyHead == nullptr) {
+            readyTail = nullptr;
+        }
+        thread->next= nullptr;
+        if(thread->isUserThread()){
+            userThreadCount--;
+        }
 
-        return result;
+        return thread;
     }
 
     void Scheduler::put(kernel::TCB *thread) {
@@ -33,16 +36,26 @@ namespace kernel {
         }else {
             readyTail->next = thread;
         }
+        if(thread->isUserThread()){
+            userThreadCount++;
+        }
         readyTail = thread;
-
     }
 
     TCB* Scheduler::getIdleThread() {
+        auto& allocator = MemoryAllocator::getInstance();
+        auto task = [](void*) {
+            while(true);
+        };
         if(!idleThread) {
-            void* stack = MemoryAllocator::getInstance().allocateBytes(DEFAULT_STACK_SIZE);
-            idleThread = new TCB([](void*){while(true);}, nullptr,stack);
+            void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
+            idleThread = new TCB(task, nullptr, stack, TCB::ThreadType::SYSTEM);
         }
         return idleThread;
+    }
+
+    bool Scheduler::hasUserThreads() const{
+        return userThreadCount != 0;
     }
 
 //    Scheduler::~Scheduler() {

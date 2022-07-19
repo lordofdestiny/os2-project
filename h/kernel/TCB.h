@@ -11,6 +11,10 @@ namespace kernel {
     public:
         using ThreadTask = void(*)(void*);
 
+        enum class ThreadType {
+            USER, SYSTEM
+        };
+
         enum class ThreadStatus {
             CREATED, READY, RUNNING, SLEEPING
         };
@@ -39,6 +43,7 @@ namespace kernel {
         static void taskWrapper();
         static uint64 sstatusGetInitial();
         static uint64* pcGetInitial(ThreadTask function);
+        static ThreadType runningThreadType();
 
         static TCB* mainThread;
         static TCB* runningThread;
@@ -55,12 +60,13 @@ namespace kernel {
         ThreadTask task;
         void* arg;
         uint64* stack;
-        uint64 threadId = threadIdSource++;
-
+        ThreadType type;
         TCB* next = nullptr;
+        uint64 id = threadIdSource++;
         ThreadStatus status = ThreadStatus::READY;
     public:
         TCB(ThreadTask function, void* argument, void* stack);
+        TCB(ThreadTask function, void* argument, void* stack, ThreadType type);
         TCB(TCB const&)=delete;
         TCB& operator=(TCB const&)=delete;
         ~TCB();
@@ -72,6 +78,7 @@ namespace kernel {
         uint64 getsstatus() const ;
         void setStatus(ThreadStatus newStatus);
         ThreadStatus getStatus();
+        bool isUserThread() const;
     };
 
 } // kernel

@@ -6,6 +6,7 @@
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/MemoryAllocator.h"
 #include "../../h/kernel/BitMasks.h"
+#include "../../h/syscall_c.h"
 
 namespace kernel {
     TCB* TCB::runningThread;
@@ -24,15 +25,29 @@ namespace kernel {
         return (uint64*) taskWrapper;
     }
 
+    /* Return to old version once user mode is the default mode */
+    TCB::ThreadType TCB::runningThreadType() {
+        //auto status = runningThread->getsstatus();
+        //return status | (uint64) BitMasks::sstatus::SPP? ThreadType::SYSTEM:ThreadType::USER;
+        return ThreadType::USER;
+    }
+
+    /* Return to a single constructore once user mode is the default mode */
     TCB::TCB(ThreadTask function, void *argument, void *stack) :
-        context(sstatusGetInitial(), pcGetInitial(function)),
-        task(function), arg(argument), stack((size_t*) stack) {
-        auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
-        context.registers.sp = stackTop;
+            TCB::TCB(function,argument,stack, runningThreadType()){ }
+
+    TCB::TCB(ThreadTask function, void *argument, void *stack, ThreadType type) :
+            context(sstatusGetInitial(), pcGetInitial(function)),
+            task(function), arg(argument), stack((size_t*) stack),
+            type(type) {
+        if(stack != nullptr) {
+            auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
+            context.registers.sp = stackTop;
+        }
     }
 
     TCB::ThreadContext::ThreadContext(uint64 status, uint64* pc) :
-            programCounter(pc), sstatus(status), registers() { }
+            programCounter(pc), sstatus(status), registers(){ }
 
     TCB::Registers::Registers() {
         for(int i = 0; i < 32; i++){
@@ -42,7 +57,7 @@ namespace kernel {
 
     void TCB::taskWrapper() {
         runningThread->task(runningThread->arg);
-        // kill thread
+        thread_exit();
     }
 
     void* TCB::operator new(size_t size) {
@@ -69,7 +84,7 @@ namespace kernel {
     }
 
     void TCB::initializeMainThread() {
-        mainThread = new TCB(nullptr, nullptr, nullptr);
+        mainThread = new TCB(nullptr, nullptr, nullptr, ThreadType::USER);
         runningThread = mainThread;
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
@@ -95,7 +110,7 @@ namespace kernel {
     }
 
     uint64 TCB::getThreadId() const {
-        return threadId;
+        return id;
     }
 
     TCB::Registers& TCB::getRegisters() {
@@ -118,5 +133,9 @@ namespace kernel {
     
     TCB::ThreadStatus TCB::getStatus() {
         return status;
+    }
+
+    bool TCB::isUserThread() const{
+        return type == ThreadType::USER;
     }
 } // kernel

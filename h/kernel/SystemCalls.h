@@ -27,19 +27,19 @@ namespace kernel {
         };
 
         static void handle();
-
+        static void environmentCall(Type type) asm("__environmentCall__");
     private:
-    static void mem_alloc();
-    static void mem_free();
-    static void thread_create();
-    static void thread_exit();
-    static void sem_open();
-    static void sem_close();
-    static void sem_wait();
-    static void sem_signal();
-    static void time_sleep();
-    static void getc();
-    static void putc();
+        static void mem_alloc();
+        static void mem_free();
+        static void thread_create();
+        static void thread_exit();
+        static void sem_open();
+        static void sem_close();
+        static void sem_wait();
+        static void sem_signal();
+        static void time_sleep();
+        static void getc();
+        static void putc();
     };
 } // kernel
 

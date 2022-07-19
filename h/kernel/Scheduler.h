@@ -4,27 +4,30 @@
 
 #ifndef PROJECT_SCHEDULER_H
 #define PROJECT_SCHEDULER_H
+
 #include "../../h/kernel/TCB.h"
 
 namespace kernel {
     class Scheduler {
     public:
-        Scheduler(Scheduler const&)=delete;
-        Scheduler& operator=(Scheduler const&)=delete;
+        Scheduler(Scheduler const &) = delete;
+        Scheduler &operator=(Scheduler const &) = delete;
 //        ~Scheduler();
 
-        static Scheduler& getInstance();
+        static Scheduler &getInstance();
 
-        TCB* get();
-        void put(TCB* thread);
+        TCB *get();
+        void put(TCB *thread);
+        bool hasUserThreads() const;
     private:
-        Scheduler()=default;
+        Scheduler() = default;
+        TCB *getIdleThread();
 
         TCB* readyHead = nullptr;
         TCB* readyTail = nullptr;
 //        TCB* sleepingHead = nullptr;
         TCB* idleThread = nullptr;
-        TCB* getIdleThread();
+        size_t userThreadCount = 0;
     };
 }
 
