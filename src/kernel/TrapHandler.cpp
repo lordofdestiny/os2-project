@@ -7,6 +7,12 @@
 #include "../../h/kernel/TCB.h"
 #include "../../h/kernel/ConsoleUtils.h"
 
+void kernel::TrapHandler::incrementPC(){
+    auto runningThread = kernel::TCB::getRunningThread();
+    auto pc = (uint64) runningThread->getPC();
+    runningThread->setPC((uint64*)(pc + 4));
+}
+
 void kernel::TrapHandler::instructionErrorHandle() {
     incrementPC();
     uint64 temp;
@@ -18,6 +24,41 @@ void kernel::TrapHandler::instructionErrorHandle() {
     printReg("stval",temp);
 }
 
+void kernel::TrapHandler::systemCallHandle() {
+    using namespace kernel::SystemCalls;
+    using CallType = SystemCalls::CallType;
+    auto runningThread = TCB::getRunningThread();
+    incrementPC();
+
+    auto type = (CallType) runningThread->getRegisters().a0;
+
+    switch (type) {
+        case CallType::MemoryAllocate:
+            return mem_alloc();
+        case CallType::MemoryFree:
+            return mem_free();
+        case CallType::ThreadCreate:
+            return thread_create();
+        case CallType::ThreadExit:
+            return thread_exit();
+        case CallType::ThreadDispatch:
+            return TCB::dispatch();
+        case CallType::SemaphoreOpen:
+            return sem_open();
+        case CallType::SemaphoreClose:
+            return sem_close();
+        case CallType::SemaphoreWait:
+            return sem_wait();
+        case CallType::SemaphoreSignal:
+            return sem_signal();
+        case CallType::TimeSleep:
+            break;
+        case CallType::GetChar:
+            break;
+        case CallType::PutChar:
+            break;
+    }
+}
 void kernel::TrapHandler::supervisorTrapHandle() {
     using TrapType = TrapHandler::TrapType;
 
@@ -31,17 +72,12 @@ void kernel::TrapHandler::supervisorTrapHandle() {
             break;
         case TrapType::UserEnvironmentCall:
         case TrapType::SystemEnvironmentCall:
-            return kernel::SystemCalls::handle();
+            return systemCallHandle();
         case TrapType::IllegalInstruction:
         case TrapType::IllegalReadAddress:
         case TrapType::IllegalWriteAddress:
+            return instructionErrorHandle();
         default:
-            instructionErrorHandle();
+            break;
     }
-}
-
-void kernel::TrapHandler::incrementPC(){
-    auto runningThread = kernel::TCB::getRunningThread();
-    auto pc = (uint64) runningThread->getPC();
-    runningThread->setPC((uint64*)(pc + 4));
 }

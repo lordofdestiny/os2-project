@@ -16,6 +16,8 @@ namespace kernel {
 
         static void supervisorTrapHandle();
 
+        static void systemCallHandle();
+
         static void incrementPC();
 
         enum class TrapType : size_t {

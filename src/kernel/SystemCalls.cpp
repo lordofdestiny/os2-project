@@ -10,7 +10,7 @@
 #include "../../h/kernel/TrapHandler.h"
 #include "../../h/kernel/Semaphore.h"
 
-#define EXIT_IF(test, value)        \
+#define RETURN_IF(test, value)        \
     do{                             \
         if((test)) {                \
             registers.a0 = value;   \
@@ -39,18 +39,18 @@ void kernel::SystemCalls::thread_create() {
     auto task = (TCB::ThreadTask) registers.a2;
     auto argument = (void *) registers.a3;
     auto stack = (void *) registers.a4;
-
     auto thread = new TCB(task, argument, stack);
-    EXIT_IF(thread == nullptr, -0x01);
+    RETURN_IF(thread == nullptr, -0x01);
     *handle = (thread_t) thread;
     Scheduler::getInstance().put(thread);
     registers.a0 = 0x00;
 }
 
 void kernel::SystemCalls::thread_exit() { // Handle if attempting to exit main
-    auto &registers = TCB::runningThread->getRegisters();
-    EXIT_IF(TCB::runningThread == TCB::mainThread, -0x01);
-    delete TCB::runningThread;
+    auto runningThread = TCB::getRunningThread();
+    auto &registers = runningThread->getRegisters();
+    RETURN_IF(runningThread == TCB::getMainThread(), -0x01);
+    delete runningThread;
     TCB::dispatch();
     registers.a0 = 0x00;
 }
@@ -60,7 +60,7 @@ void kernel::SystemCalls::sem_open() {
     auto init = (unsigned ) registers.a2;
     auto handle = (sem_t *) registers.a1;
     auto semaphore = new Semaphore((int) init);
-    EXIT_IF(semaphore == nullptr, -0x01);
+    RETURN_IF(semaphore == nullptr, -0x01);
     *handle = (sem_t) semaphore;
     registers.a0 = 0x00;
 }
@@ -68,7 +68,7 @@ void kernel::SystemCalls::sem_open() {
 void kernel::SystemCalls::sem_close() {
     auto &registers = TCB::getRunningThread()->getRegisters();
     auto handle = (Semaphore*) registers.a1;
-    EXIT_IF(handle == nullptr, -0x01);
+    RETURN_IF(handle == nullptr, -0x01);
     delete handle;
     registers.a0 = 0x00;
 }
@@ -76,7 +76,7 @@ void kernel::SystemCalls::sem_close() {
 void kernel::SystemCalls::sem_wait() {
     auto &registers = TCB::getRunningThread()->getRegisters();
     auto id = (Semaphore*) registers.a1;
-    EXIT_IF(id == nullptr, -0x01);
+    RETURN_IF(id == nullptr, -0x01);
     registers.a0 = 0x00;
     id->wait();
 }
@@ -84,41 +84,7 @@ void kernel::SystemCalls::sem_wait() {
 void kernel::SystemCalls::sem_signal() {
     auto &registers = TCB::getRunningThread()->getRegisters();
     auto id = (Semaphore*) registers.a1;
-    EXIT_IF(id == nullptr, -0x01);
+    RETURN_IF(id == nullptr, -0x01);
     registers.a0 = 0x00;
     id->signal();
-}
-
-
-void kernel::SystemCalls::handle() {
-    kernel::TrapHandler::incrementPC();
-
-    auto type = (Type) TCB::getRunningThread()->getRegisters().a0;
-
-    switch (type) {
-        case Type::MemoryAllocate:
-            return mem_alloc();
-        case Type::MemoryFree:
-            return mem_free();
-        case Type::ThreadCreate:
-            return thread_create();
-        case Type::ThreadExit:
-            return thread_exit();
-        case Type::ThreadDispatch:
-            return TCB::dispatch();
-        case Type::SemaphoreOpen:
-            return sem_open();
-        case Type::SemaphoreClose:
-            return sem_close();
-        case Type::SemaphoreWait:
-            return sem_wait();
-        case Type::SemaphoreSignal:
-            return sem_signal();
-        case Type::TimeSleep:
-            break;
-        case Type::GetChar:
-            break;
-        case Type::PutChar:
-            break;
-    }
 }

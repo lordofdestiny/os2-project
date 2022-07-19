@@ -10,10 +10,9 @@
         return (type) value;            \
    }while(0)                            \
 
-using kernel::SystemCalls;
+namespace SystemCalls = kernel::SystemCalls;
+using CallType = SystemCalls::CallType;
 using kernel::MemoryAllocator;
-using CallType = SystemCalls::Type;
-auto environmentCall = SystemCalls::environmentCall;
 
 void* mem_alloc(size_t size){
     auto blockCount = MemoryAllocator::byteSizeToBlockCount(size);

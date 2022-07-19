@@ -6,12 +6,8 @@
 #define PROJECT_SYSTEMCALLS_H
 
 namespace kernel {
-    class SystemCalls {
-    public:
-        SystemCalls()=delete;
-        SystemCalls(SystemCalls const&)=delete;
-        SystemCalls& operator=(SystemCalls const&)=delete;
-        enum class Type {
+    namespace SystemCalls {
+        enum class CallType {
             MemoryAllocate = 0x01,
             MemoryFree = 0x02,
             ThreadCreate = 0x11,
@@ -25,21 +21,19 @@ namespace kernel {
             GetChar = 0x41,
             PutChar = 0x42
         };
-
-        static void handle();
-        static void environmentCall(Type type) asm("__environmentCall__");
-    private:
-        static void mem_alloc();
-        static void mem_free();
-        static void thread_create();
-        static void thread_exit();
-        static void sem_open();
-        static void sem_close();
-        static void sem_wait();
-        static void sem_signal();
-        static void time_sleep();
-        static void getc();
-        static void putc();
+        void handle();
+        void mem_alloc();
+        void mem_free();
+        void thread_create();
+        void thread_exit();
+        void sem_open();
+        void sem_close();
+        void sem_wait();
+        void sem_signal();
+        void time_sleep();
+        void getc();
+        void putc();
+        void environmentCall(CallType type) asm("__environmentCall__");
     };
 } // kernel
 

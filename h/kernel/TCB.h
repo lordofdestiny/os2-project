@@ -20,7 +20,6 @@ namespace kernel {
         };
 
         friend class Scheduler;
-        friend class SystemCalls;
         friend class Semaphore;
 
         struct Registers{
