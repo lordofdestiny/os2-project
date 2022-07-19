@@ -12,7 +12,6 @@ namespace kernel {
     public:
         Scheduler(Scheduler const &) = delete;
         Scheduler &operator=(Scheduler const &) = delete;
-//        ~Scheduler();
 
         static Scheduler &getInstance();
 

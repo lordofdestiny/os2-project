@@ -1,5 +1,5 @@
 build
-.idea
-kernel.asm
-kernel
-.gdbinit
+ .idea
+ kernel.asm
+ kernel
+ .gdbinit

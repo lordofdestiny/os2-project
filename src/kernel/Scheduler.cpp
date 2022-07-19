@@ -36,10 +36,11 @@ namespace kernel {
         }else {
             readyTail->next = thread;
         }
+        readyTail = thread;
+
         if(thread->isUserThread()){
             userThreadCount++;
         }
-        readyTail = thread;
     }
 
     TCB* Scheduler::getIdleThread() {
@@ -57,10 +58,4 @@ namespace kernel {
     bool Scheduler::hasUserThreads() const{
         return userThreadCount != 0;
     }
-
-//    Scheduler::~Scheduler() {
-//        if(idleThread != nullptr) {
-//            // Delete idle thread
-//        }
-//    }
 }

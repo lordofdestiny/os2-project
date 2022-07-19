@@ -16,11 +16,12 @@ namespace kernel {
         };
 
         enum class ThreadStatus {
-            CREATED, READY, RUNNING, SLEEPING
+            CREATED, READY, RUNNING, BLOCKED
         };
 
         friend class Scheduler;
         friend class SystemCalls;
+        friend class Semaphore;
 
         struct Registers{
             uint64 zero, ra, sp, gp, tp, t0, t1, t2,
@@ -30,17 +31,18 @@ namespace kernel {
             Registers();
         };
     public:
+        static void* operator new(size_t size) noexcept;
+        static void operator delete(void* ptr) noexcept;
+
         static void initializeMainThread();
 
         static void tick();
         static void dispatch();
 
         static TCB* getRunningThread();
-
-        static void* operator new(size_t size);
-        static void operator delete(void* ptr) noexcept;
     private:
         static void taskWrapper();
+
         static uint64 sstatusGetInitial();
         static uint64* pcGetInitial(ThreadTask function);
         static ThreadType runningThreadType();
@@ -52,7 +54,7 @@ namespace kernel {
         static uint64 threadIdSource;
     private:
         struct ThreadContext {
-            uint64* programCounter = nullptr;
+            uint64* pc = nullptr;
             uint64 sstatus;
             Registers registers;
             explicit ThreadContext(uint64 status = 0, uint64* pc = nullptr);
@@ -71,16 +73,15 @@ namespace kernel {
         TCB& operator=(TCB const&)=delete;
         ~TCB();
 
-        uint64 getThreadId() const;
-        Registers& getRegisters();
-        uint64* getPC() const;
-        void setPC(uint64* value);
-        uint64 getsstatus() const ;
-        void setStatus(ThreadStatus newStatus);
-        ThreadStatus getStatus();
-        bool isUserThread() const;
+        uint64 getThreadId() const { return id; }
+        Registers& getRegisters() { return context.registers; }
+        uint64* getPC() const { return context.pc; }
+        void setPC(uint64* value) { context.pc = value; }
+        uint64 getsstatus() const{ return context.sstatus; }
+        void setStatus(ThreadStatus value) { status = value; };
+        ThreadStatus getStatus() { return status; };
+        bool isUserThread() const { return type == ThreadType::USER; }
     };
-
 } // kernel
 
 #endif //PROJECT_TCB_H
