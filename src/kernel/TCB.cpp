@@ -110,7 +110,7 @@ namespace kernel {
     }
 
     uint64 TCB::getThreadId() const {
-        return threadId;
+        return id;
     }
 
     TCB::Registers& TCB::getRegisters() {
@@ -136,6 +136,6 @@ namespace kernel {
     }
 
     bool TCB::isUserThread() const{
-        return threadType == ThreadType::USER;
+        return type == ThreadType::USER;
     }
 } // kernel
