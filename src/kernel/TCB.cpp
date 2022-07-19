@@ -84,7 +84,7 @@ namespace kernel {
     }
 
     void TCB::initializeMainThread() {
-        mainThread = new TCB(nullptr, nullptr, nullptr);
+        mainThread = new TCB(nullptr, nullptr, nullptr, ThreadType::USER);
         runningThread = mainThread;
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
