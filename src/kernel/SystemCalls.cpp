@@ -7,7 +7,7 @@
 #include "../../h/kernel/TCB.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/syscall_c.h"
-#include "../../h/kernel/TrapHandler.h"
+#include "../../h/kernel/TrapHandlers.h"
 #include "../../h/kernel/Semaphore.h"
 
 #define RETURN_IF(test, value)        \

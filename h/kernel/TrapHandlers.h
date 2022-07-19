@@ -2,15 +2,15 @@
 // Created by os on 7/16/22.
 //
 
-#ifndef PROJECT_TRAPHANDLER_H
-#define PROJECT_TRAPHANDLER_H
+#ifndef PROJECT_TRAPHANDLERS_H
+#define PROJECT_TRAPHANDLERS_H
 #include "../../lib/hw.h"
 #include "BitMasks.h"
 
 namespace kernel {
-    class TrapHandler{
+    class TrapHandlers{
     public:
-        TrapHandler()=delete;
+        TrapHandlers()=delete;
         static void supervisorTrap() asm("__supervisorTrap__");
         static void supervisorTrapHandle() asm("__supervisorTrapHandle__");
 
@@ -30,4 +30,4 @@ namespace kernel {
     };
 }
 
-#endif //PROJECT_TRAPHANDLER_H
+#endif //PROJECT_TRAPHANDLERS_H

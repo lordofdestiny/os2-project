@@ -1,6 +1,6 @@
 #include "../h/kernel/BitMasks.h"
 #include "../h/kernel/RegisterUtils.h"
-#include "../h/kernel/TrapHandler.h"
+#include "../h/kernel/TrapHandlers.h"
 #include "../h/kernel/Collector.h"
 #include "../h/kernel/Scheduler.h"
 #include "../h/kernel/TCB.h"
@@ -21,7 +21,7 @@ void disableInterrupts() {
 void main() {
     using namespace kernel;
     // Set main trap handler
-    WRITE_TO_SYS_REGISTER(stvec, &TrapHandler::supervisorTrap);
+    WRITE_TO_SYS_REGISTER(stvec, &TrapHandlers::supervisorTrap);
 
     //enableInterrupts();
 

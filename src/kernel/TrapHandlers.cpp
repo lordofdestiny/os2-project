@@ -2,18 +2,18 @@
 // Created by os on 7/16/22.
 //
 #include "../../h/kernel/SystemCalls.h"
-#include "../../h/kernel/TrapHandler.h"
+#include "../../h/kernel/TrapHandlers.h"
 #include "../../h/kernel/RegisterUtils.h"
 #include "../../h/kernel/TCB.h"
 #include "../../h/kernel/ConsoleUtils.h"
 
-void kernel::TrapHandler::incrementPC(){
+void kernel::TrapHandlers::incrementPC(){
     auto runningThread = TCB::getRunningThread();
     auto pc = (uint64) runningThread->getPC();
     runningThread->setPC((uint64*)(pc + 4));
 }
 
-void kernel::TrapHandler::instructionErrorHandle() {
+void kernel::TrapHandlers::instructionErrorHandle() {
     incrementPC();
     uint64 temp;
     asm volatile("csrr %0, scause":"=r"(temp));
@@ -24,7 +24,7 @@ void kernel::TrapHandler::instructionErrorHandle() {
     printReg("stval",temp);
 }
 
-void kernel::TrapHandler::systemCallHandle() {
+void kernel::TrapHandlers::systemCallHandle() {
     using namespace SystemCalls;
     auto runningThread = TCB::getRunningThread();
     incrementPC();
@@ -58,8 +58,8 @@ void kernel::TrapHandler::systemCallHandle() {
             break;
     }
 }
-void kernel::TrapHandler::supervisorTrapHandle() {
-    using TrapType = TrapHandler::TrapType;
+void kernel::TrapHandlers::supervisorTrapHandle() {
+    using TrapType = TrapHandlers::TrapType;
 
     TrapType trapCause;
     READ_FROM_SYS_REGISTER(scause, trapCause);
