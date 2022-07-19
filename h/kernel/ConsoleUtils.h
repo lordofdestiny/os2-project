@@ -13,5 +13,4 @@ void printHex(uint64 num);
 
 void printReg(const char* name, uint64 value);
 
-
 #endif //PROJECT_CONSOLEUTILS_H

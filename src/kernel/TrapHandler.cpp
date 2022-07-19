@@ -7,7 +7,6 @@
 #include "../../h/kernel/TCB.h"
 #include "../../h/kernel/ConsoleUtils.h"
 
-
 void kernel::TrapHandler::instructionErrorHandle() {
     incrementPC();
     uint64 temp;

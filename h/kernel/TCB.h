@@ -81,7 +81,6 @@ namespace kernel {
         ThreadStatus getStatus() { return status; };
         bool isUserThread() const { return type == ThreadType::USER; }
     };
-
 } // kernel
 
 #endif //PROJECT_TCB_H
