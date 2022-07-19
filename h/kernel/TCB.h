@@ -16,7 +16,7 @@ namespace kernel {
         };
 
         enum class ThreadStatus {
-            CREATED, READY, RUNNING, SLEEPING
+            CREATED, READY, RUNNING, BLOCKED
         };
 
         friend class Scheduler;

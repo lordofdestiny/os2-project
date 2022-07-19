@@ -38,7 +38,7 @@ namespace kernel {
 
         auto oldThread = runningThread;
 
-        if (oldThread && oldThread->status != ThreadStatus::SLEEPING) {
+        if (oldThread && oldThread->status != ThreadStatus::BLOCKED) {
             scheduler.put(oldThread);
         }
 
