@@ -24,8 +24,7 @@ namespace kernel {
     }
 
     void TCB::initializeMainThread() {
-        mainThread = new TCB(nullptr, nullptr, nullptr, ThreadType::USER);
-        runningThread = mainThread;
+        runningThread = getMainThread();
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
 
@@ -49,7 +48,14 @@ namespace kernel {
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
 
-    TCB *TCB::getRunningThread() {
+    TCB* TCB::getMainThread() {
+        if(mainThread == nullptr) {
+            mainThread = new TCB(nullptr, nullptr, nullptr, ThreadType::USER);
+        }
+        return mainThread;
+    }
+
+    TCB* TCB::getRunningThread() {
         return runningThread;
     }
 

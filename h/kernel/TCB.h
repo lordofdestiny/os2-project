@@ -39,6 +39,7 @@ namespace kernel {
         static void tick();
         static void dispatch();
 
+        static TCB* getMainThread();
         static TCB* getRunningThread();
     private:
         static void taskWrapper();
