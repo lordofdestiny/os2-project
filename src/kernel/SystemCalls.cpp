@@ -9,7 +9,6 @@
 #include "../../h/syscall_c.h"
 #include "../../h/kernel/TrapHandler.h"
 
-
 void kernel::SystemCalls::mem_alloc() {
     auto &registers = TCB::getRunningThread()->getRegisters();
     size_t blockCount = registers.a1;
@@ -82,5 +81,4 @@ void kernel::SystemCalls::handle() {
         case Type::PutChar:
             break;
     }
-
 }
