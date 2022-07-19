@@ -31,7 +31,7 @@ namespace kernel {
             Registers();
         };
     public:
-        static void* operator new(size_t size);
+        static void* operator new(size_t size) noexcept;
         static void operator delete(void* ptr) noexcept;
 
         static void initializeMainThread();

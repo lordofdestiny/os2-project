@@ -14,7 +14,7 @@ namespace kernel {
     TCB* TCB::mainThread;
     uint64 TCB::threadIdSource = 0;
 
-    void* TCB::operator new(size_t size) {
+    void* TCB::operator new(size_t size) noexcept {
         auto blocks = MemoryAllocator::byteSizeToBlockCount(size);
         return MemoryAllocator::getInstance().allocateBlocks(blocks);
     }
