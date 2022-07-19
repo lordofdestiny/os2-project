@@ -9,9 +9,9 @@
 #include "../../h/syscall_c.h"
 
 namespace kernel {
-    TCB* TCB::runningThread;
-    time_t TCB::runningTimeLeft;
-    TCB* TCB::mainThread;
+    TCB* TCB::mainThread = nullptr;
+    TCB* TCB::runningThread = nullptr;
+    time_t TCB::runningTimeLeft = DEFAULT_TIME_SLICE;
     uint64 TCB::threadIdSource = 0;
 
     void* TCB::operator new(size_t size) noexcept {
