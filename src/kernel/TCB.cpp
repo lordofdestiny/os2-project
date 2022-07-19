@@ -25,9 +25,11 @@ namespace kernel {
         return (uint64*) taskWrapper;
     }
 
+    /* Return to old version once user mode is the default mode */
     TCB::ThreadType TCB::runningThreadType() {
-        auto status = runningThread->getsstatus();
-        return status | (uint64) BitMasks::sstatus::SPP?ThreadType::SYSTEM:ThreadType::USER;
+        //auto status = runningThread->getsstatus();
+        //return status | (uint64) BitMasks::sstatus::SPP? ThreadType::SYSTEM:ThreadType::USER;
+        return ThreadType::USER;
     }
 
     /* Return to a single constructore once user mode is the default mode */
