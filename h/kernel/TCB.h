@@ -21,6 +21,7 @@ namespace kernel {
 
         friend class Scheduler;
         friend class SystemCalls;
+        friend class Semaphore;
 
         struct Registers{
             uint64 zero, ra, sp, gp, tp, t0, t1, t2,
