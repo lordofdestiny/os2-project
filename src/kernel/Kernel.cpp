@@ -13,7 +13,7 @@ namespace kernel {
 
     void Kernel::initialize() {
         setTrapHandler();
-        TCB::initialize();
+        Thread::initialize();
         enableInterrupts();
     }
 

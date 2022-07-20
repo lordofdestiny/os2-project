@@ -91,6 +91,7 @@ void userMain() {
         data->done[2] = true;
     }, &data);
 
+
     while(!data.done[0] && !data.done[1] && !data.done[2]){
         thread_dispatch();
     }

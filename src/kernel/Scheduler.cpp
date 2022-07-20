@@ -11,7 +11,7 @@ namespace kernel {
         return instance;
     }
 
-    TCB *Scheduler::get() {
+    Thread *Scheduler::get() {
         if(readyHead == nullptr) return getIdleThread();
 
         auto thread = readyHead;
@@ -27,10 +27,10 @@ namespace kernel {
         return thread;
     }
 
-    void Scheduler::put(kernel::TCB *thread) {
+    void Scheduler::put(kernel::Thread *thread) {
         if(thread == idleThread) return;
 
-        thread->status = TCB::ThreadStatus::READY;
+        thread->status = Thread::Status::READY;
         if(readyHead == nullptr) {
             readyHead = thread;
         }else {
@@ -43,14 +43,14 @@ namespace kernel {
         }
     }
 
-    TCB* Scheduler::getIdleThread() {
-        auto& allocator = MemoryAllocator::getInstance();
-        auto task = [](void*) {
-            while(true);
-        };
+    Thread* Scheduler::getIdleThread() {
         if(!idleThread) {
+            auto& allocator = MemoryAllocator::getInstance();
             void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
-            idleThread = new TCB(task, nullptr, stack, TCB::ThreadType::SYSTEM);
+            auto task = [](void*) {
+                while(true);
+            };
+            idleThread = new Thread(task, nullptr, stack, Thread::Owner::SYSTEM);
         }
         return idleThread;
     }

@@ -4,15 +4,15 @@
 #include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/TrapHandlers.h"
 #include "../../h/kernel/RegisterUtils.h"
-#include "../../h/kernel/TCB.h"
+#include "../../h/kernel/Thread.h"
 #include "../../h/kernel/ConsoleUtils.h"
 
 namespace kernel {
     namespace TrapHandlers {
         void incrementPC() {
-            auto runningThread = TCB::getRunningThread();
+            auto runningThread = Thread::getRunning();
             auto pc = (uint64) runningThread->getPC();
-            runningThread->setPC((uint64 *) (pc + 4));
+            runningThread->setPC(pc + 4);
         }
 
         void instructionErrorHandle() {
@@ -27,14 +27,16 @@ namespace kernel {
         }
 
         void timerHandler() {
-            TCB::tick();
+            Thread::tick();
             SYS_REGISTER_CLEAR_BITS(sip,BitMasks::sip::SSIP);
         }
 
         void systemCallHandle() {
             using namespace SystemCalls;
-            auto runningThread = TCB::getRunningThread();
-            auto type = (CallType) runningThread->getRegisters().a0;
+            auto runningThread = Thread::getRunning();
+            auto type = (CallType) runningThread->getConetxt().getRegisters().a0;
+
+            incrementPC();
 
             switch (type) {
                 case CallType::MemoryAllocate:
@@ -46,7 +48,7 @@ namespace kernel {
                 case CallType::ThreadExit:
                     return thread_exit();
                 case CallType::ThreadDispatch:
-                    return TCB::dispatch();
+                    return Thread::dispatch();
                 case CallType::SemaphoreOpen:
                     return sem_open();
                 case CallType::SemaphoreClose:
@@ -62,8 +64,6 @@ namespace kernel {
                 case CallType::PutChar:
                     break;
             }
-
-            incrementPC();
         }
 
         void supervisorTrapHandle() {

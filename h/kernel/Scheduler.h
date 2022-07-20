@@ -5,7 +5,7 @@
 #ifndef PROJECT_SCHEDULER_H
 #define PROJECT_SCHEDULER_H
 
-#include "../../h/kernel/TCB.h"
+#include "../../h/kernel/Thread.h"
 
 namespace kernel {
     class Scheduler {
@@ -15,17 +15,17 @@ namespace kernel {
 
         static Scheduler &getInstance();
 
-        TCB *get();
-        void put(TCB *thread);
+        Thread *get();
+        void put(Thread *thread);
         bool hasUserThreads() const;
     private:
         Scheduler() = default;
-        TCB *getIdleThread();
+        Thread *getIdleThread();
 
-        TCB* readyHead = nullptr;
-        TCB* readyTail = nullptr;
-//        TCB* sleepingHead = nullptr;
-        TCB* idleThread = nullptr;
+        Thread* readyHead = nullptr;
+        Thread* readyTail = nullptr;
+//        Thread* sleepingHead = nullptr;
+        Thread* idleThread = nullptr;
         size_t userThreadCount = 0;
     };
 }
