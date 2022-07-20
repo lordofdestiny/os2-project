@@ -9,27 +9,40 @@
 
 namespace kernel {
     namespace TrapHandlers {
-        void instructionErrorHandle() {
+        void defaultErrorHandler() {
             uint64 temp;
-            asm volatile("csrr %0, scause":"=r"(temp));
+            SREGISTER_READ(scause, temp);
             printReg("scause", temp);
-            asm volatile("csrr  %0, sepc":"=r"(temp));
+            SREGISTER_READ(sepc, temp);
             printReg("sepc", temp);
-            asm volatile("csrr %0, stval":"=r"(temp));
+            SREGISTER_READ(stval, temp);
             printReg("stval", temp);
+        }
+
+        static Handler errorHandler = defaultErrorHandler;
+
+        void setErrorHandler(Handler handler) {
+            errorHandler = handler;
+        }
+
+        void instructionErrorHandler() {
+            errorHandler();
+            if(errorHandler == &defaultErrorHandler){
+                Thread::getRunning()->skipInstruction();
+            }
         }
 
         void timerHandler() {
             Thread::tick();
-            SYS_REGISTER_CLEAR_BITS(sip,BitMasks::sip::SSIP);
+            SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
         }
 
-        void systemCallHandle() {
+        void systemCallHandler() {
             using namespace SystemCalls;
             auto runningThread = Thread::getRunning();
             auto type = (CallType) runningThread->getContext().getRegisters().a0;
 
-            Thread::getRunning()->skipInstruction();
+            runningThread->skipInstruction();
 
             switch (type) {
                 case CallType::MemoryAllocate:
@@ -63,7 +76,7 @@ namespace kernel {
             using TrapType = TrapHandlers::TrapType;
 
             TrapType trapCause;
-            READ_FROM_SYS_REGISTER(scause, trapCause);
+            SREGISTER_READ(scause, trapCause);
 
             switch (trapCause) {
                 case TrapType::TimerTrap:
@@ -72,11 +85,11 @@ namespace kernel {
                     break;
                 case TrapType::UserEnvironmentCall:
                 case TrapType::SystemEnvironmentCall:
-                    return systemCallHandle();
+                    return systemCallHandler();
                 case TrapType::IllegalInstruction:
                 case TrapType::IllegalReadAddress:
                 case TrapType::IllegalWriteAddress:
-                    return instructionErrorHandle();
+                    return instructionErrorHandler();
                 default:
                     break;
             }

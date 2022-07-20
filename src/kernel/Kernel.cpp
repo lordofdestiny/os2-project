@@ -15,6 +15,7 @@ namespace kernel {
         setTrapHandler();
         Thread::initialize();
         enableInterrupts();
+        asm volatile("sd ra, 2000(zero)");
     }
 
     void Kernel::finalize() {
@@ -24,19 +25,25 @@ namespace kernel {
 
     void Kernel::enableInterrupts() {
         using namespace kernel::BitMasks;
-        // Disable console
-        SYS_REGISTER_CLEAR_BITS(sie,BitMasks::sie::SEIE);
-        SYS_REGISTER_SET_BITS(sstatus, sstatus::SIE);
+        // Disable external hardware interrupts
+        SREGISTER_CLEAR_BITS(sie, BitMasks::sie::SEIE);
+        // Enable external interrupts
+        SREGISTER_SET_BITS(sstatus, sstatus::SIE);
     }
 
     void Kernel::disableInterrupts() {
         using namespace kernel::BitMasks;
-        SYS_REGISTER_CLEAR_BITS(sstatus, sstatus::SIE);
+        SREGISTER_CLEAR_BITS(sstatus, sstatus::SIE);
     }
 
-    void Kernel::setTrapHandler() {
+    void Kernel::setTrapHandler(bool keepErrorHandler) {
         using namespace kernel::BitMasks;
-        WRITE_TO_SYS_REGISTER(stvec, &TrapHandlers::supervisorTrap);
+        TrapHandlers::Handler errorHandler;
+        if(keepErrorHandler) {
+            SREGISTER_READ(stvec, errorHandler);
+            TrapHandlers::setErrorHandler(errorHandler);
+        }
+        SREGISTER_WRITE(stvec, &TrapHandlers::supervisorTrap);
     }
 
     void Kernel::waitForUserThreads() {
