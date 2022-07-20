@@ -29,6 +29,7 @@ void userMain() {
 
     thread_t thread2;
     thread_create(&thread2, [](void *) {
+        while(true);
         thread_exit();
         printString("Hello from B!\n");
         thread_dispatch();
