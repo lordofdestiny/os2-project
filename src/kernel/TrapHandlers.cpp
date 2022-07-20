@@ -26,6 +26,10 @@ namespace kernel {
             printReg("stval", temp);
         }
 
+        void timerHandler() {
+            TCB::tick();
+            SYS_REGISTER_CLEAR_BITS(sip,BitMasks::sip::SSIP);
+        }
 
         void systemCallHandle() {
             using namespace SystemCalls;
@@ -70,7 +74,7 @@ namespace kernel {
 
             switch (trapCause) {
                 case TrapType::TimerTrap:
-                    break;
+                    return timerHandler();
                 case TrapType::ExternalHardwareTrap:
                     break;
                 case TrapType::UserEnvironmentCall:
