@@ -12,18 +12,20 @@ namespace kernel {
     void* Kernel::kernelStackTopAddress= (void*)((uint64) &Kernel::kernelStack + stackSize);
 
     void Kernel::initialize() {
-        // enableInterrupts();
         setTrapHandler();
         TCB::initialize();
+        enableInterrupts();
     }
 
     void Kernel::finalize() {
         waitForUserThreads();
-        // disableInterrupts();
+        disableInterrupts();
     }
 
     void Kernel::enableInterrupts() {
         using namespace kernel::BitMasks;
+        // Disable console
+        SYS_REGISTER_CLEAR_BITS(sie,BitMasks::sie::SEIE);
         SYS_REGISTER_SET_BITS(sstatus, sstatus::SIE);
     }
 
