@@ -34,8 +34,6 @@ namespace kernel {
         void systemCallHandle() {
             using namespace SystemCalls;
             auto runningThread = TCB::getRunningThread();
-            incrementPC();
-
             auto type = (CallType) runningThread->getRegisters().a0;
 
             switch (type) {
@@ -64,6 +62,8 @@ namespace kernel {
                 case CallType::PutChar:
                     break;
             }
+
+            incrementPC();
         }
 
         void supervisorTrapHandle() {
