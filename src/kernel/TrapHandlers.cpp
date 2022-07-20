@@ -9,14 +9,7 @@
 
 namespace kernel {
     namespace TrapHandlers {
-        void incrementPC() {
-            auto runningThread = Thread::getRunning();
-            auto pc = (uint64) runningThread->getPC();
-            runningThread->setPC(pc + 4);
-        }
-
         void instructionErrorHandle() {
-            incrementPC();
             uint64 temp;
             asm volatile("csrr %0, scause":"=r"(temp));
             printReg("scause", temp);
@@ -34,9 +27,9 @@ namespace kernel {
         void systemCallHandle() {
             using namespace SystemCalls;
             auto runningThread = Thread::getRunning();
-            auto type = (CallType) runningThread->getConetxt().getRegisters().a0;
+            auto type = (CallType) runningThread->getContext().getRegisters().a0;
 
-            incrementPC();
+            Thread::getRunning()->skipInstruction();
 
             switch (type) {
                 case CallType::MemoryAllocate:

@@ -65,13 +65,17 @@ namespace kernel {
 
     Thread* Thread::getMainThread() {
         if(mainThread == nullptr) {
-            mainThread = new Thread(0x00, nullptr, nullptr, Owner::USER);
+            mainThread = new Thread(nullptr, nullptr, nullptr, Owner::USER);
         }
         return mainThread;
     }
 
     Thread* Thread::getRunning() {
         return runningThread;
+    }
+
+    void Thread::shelveRunning() {
+        runningThread = nullptr;
     }
 
     void Thread::taskWrapper() {
@@ -83,10 +87,10 @@ namespace kernel {
         if(runningThread == nullptr) return 0;
         using BitMasks::sstatus;
         auto mask = (uint64)sstatus::SPP | (uint64) sstatus::SPIE;
-        return runningThread->getsstatus() & mask;
+        return runningThread->getContext().getsstatus() & mask;
     }
 
-    uint64 Thread::pcGetInitial(TTask function) {
+    uint64 Thread::pcGetInitial(Task function) {
         if(function == nullptr) return 0x00;
         return (uint64) taskWrapper;
     }
@@ -99,10 +103,10 @@ namespace kernel {
     }
 
     /* Return to a single constructore once user mode is the default mode */
-    Thread::Thread(TTask function, void *argument, void *stack) :
+    Thread::Thread(Task function, void *argument, void *stack) :
             Thread::Thread(function, argument, stack, runningThreadOwner()){ }
 
-    Thread::Thread(TTask function, void *argument, void *stack, Owner type) :
+    Thread::Thread(Task function, void *argument, void *stack, Owner type) :
             context( pcGetInitial(function), sstatusGetInitial()),
             task(function), arg(argument), stack((size_t*) stack),
             owner(type) {

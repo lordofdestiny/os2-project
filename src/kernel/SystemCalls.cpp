@@ -21,7 +21,7 @@
 namespace kernel {
     namespace SystemCalls {
         Thread::Context::Registers& getRunningThreadRegisters() {
-            return Thread::getRunning()->getConetxt().getRegisters();
+            return Thread::getRunning()->getContext().getRegisters();
         }
 
         void mem_alloc() {
@@ -42,7 +42,7 @@ namespace kernel {
             auto &registers = getRunningThreadRegisters();
 
             auto handle = (thread_t *) registers.a1;
-            auto task = (Thread::TTask) registers.a2;
+            auto task = (Thread::Task) registers.a2;
             auto argument = (void *) registers.a3;
             auto stack = (void *) registers.a4;
             auto thread = new Thread(task, argument, stack);

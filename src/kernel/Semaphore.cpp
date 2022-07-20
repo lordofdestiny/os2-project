@@ -25,9 +25,9 @@ namespace kernel {
         auto& scheduler = Scheduler::getInstance();
         auto curr = head;
         while(curr != nullptr) {
-            curr->getConetxt().getRegisters().a0 = -0x02;
+            curr->getContext().getRegisters().a0 = -0x02;
             scheduler.put(curr);
-            curr=curr->next;
+            curr=curr->getNext();
         }
     }
 
@@ -41,7 +41,7 @@ namespace kernel {
 
     void Semaphore::block() {
         auto thread = Thread::getRunning();
-        Thread::runningThread = nullptr;
+        Thread::shelveRunning();
         thread->setStatus(Thread::Status::BLOCKED);
         enqueue(thread);
         Thread::dispatch();
@@ -53,24 +53,24 @@ namespace kernel {
         Scheduler::getInstance().put(thread);
     }
 
-    void Semaphore::enqueue(Thread *thead) {
+    void Semaphore::enqueue(Thread *thread) {
 
         if(head == nullptr){
-            head = thead;
+            head = thread;
         }else{
-            tail->next = thead;
+            tail->setNext(thread);
         }
-        tail = thead;
+        tail = thread;
     }
 
     Thread *Semaphore::dequeue() {
         if(head == nullptr) return nullptr;
         auto thread = head;
-        head = head->next;
+        head = head->getNext();
         if(head == nullptr){
             tail = nullptr;
         }
-        thread->next= nullptr;
+        thread->setNext(nullptr);
         return thread;
     }
 } // kernel

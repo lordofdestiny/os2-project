@@ -10,10 +10,7 @@
 namespace kernel {
     class Thread {
     public:
-        friend class Scheduler;
-        friend class Semaphore;
-
-        using TTask = void(*)(void*);
+        using Task = void(*)(void*);
 
         enum class Owner {
             USER, SYSTEM
@@ -40,6 +37,12 @@ namespace kernel {
         public:
             explicit Context(uint64 pc = 0x00, uint64 status = 0);
             Registers& getRegisters() { return registers; }
+
+            uint64 getPC() const { return pc; }
+            void setPC(uint64 value) { pc = value; }
+
+            uint64 getsstatus() const{ return sstatus; }
+
         };
     public:
         static void* operator new(size_t size) noexcept;
@@ -52,11 +55,12 @@ namespace kernel {
 
         static Thread* getMainThread();
         static Thread* getRunning();
+        static void shelveRunning();
     private:
         static void taskWrapper();
 
         static uint64 sstatusGetInitial();
-        static uint64 pcGetInitial(TTask function);
+        static uint64 pcGetInitial(Task function);
         static Owner runningThreadOwner();
 
         static Thread* mainThread;
@@ -66,7 +70,7 @@ namespace kernel {
         static uint64 threadIdSource;
     private:
         Context context;
-        TTask task;
+        Task task;
         void* arg;
         uint64* stack;
         Owner owner;
@@ -74,19 +78,23 @@ namespace kernel {
         uint64 id = threadIdSource++;
         Status status = Status::READY;
     public:
-        Thread(TTask function, void* argument, void* stack);
-        Thread(TTask function, void* argument, void* stack, Owner type);
+        Thread(Task function, void* argument, void* stack);
+        Thread(Task function, void* argument, void* stack, Owner type);
         Thread(Thread const&)=delete;
         Thread& operator=(Thread const&)=delete;
         ~Thread();
 
-        Context& getConetxt() { return context; }
-        uint64 getThreadId() const { return id; }
-        uint64 getPC() const { return context.pc; }
-        void setPC(uint64 value) { context.pc = value; }
-        uint64 getsstatus() const{ return context.sstatus; }
-        void setStatus(Status value) { status = value; };
+        void skipInstruction() { context.pc += 4; }
+
+        uint64 getId() const { return id; }
+        Context& getContext() { return context; }
+
         Status getStatus() { return status; };
+        void setStatus(Status value) { status = value; };
+
+        Thread* getNext() { return next; }
+        void setNext(Thread* thread) { next = thread;}
+
         bool isUserThread() const { return owner == Owner::USER; }
     };
 } // kernel

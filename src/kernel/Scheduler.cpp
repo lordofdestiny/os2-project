@@ -15,11 +15,11 @@ namespace kernel {
         if(readyHead == nullptr) return getIdleThread();
 
         auto thread = readyHead;
-        readyHead = readyHead->next;
+        readyHead = readyHead->getNext();
         if(readyHead == nullptr) {
             readyTail = nullptr;
         }
-        thread->next= nullptr;
+        thread->setNext(nullptr);
         if(thread->isUserThread()){
             userThreadCount--;
         }
@@ -30,11 +30,11 @@ namespace kernel {
     void Scheduler::put(kernel::Thread *thread) {
         if(thread == idleThread) return;
 
-        thread->status = Thread::Status::READY;
+        thread->setStatus(Thread::Status::READY);
         if(readyHead == nullptr) {
             readyHead = thread;
         }else {
-            readyTail->next = thread;
+            readyTail->setNext(thread);
         }
         readyTail = thread;
 
