@@ -50,7 +50,6 @@ namespace kernel {
 
         static void initialize();
 
-        static void tick();
         static void dispatch();
 
         static Thread* getMainThread();
@@ -74,9 +73,10 @@ namespace kernel {
         void* arg;
         uint64* stack;
         Owner owner;
-        Thread* next = nullptr;
         uint64 id = threadIdSource++;
         Status status = Status::READY;
+        uint64 sleepingTime = 0;
+        Thread* next = nullptr;
     public:
         Thread(Task function, void* argument, void* stack);
         Thread(Task function, void* argument, void* stack, Owner type);
@@ -90,12 +90,16 @@ namespace kernel {
         Context& getContext() { return context; }
 
         Status getStatus() { return status; };
-        void setStatus(Status value) { status = value; };
+        void setStatus(Status value) { status = value; }
+
+        bool isUserThread() const { return owner == Owner::USER; }
+
+        uint64 getSleepingTime() const { return sleepingTime; }
+        void setSleepingTime(uint64 time) { sleepingTime = time; }
+        void tick();
 
         Thread* getNext() { return next; }
         void setNext(Thread* thread) { next = thread;}
-
-        bool isUserThread() const { return owner == Owner::USER; }
     };
 } // kernel
 

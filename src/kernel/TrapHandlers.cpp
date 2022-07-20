@@ -33,7 +33,7 @@ namespace kernel {
         }
 
         void timerHandler() {
-            Thread::tick();
+            Thread::getRunning()->tick();
             SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
         }
 

@@ -38,15 +38,6 @@ namespace kernel {
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
 
-    void Thread::tick() {
-        if(runningTimeLeft-- == 0) {
-            char str[30] = "Time out for thread X\n";
-            str[20] = '0' + runningThread->id;
-            printString(str);
-            dispatch();
-        };
-    }
-
     void Thread::dispatch() {
         auto& scheduler = Scheduler::getInstance();
 
@@ -124,4 +115,11 @@ namespace kernel {
         if(this == runningThread) runningThread = nullptr;
     }
 
+    void Thread::tick() {
+        if(this == runningThread && runningTimeLeft-- == 0) {
+            dispatch();
+        }else {
+            sleepingTime--;
+        }
+    }
 } // kernel
