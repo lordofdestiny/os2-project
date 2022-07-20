@@ -15,16 +15,24 @@ namespace kernel {
 
         static Scheduler &getInstance();
 
-        Thread *get();
         void put(Thread *thread);
+        Thread *get();
+
+        void putToSleep(Thread* thread, uint64 ticks);
+        void tick();
+
         bool hasUserThreads() const;
+    private:
+        void wake();
     private:
         Scheduler() = default;
         Thread *getIdleThread();
 
         Thread* readyHead = nullptr;
         Thread* readyTail = nullptr;
-//        Thread* sleepingHead = nullptr;
+
+        Thread* sleepingHead = nullptr;
+
         Thread* idleThread = nullptr;
         size_t userThreadCount = 0;
     };

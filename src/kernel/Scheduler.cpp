@@ -11,22 +11,6 @@ namespace kernel {
         return instance;
     }
 
-    Thread *Scheduler::get() {
-        if(readyHead == nullptr) return getIdleThread();
-
-        auto thread = readyHead;
-        readyHead = readyHead->getNext();
-        if(readyHead == nullptr) {
-            readyTail = nullptr;
-        }
-        thread->setNext(nullptr);
-        if(thread->isUserThread()){
-            userThreadCount--;
-        }
-
-        return thread;
-    }
-
     void Scheduler::put(kernel::Thread *thread) {
         if(thread == idleThread) return;
 
@@ -43,6 +27,38 @@ namespace kernel {
         }
     }
 
+    Thread *Scheduler::get() {
+        if(readyHead == nullptr) return getIdleThread();
+
+        auto thread = readyHead;
+        readyHead = readyHead->getNext();
+        if(readyHead == nullptr) {
+            readyTail = nullptr;
+        }
+        thread->setNext(nullptr);
+        if(thread->isUserThread()){
+            userThreadCount--;
+        }
+
+        return thread;
+    }
+
+    bool Scheduler::hasUserThreads() const{
+        return userThreadCount != 0;
+    }
+
+    void Scheduler::putToSleep(Thread *thread, uint64 ticks) {
+
+    }
+
+    void Scheduler::tick() {
+
+    }
+
+    void Scheduler::wake() {
+
+    }
+
     Thread* Scheduler::getIdleThread() {
         if(!idleThread) {
             auto& allocator = MemoryAllocator::getInstance();
@@ -53,9 +69,5 @@ namespace kernel {
             idleThread = new Thread(task, nullptr, stack, Thread::Owner::SYSTEM);
         }
         return idleThread;
-    }
-
-    bool Scheduler::hasUserThreads() const{
-        return userThreadCount != 0;
     }
 }
