@@ -12,7 +12,7 @@
    }while(0)                            \
 
 namespace SystemCalls = kernel::SystemCalls;
-using CallType = SystemCalls::CallType;
+using SystemCalls::CallType;
 using kernel::MemoryAllocator;
 using kernel::Console;
 
