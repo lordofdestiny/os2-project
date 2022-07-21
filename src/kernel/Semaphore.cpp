@@ -5,6 +5,7 @@
 #include "../../h/kernel/Semaphore.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/MemoryAllocator.h"
+#include "../../h/kernel/ConsoleUtils.h"
 
 namespace kernel {
 
@@ -24,9 +25,9 @@ namespace kernel {
         auto& scheduler = Scheduler::getInstance();
         auto curr = head;
         while(curr != nullptr) {
-            curr->getRegisters().a0 = -0x02;
+            curr->getContext().getRegisters().a0 = -0x02;
             scheduler.put(curr);
-            curr=curr->next;
+            curr=curr->getNext();
         }
     }
 
@@ -39,11 +40,11 @@ namespace kernel {
     }
 
     void Semaphore::block() {
-        auto thread = TCB::getRunningThread();
-        TCB::runningThread = nullptr;
-        thread->setStatus(TCB::ThreadStatus::BLOCKED);
+        auto thread = Thread::getRunning();
+        Thread::shelveRunning();
+        thread->setStatus(Thread::Status::BLOCKED);
         enqueue(thread);
-        TCB::dispatch();
+        Thread::dispatch();
     }
 
     void Semaphore::unblock() {
@@ -52,23 +53,24 @@ namespace kernel {
         Scheduler::getInstance().put(thread);
     }
 
-    void Semaphore::enqueue(TCB *tcb) {
+    void Semaphore::enqueue(Thread *thread) {
+
         if(head == nullptr){
-            head = tcb;
+            head = thread;
         }else{
-            tail->next = tcb;
+            tail->setNext(thread);
         }
-        tail = tcb;
+        tail = thread;
     }
 
-    TCB *Semaphore::dequeue() {
+    Thread *Semaphore::dequeue() {
         if(head == nullptr) return nullptr;
-        auto tcb = head;
-        head = head->next;
+        auto thread = head;
+        head = head->getNext();
         if(head == nullptr){
             tail = nullptr;
         }
-        tcb->next= nullptr;
-        return tcb;
+        thread->setNext(nullptr);
+        return thread;
     }
 } // kernel

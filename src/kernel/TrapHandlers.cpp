@@ -4,37 +4,47 @@
 #include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/TrapHandlers.h"
 #include "../../h/kernel/RegisterUtils.h"
-#include "../../h/kernel/TCB.h"
+#include "../../h/kernel/Thread.h"
 #include "../../h/kernel/ConsoleUtils.h"
+#include "../../h/kernel/Scheduler.h"
 
 namespace kernel {
     namespace TrapHandlers {
-        void incrementPC() {
-            auto runningThread = TCB::getRunningThread();
-            auto pc = (uint64) runningThread->getPC();
-            runningThread->setPC((uint64 *) (pc + 4));
-        }
-
-        void instructionErrorHandle() {
-            incrementPC();
+        void defaultErrorHandler() {
             uint64 temp;
-            asm volatile("csrr %0, scause":"=r"(temp));
+            SREGISTER_READ(scause, temp);
             printReg("scause", temp);
-            asm volatile("csrr  %0, sepc":"=r"(temp));
+            SREGISTER_READ(sepc, temp);
             printReg("sepc", temp);
-            asm volatile("csrr %0, stval":"=r"(temp));
+            SREGISTER_READ(stval, temp);
             printReg("stval", temp);
         }
 
-        void timerHandler() {
-            TCB::tick();
-            SYS_REGISTER_CLEAR_BITS(sip,BitMasks::sip::SSIP);
+        static Handler errorHandler = defaultErrorHandler;
+
+        void setErrorHandler(Handler handler) {
+            errorHandler = handler;
         }
 
-        void systemCallHandle() {
+        void instructionErrorHandler() {
+            errorHandler();
+            if(errorHandler == &defaultErrorHandler){
+                Thread::getRunning()->skipInstruction();
+            }
+        }
+
+        void timerHandler() {
+            Thread::getRunning()->tick();
+            Scheduler::getInstance().tick();
+            SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
+        }
+
+        void systemCallHandler() {
             using namespace SystemCalls;
-            auto runningThread = TCB::getRunningThread();
-            auto type = (CallType) runningThread->getRegisters().a0;
+            auto runningThread = Thread::getRunning();
+            auto type = (CallType) runningThread->getContext().getRegisters().a0;
+
+            runningThread->skipInstruction();
 
             switch (type) {
                 case CallType::MemoryAllocate:
@@ -46,7 +56,7 @@ namespace kernel {
                 case CallType::ThreadExit:
                     return thread_exit();
                 case CallType::ThreadDispatch:
-                    return TCB::dispatch();
+                    return Thread::dispatch();
                 case CallType::SemaphoreOpen:
                     return sem_open();
                 case CallType::SemaphoreClose:
@@ -56,21 +66,20 @@ namespace kernel {
                 case CallType::SemaphoreSignal:
                     return sem_signal();
                 case CallType::TimeSleep:
+                    return time_sleep();
                     break;
                 case CallType::GetChar:
                     break;
                 case CallType::PutChar:
                     break;
             }
-
-            incrementPC();
         }
 
         void supervisorTrapHandle() {
             using TrapType = TrapHandlers::TrapType;
 
             TrapType trapCause;
-            READ_FROM_SYS_REGISTER(scause, trapCause);
+            SREGISTER_READ(scause, trapCause);
 
             switch (trapCause) {
                 case TrapType::TimerTrap:
@@ -79,11 +88,11 @@ namespace kernel {
                     break;
                 case TrapType::UserEnvironmentCall:
                 case TrapType::SystemEnvironmentCall:
-                    return systemCallHandle();
+                    return systemCallHandler();
                 case TrapType::IllegalInstruction:
                 case TrapType::IllegalReadAddress:
                 case TrapType::IllegalWriteAddress:
-                    return instructionErrorHandle();
+                    return instructionErrorHandler();
                 default:
                     break;
             }

@@ -9,9 +9,11 @@
 
 namespace kernel {
     namespace TrapHandlers{
+        using Handler = void(*)(void);
+
         enum class TrapType : size_t {
             TimerTrap = (size_t) BitMasks::scause::BNT | 0x01,
-            ExternalHardwareTrap = (size_t) BitMasks::scause::BNT | (size_t) 0x09,
+            ExternalHardwareTrap = (size_t) BitMasks::scause::BNT | 0x09,
             IllegalInstruction = 0x02,
             IllegalReadAddress = 0x05,
             IllegalWriteAddress = 0x07,
@@ -21,6 +23,7 @@ namespace kernel {
 
         void supervisorTrap() asm("__supervisorTrap__");
         void supervisorTrapHandle() asm("__supervisorTrapHandle__");
+        void setErrorHandler(Handler handler);
     };
 }
 

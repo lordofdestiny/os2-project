@@ -4,7 +4,7 @@
 
 #ifndef PROJECT_SEMAPHORE_H
 #define PROJECT_SEMAPHORE_H
-#include "./TCB.h"
+#include "./Thread.h"
 
 namespace kernel {
     class Semaphore {
@@ -24,11 +24,11 @@ namespace kernel {
     private:
         void block();
         void unblock();
-        void enqueue(TCB* tcb);
-        TCB* dequeue();
+        void enqueue(Thread* thread);
+        Thread* dequeue();
 
         uint64 value;
-        TCB *head= nullptr, *tail= nullptr;
+        Thread *head= nullptr, *tail= nullptr;
     };
 
 } // kernel

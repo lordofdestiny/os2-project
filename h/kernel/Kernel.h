@@ -17,9 +17,9 @@ namespace kernel {
     private:
         static void enableInterrupts();
         static void disableInterrupts();
-        static void setTrapHandler();
+        static void setTrapHandler(bool keepErrorHandler = false);
         static void waitForUserThreads();
-    public:
+    private:
         static const size_t stackSize = DEFAULT_STACK_SIZE * sizeof(uint64);
         alignas(uint16) static uint8 kernelStack[stackSize];
         static void* kernelStackTopAddress asm("__kernelStack");
