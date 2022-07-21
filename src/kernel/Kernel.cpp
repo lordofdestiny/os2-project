@@ -15,7 +15,6 @@ namespace kernel {
         setTrapHandler();
         Thread::initialize();
         enableInterrupts();
-        asm volatile("sd ra, 2000(zero)");
     }
 
     void Kernel::finalize() {
