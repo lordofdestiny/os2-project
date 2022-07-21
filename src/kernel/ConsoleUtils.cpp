@@ -2,11 +2,11 @@
 // Created by os on 7/18/22.
 //
 #include "../../h/kernel/ConsoleUtils.h"
-#include "../../lib/console.h"
+#include "../../h/syscall_c.h"
 
 void printString(const char *text) {
     auto ptr = (char *) text;
-    while (*ptr != '\0') __putc(*ptr++);
+    while (*ptr != '\0') putc(*ptr++);
 }
 
 void printHex(uint64 num) {
@@ -26,7 +26,7 @@ void printHex(uint64 num) {
     str[19] = '\0';
 
     for (auto i = 0; i < 19; i++) {
-        __putc(str[i]);
+        putc(str[i]);
     }
 }
 
