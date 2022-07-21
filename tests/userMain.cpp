@@ -21,6 +21,7 @@ void userMain() {
     thread_t thread1;
     thread_create(&thread1, [](void *) {
         for(int i = 0 ; i < 2; i++){
+            time_sleep(5);
             printString("Hello from A!\n");
             thread_dispatch();
         }
@@ -29,16 +30,18 @@ void userMain() {
 
     thread_t thread2;
     thread_create(&thread2, [](void *) {
-        while(true);
-        thread_exit();
-        printString("Hello from B!\n");
-        thread_dispatch();
+        time_sleep(30);
+        while(true) {
+            time_sleep(5);
+            printString("Thread B says hi!!!\n");
+        };
     }, nullptr);
 
     thread_t thread3;
     thread_create(&thread3, [](void *) {
         for(int i = 0; i < 3;i++){
-            if (i == 2) thread_exit();
+            if (i == 2) time_sleep(20);
+            else time_sleep(3);
             printString("Hello from C!\n");
             thread_dispatch();
         }
@@ -95,4 +98,6 @@ void userMain() {
     while(!data.done[0] && !data.done[1] && !data.done[2]){
         thread_dispatch();
     }
+
+    time_sleep(50);
 }
