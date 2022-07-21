@@ -130,7 +130,7 @@ namespace kernel {
     }
 
     void Thread::tick() {
-        if(this == runningThread && runningTimeLeft-- == 0) {
+        if(this == runningThread && --runningTimeLeft == 0) {
             dispatch();
         }else {
             sleepingTime--;
