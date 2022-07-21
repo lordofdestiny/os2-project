@@ -2,6 +2,7 @@
 #include "../h/kernel/MemoryAllocator.h"
 #include "../h/kernel/RegisterUtils.h"
 #include "../h/kernel/SystemCalls.h"
+#include "../h/kernel/Console.h"
 
 #define RETURN_AS(type)                 \
    do {                                 \
@@ -13,6 +14,7 @@
 namespace SystemCalls = kernel::SystemCalls;
 using CallType = SystemCalls::CallType;
 using kernel::MemoryAllocator;
+using kernel::Console;
 
 void* mem_alloc(size_t size){
     auto blockCount = MemoryAllocator::byteSizeToBlockCount(size);
@@ -80,4 +82,13 @@ int time_sleep(time_t ticks) {
     REGISTER_WRITE(a1, ticks);
     environmentCall(CallType::TimeSleep);
     RETURN_AS(int);
+}
+
+
+void putc(char c) {
+    auto& console = Console::getInstance();
+    auto semaphore = console.getSemaphore(Console::Direction::OUT);
+    REGISTER_WRITE(a1, c);
+    environmentCall(CallType::PutChar);
+    sem_signal(semaphore);
 }
