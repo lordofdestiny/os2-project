@@ -25,7 +25,7 @@ namespace kernel {
     void Kernel::enableInterrupts() {
         using namespace kernel::BitMasks;
         // Disable external hardware interrupts
-        SREGISTER_CLEAR_BITS(sie, BitMasks::sie::SEIE);
+//        SREGISTER_CLEAR_BITS(sie, BitMasks::sie::SEIE);
         // Enable external interrupts
         SREGISTER_SET_BITS(sstatus, sstatus::SIE);
     }
