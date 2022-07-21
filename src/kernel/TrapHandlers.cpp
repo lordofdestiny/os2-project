@@ -33,10 +33,14 @@ namespace kernel {
             }
         }
 
-        void timerHandler() {
+        void timerInterruptHandler() {
             Thread::getRunning()->tick();
             Scheduler::getInstance().tick();
             SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
+        }
+
+        void consoleInterruptHandler() {
+
         }
 
         void systemCallHandler() {
@@ -83,10 +87,11 @@ namespace kernel {
 
             switch (trapCause) {
                 case TrapType::TimerTrap:
-                    return timerHandler();
+                    return timerInterruptHandler();
                 case TrapType::ExternalHardwareTrap:
                     break;
                 case TrapType::UserEnvironmentCall:
+                    return consoleInterruptHandler();
                 case TrapType::SystemEnvironmentCall:
                     return systemCallHandler();
                 case TrapType::IllegalInstruction:
