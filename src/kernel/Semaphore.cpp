@@ -67,9 +67,7 @@ namespace kernel {
         if(head == nullptr) return nullptr;
         auto thread = head;
         head = head->getNext();
-        if(head == nullptr){
-            tail = nullptr;
-        }
+        if(head == nullptr) tail = nullptr;
         thread->setNext(nullptr);
         return thread;
     }

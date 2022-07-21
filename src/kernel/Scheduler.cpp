@@ -38,9 +38,8 @@ namespace kernel {
     }
 
     void Scheduler::putToSleep(Thread *thread, uint64 ticks) {
-        if(ticks == 0){
-            return;
-        }
+        if(ticks == 0) return;
+
         thread->setStatus(Thread::Status::BLOCKED);
 
         Thread* prev = nullptr;
