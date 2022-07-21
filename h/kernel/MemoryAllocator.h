@@ -9,19 +9,32 @@ namespace kernel {
     class MemoryAllocator {
     private:
         MemoryAllocator();
-        struct FreeMemoryBlock{
-            FreeMemoryBlock *prev, *next;
-            size_t size;
+        struct FreeBlock{
+            FreeBlock *prev = nullptr;
+            FreeBlock *next = nullptr;
+            size_t size= 0;
+
+            FreeBlock(FreeBlock const& base)=default;
+
+            FreeBlock(size_t size) : size(size) { }
+
+            static void* operator new(size_t, void* ptr) noexcept {
+                return ptr;
+            };
+
+            char* end() {
+                return (char*)this + size * MEM_BLOCK_SIZE;
+            }
         };
-        FreeMemoryBlock* freeMemoryHead;
+        FreeBlock* head = nullptr;
     public:
         MemoryAllocator(MemoryAllocator const&)=delete;
         MemoryAllocator& operator=(MemoryAllocator const&)=delete;
         static MemoryAllocator& getInstance();
         static size_t byteSizeToBlockCount(size_t blocks);
-        void* allocateBlocks(size_t blockCount);
+        void* allocateBlocks(size_t count);
         void* allocateBytes(size_t byteCount);
-        int deallocateBlocks(void* address);
+        int deallocateBlocks(void* ptr);
     };
 }
 
