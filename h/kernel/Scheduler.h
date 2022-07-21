@@ -20,14 +20,11 @@ namespace kernel {
 
         void putToSleep(Thread* thread, uint64 ticks);
         void tick();
-
-        bool hasUserThreads() const;
     private:
-        void wake();
-    private:
+        void wakeUpThreads();
         Scheduler() = default;
         Thread *getIdleThread();
-
+    private:
         Thread* readyHead = nullptr;
         Thread* readyTail = nullptr;
 
