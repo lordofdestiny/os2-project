@@ -20,26 +20,26 @@
 
 namespace kernel {
     namespace SystemCalls {
-        Thread::Context::Registers& getRunningThreadRegisters() {
+        Thread::Context::Registers& threadRegisters() {
             return Thread::getRunning()->getContext().getRegisters();
         }
 
         void mem_alloc() {
-            auto &registers = getRunningThreadRegisters();
+            auto &registers = threadRegisters();
             size_t blockCount = registers.a1;
             auto memory = MemoryAllocator::getInstance().allocateBlocks(blockCount);
             registers.a0 = (uint64) memory;
         }
 
         void mem_free() {
-            auto &registers = getRunningThreadRegisters();
+            auto &registers = threadRegisters();
             auto memory = (void *) registers.a1;
             int code = MemoryAllocator::getInstance().deallocateBlocks(memory);
             registers.a0 = code;
         }
 
         void thread_create() {
-            auto &registers = getRunningThreadRegisters();
+            auto &registers = threadRegisters();
 
             auto handle = (thread_t *) registers.a1;
             auto task = (Thread::Task) registers.a2;
@@ -54,7 +54,7 @@ namespace kernel {
 
         void thread_exit() { // Handle if attempting to exit main
             auto runningThread = Thread::getRunning();
-            auto &registers = getRunningThreadRegisters();
+            auto &registers = threadRegisters();
             RETURN_IF(runningThread == Thread::getMainThread(), -0x01);
             delete runningThread;
             Thread::dispatch();
@@ -62,7 +62,7 @@ namespace kernel {
         }
 
         void sem_open() {
-            auto &registers = getRunningThreadRegisters();
+            auto &registers = threadRegisters();
             auto init = (unsigned ) registers.a2;
             auto handle = (sem_t *) registers.a1;
             auto semaphore = new Semaphore((int) init);
@@ -72,7 +72,7 @@ namespace kernel {
         }
 
         void sem_close() {
-            auto &registers = getRunningThreadRegisters();
+            auto &registers = threadRegisters();
             auto handle = (Semaphore*) registers.a1;
             RETURN_IF(handle == nullptr, -0x01);
             delete handle;
@@ -80,7 +80,7 @@ namespace kernel {
         }
 
         void sem_wait() {
-            auto &registers = getRunningThreadRegisters();
+            auto &registers = threadRegisters();
             auto id = (Semaphore*) registers.a1;
             RETURN_IF(id == nullptr, -0x01);
             registers.a0 = 0x00;
@@ -88,7 +88,7 @@ namespace kernel {
         }
 
         void sem_signal() {
-            auto &registers = getRunningThreadRegisters();
+            auto &registers = threadRegisters();
             auto id = (Semaphore*) registers.a1;
             RETURN_IF(id == nullptr, -0x01);
             registers.a0 = 0x00;
@@ -96,7 +96,7 @@ namespace kernel {
         }
 
         void time_sleep() {
-            auto& registers = getRunningThreadRegisters();
+            auto& registers = threadRegisters();
             auto& scheduler = Scheduler::getInstance();
             auto thread = Thread::getRunning();
             auto ticks = registers.a1;
