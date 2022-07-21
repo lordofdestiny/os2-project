@@ -2,12 +2,10 @@
 // Created by os on 7/16/22.
 //
 
-#include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/MemoryAllocator.h"
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/syscall_c.h"
-#include "../../h/kernel/TrapHandlers.h"
 #include "../../h/kernel/Semaphore.h"
 
 #define RETURN_IF(test, value)        \
