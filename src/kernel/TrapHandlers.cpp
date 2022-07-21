@@ -7,6 +7,7 @@
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/ConsoleUtils.h"
 #include "../../h/kernel/Scheduler.h"
+#include "../../h/kernel/Console.h"
 
 namespace kernel {
     namespace TrapHandlers {
@@ -39,8 +40,13 @@ namespace kernel {
             SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
         }
 
-        void consoleInterruptHandler() {
-
+        void hardwareInterruptHandler() {
+            auto irqSrc = plic_claim();
+            if(irqSrc == CONSOLE_IRQ) {
+                static auto& console = Console::getInstance();
+                console.handle();
+            }
+            plic_complete(irqSrc);
         }
 
         void systemCallHandler() {
@@ -71,11 +77,10 @@ namespace kernel {
                     return sem_signal();
                 case CallType::TimeSleep:
                     return time_sleep();
-                    break;
                 case CallType::GetChar:
-                    break;
+                    return getc();
                 case CallType::PutChar:
-                    break;
+                    return putc();
             }
         }
 
@@ -89,9 +94,8 @@ namespace kernel {
                 case TrapType::TimerTrap:
                     return timerInterruptHandler();
                 case TrapType::ExternalHardwareTrap:
-                    break;
+                    return hardwareInterruptHandler();
                 case TrapType::UserEnvironmentCall:
-                    return consoleInterruptHandler();
                 case TrapType::SystemEnvironmentCall:
                     return systemCallHandler();
                 case TrapType::IllegalInstruction:
