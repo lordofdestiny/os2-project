@@ -14,6 +14,8 @@ namespace kernel {
     Thread* Thread::runningThread = nullptr;
     time_t Thread::runningTimeLeft = DEFAULT_TIME_SLICE;
     uint64 Thread::threadIdSource = 0;
+    uint64 Thread::userThreadCount = 0;
+    uint64 Thread::systemThreadCount = 0;
 
     Thread::Context::Context(uint64 pc, uint64 status) :
             pc(pc), sstatus(status), registers(){ }
@@ -105,12 +107,24 @@ namespace kernel {
             auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
             context.registers.sp = stackTop;
         }
+
+        if(owner == Owner::USER) {
+            userThreadCount++;
+        }else if(owner == Owner::SYSTEM) {
+            systemThreadCount++;
+        }
+
     }
 
     Thread::~Thread() {
         if(stack != nullptr) {
             auto& allocator = MemoryAllocator::getInstance();
             allocator.deallocateBlocks(stack);
+        }
+        if(owner == Owner::USER) {
+            userThreadCount--;
+        }else if(owner == Owner::SYSTEM) {
+            systemThreadCount--;
         }
         if(this == runningThread) runningThread = nullptr;
     }
@@ -120,6 +134,19 @@ namespace kernel {
             dispatch();
         }else {
             sleepingTime--;
+        }
+    }
+
+    uint64 Thread::threadCount(Thread::Owner owner) {
+        switch (owner) {
+            case Owner::USER:
+                return userThreadCount;
+            case Owner::SYSTEM:
+                return systemThreadCount;
+            case Owner::ANY:
+            default:
+                return userThreadCount+systemThreadCount;
+
         }
     }
 } // kernel

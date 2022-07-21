@@ -46,7 +46,7 @@ namespace kernel {
     }
 
     void Kernel::waitForUserThreads() {
-        while (Scheduler::getInstance().hasUserThreads()) {
+        while (Thread::threadCount(Thread::Owner::ANY) != 0) {
             thread_dispatch();
         }
     }

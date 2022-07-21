@@ -13,7 +13,7 @@ namespace kernel {
         using Task = void(*)(void*);
 
         enum class Owner {
-            USER, SYSTEM
+            ANY, USER, SYSTEM
         };
 
         enum class Status {
@@ -55,6 +55,7 @@ namespace kernel {
         static Thread* getMainThread();
         static Thread* getRunning();
         static void shelveRunning();
+        static uint64 threadCount(Owner owner = Owner::ANY);
     private:
         static void taskWrapper();
 
@@ -67,6 +68,8 @@ namespace kernel {
         static time_t runningTimeLeft;
 
         static uint64 threadIdSource;
+        static uint64 userThreadCount;
+        static uint64 systemThreadCount;
     private:
         Context context;
         Task task;

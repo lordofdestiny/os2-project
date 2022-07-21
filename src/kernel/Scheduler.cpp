@@ -6,8 +6,9 @@
 #include "../../h/kernel/MemoryAllocator.h"
 
 namespace kernel {
+    Scheduler Scheduler::instance{};
+
     Scheduler& Scheduler::getInstance() {
-        static Scheduler instance{};
         return instance;
     }
 
@@ -21,10 +22,6 @@ namespace kernel {
             readyTail->setNext(thread);
         }
         readyTail = thread;
-
-        if(thread->isUserThread()){
-            userThreadCount++;
-        }
     }
 
     Thread *Scheduler::get() {
@@ -36,15 +33,7 @@ namespace kernel {
             readyTail = nullptr;
         }
         thread->setNext(nullptr);
-        if(thread->isUserThread()){
-            userThreadCount--;
-        }
-
         return thread;
-    }
-
-    bool Scheduler::hasUserThreads() const{
-        return userThreadCount != 0;
     }
 
     void Scheduler::putToSleep(Thread *thread, uint64 ticks) {

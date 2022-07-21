@@ -34,7 +34,8 @@ namespace kernel {
         Thread* sleepingHead = nullptr;
 
         Thread* idleThread = nullptr;
-        size_t userThreadCount = 0;
+
+        static Scheduler instance;
     };
 }
 
