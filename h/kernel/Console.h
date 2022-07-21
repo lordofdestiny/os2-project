@@ -6,7 +6,7 @@
 #define PROJECT_CONSOLE_H
 
 #include "Semaphore.h"
-#include "BoundedBuffer.h"
+#include "Buffer.h"
 #include "ConsoleController.h"
 #include "../syscall_c.h"
 
@@ -35,7 +35,7 @@ namespace kernel {
     private:
         Semaphore* outputItemsAvailable = new Semaphore{0};
         Semaphore* inputItemAvailable = new Semaphore{BufferSize};
-        BoundedBuffer inputBuffer, outputBuffer;
+        Buffer inputBuffer, outputBuffer;
     };
 
 } // kernel

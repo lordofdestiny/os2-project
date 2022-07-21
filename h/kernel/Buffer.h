@@ -2,15 +2,14 @@
 // Created by os on 7/21/22.
 //
 
-#ifndef PROJECT_BOUNDEDBUFFER_H
-#define PROJECT_BOUNDEDBUFFER_H
+#ifndef PROJECT_BUFFER_H
+#define PROJECT_BUFFER_H
 
 #include "../../lib/hw.h"
 #include "./MemoryAllocator.h"
 
 namespace kernel {
-    template<size_t Capacity = 256>
-    class BoundedBuffer {
+    class Buffer {
     public:
         void put(char c)  {
             buffer[head++] = c;
@@ -41,6 +40,7 @@ namespace kernel {
             static auto& allocator = MemoryAllocator::getInstance();
             allocator.deallocateBlocks(ptr);
         }
+        static const size_t Capacity = 256;
     private:
         size_t head = 0;
         size_t tail = 0;
@@ -50,4 +50,4 @@ namespace kernel {
 };
 
 
-#endif //PROJECT_BOUNDEDBUFFER_H
+#endif //PROJECT_BUFFER_H
