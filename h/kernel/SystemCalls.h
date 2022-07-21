@@ -21,7 +21,6 @@ namespace kernel {
             GetChar = 0x41,
             PutChar = 0x42
         };
-        void handle();
         void mem_alloc();
         void mem_free();
         void thread_create();
