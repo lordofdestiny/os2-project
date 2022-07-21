@@ -7,7 +7,7 @@
 #include "./Thread.h"
 
 namespace kernel {
-    class Semaphore {
+    class Semaphore final{
     public:
         explicit Semaphore(int value);
         Semaphore(Semaphore const&)=delete;

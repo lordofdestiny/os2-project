@@ -8,7 +8,7 @@
 #include "../../h/kernel/Thread.h"
 
 namespace kernel {
-    class Scheduler {
+    class Scheduler final{
     public:
         Scheduler(Scheduler const &) = delete;
         Scheduler &operator=(Scheduler const &) = delete;

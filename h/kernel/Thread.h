@@ -8,7 +8,7 @@
 
 
 namespace kernel {
-    class Thread {
+    class Thread final{
     public:
         using Task = void(*)(void*);
 

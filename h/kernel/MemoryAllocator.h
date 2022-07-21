@@ -6,7 +6,7 @@
 
 #include "../../lib/hw.h"
 namespace kernel {
-    class MemoryAllocator {
+    class MemoryAllocator final {
     private:
         MemoryAllocator();
         struct FreeBlock{
