@@ -6,6 +6,7 @@
 #include "../../h/kernel/RegisterUtils.h"
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/ConsoleUtils.h"
+#include "../../h/kernel/Scheduler.h"
 
 namespace kernel {
     namespace TrapHandlers {
@@ -34,6 +35,7 @@ namespace kernel {
 
         void timerHandler() {
             Thread::getRunning()->tick();
+            Scheduler::getInstance().tick();
             SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
         }
 
@@ -64,6 +66,7 @@ namespace kernel {
                 case CallType::SemaphoreSignal:
                     return sem_signal();
                 case CallType::TimeSleep:
+                    return time_sleep();
                     break;
                 case CallType::GetChar:
                     break;

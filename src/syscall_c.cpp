@@ -75,3 +75,9 @@ int sem_signal(sem_t id) {
     environmentCall(CallType::SemaphoreSignal);
     RETURN_AS(int);
 }
+
+int time_sleep(time_t ticks) {
+    REGISTER_WRITE(a1, ticks);
+    environmentCall(CallType::TimeSleep);
+    RETURN_AS(int);
+}

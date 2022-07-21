@@ -94,5 +94,15 @@ namespace kernel {
             registers.a0 = 0x00;
             id->signal();
         }
+
+        void time_sleep() {
+            auto& registers = getRunningThreadRegisters();
+            auto& scheduler = Scheduler::getInstance();
+            auto thread = Thread::getRunning();
+            auto ticks = registers.a1;
+            RETURN_IF(ticks < 0, -0x01);
+            registers.a0 = 0x00;
+            scheduler.putToSleep(thread, ticks);
+        }
     }
 }
