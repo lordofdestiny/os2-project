@@ -7,6 +7,7 @@
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/syscall_c.h"
 #include "../../h/kernel/Semaphore.h"
+#include "../../h/kernel/Console.h"
 
 #define RETURN_IF(test, value)        \
     do{                             \
@@ -101,6 +102,12 @@ namespace kernel {
             RETURN_IF(ticks < 0, -0x01);
             registers.a0 = 0x00;
             scheduler.putToSleep(thread, ticks);
+        }
+
+        void putc() {
+            char c = threadRegisters().a1;
+            auto& console = Console::getInstance();
+            console.writeChar(c);
         }
     }
 }
