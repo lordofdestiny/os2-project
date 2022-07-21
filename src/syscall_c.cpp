@@ -84,11 +84,14 @@ int time_sleep(time_t ticks) {
     RETURN_AS(int);
 }
 
+char getc() {
+    return 0;
+}
 
 void putc(char c) {
     auto& console = Console::getInstance();
     auto semaphore = console.getSemaphore(Console::Direction::OUT);
+    sem_wait(semaphore);
     REGISTER_WRITE(a1, c);
     environmentCall(CallType::PutChar);
-    sem_signal(semaphore);
 }
