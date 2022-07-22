@@ -70,6 +70,14 @@ namespace kernel {
         runningThread = nullptr;
     }
 
+    uint64 Thread::threadCount(Thread::Mode owner) {
+        if (owner == Mode::USER) {
+            return userThreadCount;
+        } else {
+            return systemThreadCount;
+        }
+    }
+
     void Thread::taskWrapper() {
         runningThread->task(runningThread->arg);
         thread_exit();
@@ -133,19 +141,6 @@ namespace kernel {
             dispatch();
         }else {
             sleepingTime--;
-        }
-    }
-
-    uint64 Thread::threadCount(Thread::Owner owner) {
-        switch (owner) {
-            case Owner::USER:
-                return userThreadCount;
-            case Owner::SYSTEM:
-                return systemThreadCount;
-            case Owner::ANY:
-            default:
-                return userThreadCount+systemThreadCount;
-
         }
     }
 } // kernel
