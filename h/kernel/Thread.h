@@ -95,8 +95,6 @@ namespace kernel {
         Status getStatus() { return status; };
         void setStatus(Status value) { status = value; }
 
-        bool isUserThread() const { return owner == Owner::USER; }
-
         uint64 getSleepingTime() const { return sleepingTime; }
         void setSleepingTime(uint64 time) { sleepingTime = time; }
         void tick();
