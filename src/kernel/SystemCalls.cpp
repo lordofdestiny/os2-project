@@ -39,17 +39,19 @@ namespace kernel {
         }
 
         void thread_create() {
-            auto &registers = threadRegisters();
-
-            auto handle = (thread_t *) registers.a1;
-            auto task = (Thread::Task) registers.a2;
-            auto argument = (void *) registers.a3;
-            auto stack = (void *) registers.a4;
+            auto handle = ACCEPT(thread_t*, 1);
+            auto task = ACCEPT(Thread::Task, 2);
+            auto argument = ACCEPT(void*, 3);
+            auto stack = ACCEPT(void*, 4);
             auto thread = new Thread(task, argument, stack);
-            RETURN_IF(thread == nullptr, -0x01);
-            *handle = (thread_t) thread;
-            Scheduler::getInstance().put(thread);
-            registers.a0 = 0x00;
+            if(thread == nullptr) {
+                auto& allocator = MemoryAllocator::getInstance();
+                allocator.deallocateBlocks(stack);
+            }else {
+                *handle = (thread_t) thread;
+                Scheduler::getInstance().put(thread);
+            }
+            RETURN(-(thread == nullptr));
         }
 
         void thread_exit() { // Handle if attempting to exit main
@@ -57,7 +59,7 @@ namespace kernel {
             RETURN_IF(runningThread == Thread::getMainThread(), -0x01);
             delete runningThread;
             Thread::dispatch();
-            registers.a0 = 0x00;
+            RETURN(0);
         }
 
         void sem_open() {
