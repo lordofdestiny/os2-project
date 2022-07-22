@@ -7,7 +7,6 @@
 #include "../../h/kernel/MemoryAllocator.h"
 #include "../../h/kernel/BitMasks.h"
 #include "../../h/syscall_c.h"
-#include "../../h/kernel/ConsoleUtils.h"
 
 namespace kernel {
     Thread* Thread::mainThread = nullptr;
