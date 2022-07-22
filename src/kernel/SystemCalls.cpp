@@ -104,6 +104,12 @@ namespace kernel {
             scheduler.putToSleep(thread, ticks);
         }
 
+        void getc() {
+            auto& console = Console::getInstance();
+            auto c = console.readChar();
+            threadRegisters().a0 = c;
+        }
+
         void putc() {
             char c = threadRegisters().a1;
             auto& console = Console::getInstance();
