@@ -54,7 +54,6 @@ namespace kernel {
     }
 
     void Semaphore::enqueue(Thread *thread) {
-
         if(head == nullptr){
             head = thread;
         }else{
