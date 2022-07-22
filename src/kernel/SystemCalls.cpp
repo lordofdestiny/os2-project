@@ -9,10 +9,13 @@
 #include "../../h/kernel/Semaphore.h"
 #include "../../h/kernel/Console.h"
 
-#define RETURN_IF(test, value)        \
+#define ACCEPT(type, index) (type) threadRegisters().a##index
+#define RETURN(value) threadRegisters().a0 = (uint64) value
+
+#define RETURN_IF(test, value)      \
     do{                             \
         if((test)) {                \
-            registers.a0 = value;   \
+            RETURN(value);          \
             return;                 \
         }                           \
     }while(0)                       \
@@ -24,17 +27,15 @@ namespace kernel {
         }
 
         void mem_alloc() {
-            auto &registers = threadRegisters();
-            size_t blockCount = registers.a1;
+            auto blockCount = ACCEPT(size_t, 1);
             auto memory = MemoryAllocator::getInstance().allocateBlocks(blockCount);
-            registers.a0 = (uint64) memory;
+            RETURN(memory);
         }
 
         void mem_free() {
-            auto &registers = threadRegisters();
-            auto memory = (void *) registers.a1;
+            auto memory = ACCEPT(void*, 1);
             int code = MemoryAllocator::getInstance().deallocateBlocks(memory);
-            registers.a0 = code;
+            RETURN(code);
         }
 
         void thread_create() {
@@ -53,7 +54,6 @@ namespace kernel {
 
         void thread_exit() { // Handle if attempting to exit main
             auto runningThread = Thread::getRunning();
-            auto &registers = threadRegisters();
             RETURN_IF(runningThread == Thread::getMainThread(), -0x01);
             delete runningThread;
             Thread::dispatch();
@@ -61,53 +61,48 @@ namespace kernel {
         }
 
         void sem_open() {
-            auto &registers = threadRegisters();
-            auto init = (unsigned ) registers.a2;
-            auto handle = (sem_t *) registers.a1;
+            auto handle = ACCEPT(sem_t*, 1);
+            auto init = ACCEPT(unsigned , 2);
             auto semaphore = new Semaphore((int) init);
             RETURN_IF(semaphore == nullptr, -0x01);
             *handle = (sem_t) semaphore;
-            registers.a0 = 0x00;
+            RETURN(0);
         }
 
         void sem_close() {
-            auto &registers = threadRegisters();
-            auto handle = (Semaphore*) registers.a1;
+            auto handle = ACCEPT(Semaphore*, 1);
             RETURN_IF(handle == nullptr, -0x01);
             delete handle;
-            registers.a0 = 0x00;
+            RETURN(0);
         }
 
         void sem_wait() {
-            auto &registers = threadRegisters();
-            auto id = (Semaphore*) registers.a1;
+            auto id = ACCEPT(Semaphore*, 1);
             RETURN_IF(id == nullptr, -0x01);
-            registers.a0 = 0x00;
+            RETURN(0);
             id->wait();
         }
 
         void sem_signal() {
-            auto &registers = threadRegisters();
-            auto id = (Semaphore*) registers.a1;
+            auto id = ACCEPT(Semaphore*, 1);
             RETURN_IF(id == nullptr, -0x01);
             registers.a0 = 0x00;
             id->signal();
         }
 
         void time_sleep() {
-            auto& registers = threadRegisters();
             auto& scheduler = Scheduler::getInstance();
             auto thread = Thread::getRunning();
-            auto ticks = registers.a1;
+            auto ticks = ACCEPT(time_t, 1);
             RETURN_IF(ticks < 0, -0x01);
-            registers.a0 = 0x00;
+            RETURN(0);
             scheduler.putToSleep(thread, ticks);
         }
 
         void getc() {
             auto& console = Console::getInstance();
             auto c = console.readChar();
-            threadRegisters().a0 = c;
+            RETURN(c);
         }
 
         void putc() {
