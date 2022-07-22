@@ -16,7 +16,6 @@ namespace kernel {
         static void finalize();
     private:
         static void enableInterrupts();
-        static void disableInterrupts();
         static void setTrapHandler(bool keepErrorHandler = false);
         static void waitForUserThreads();
     private:

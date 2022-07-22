@@ -19,7 +19,6 @@ namespace kernel {
 
     void Kernel::finalize() {
         waitForUserThreads();
-        disableInterrupts();
     }
 
     void Kernel::enableInterrupts() {
