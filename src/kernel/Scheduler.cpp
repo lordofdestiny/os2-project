@@ -85,7 +85,7 @@ namespace kernel {
     }
 
     Thread* Scheduler::getIdleThread() {
-        if(!idleThread) {
+        if(idleThread == nullptr) {
             auto& allocator = MemoryAllocator::getInstance();
             void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
             auto task = [](void* arg) { while(true); };
