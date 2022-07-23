@@ -91,9 +91,6 @@ namespace kernel {
                 runningThread == nullptr
                 ? (uint64) sstatus::SPIE
                 : runningThread->context.sstatus;
-//        auto SPP = (mode == Mode::SYSTEM)
-//                ? (uint64) (sstatus::SPP) : 0;
-//        auto SPP = (uint64) sstatus::SPP;
         auto SPP = (mode == Mode::SYSTEM) << 8;
         auto SPIE = status & (uint64) sstatus::SPIE;
         return SPP | SPIE | (uint64) sstatus::SIE;
