@@ -81,6 +81,8 @@ namespace kernel {
                     return getc();
                 case CallType::PutChar:
                     return putc();
+                case CallType::EnterUserMode:
+                    return enter_user_mode();
             }
         }
 

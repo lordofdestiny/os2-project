@@ -19,7 +19,8 @@ namespace kernel {
             SemaphoreSignal = 0x24,
             TimeSleep = 0x31,
             GetChar = 0x41,
-            PutChar = 0x42
+            PutChar = 0x42,
+            EnterUserMode = 0xFF
         };
         void mem_alloc();
         void mem_free();
@@ -32,6 +33,7 @@ namespace kernel {
         void time_sleep();
         void getc();
         void putc();
+        void enter_user_mode();
         void environmentCall(CallType type) asm("__environmentCall__");
     };
 } // kernel

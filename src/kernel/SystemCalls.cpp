@@ -112,5 +112,15 @@ namespace kernel {
             auto& console = Console::getInstance();
             console.writeChar(c);
         }
+
+        void enter_user_mode() {
+            auto& context = Thread::getRunning()->getContext();
+            auto sstatus = context.getsstatus();
+            auto isSystem = sstatus & (uint64) BitMasks::sstatus::SPP;
+            if(isSystem) {
+                auto newsstatus = sstatus & (~(uint64) BitMasks::sstatus::SPP);
+                context.setsstatus(newsstatus);
+            }
+        }
     }
 }

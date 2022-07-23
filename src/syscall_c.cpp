@@ -96,3 +96,7 @@ void putc(char c) {
     REGISTER_WRITE(a1, c);
     environmentCall(CallType::PutChar);
 }
+
+void enter_user_mode() {
+    environmentCall(CallType::EnterUserMode);
+}

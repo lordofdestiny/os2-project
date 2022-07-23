@@ -33,4 +33,6 @@ const int EOF = -1;
 char getc();
 void putc(char);
 
+void enter_user_mode();
+
 #endif //PROJECT_SYSCALL_C_H
