@@ -127,16 +127,16 @@ namespace kernel {
     }
 
     Thread::~Thread() {
-        if (stack != nullptr) {
-            auto &allocator = MemoryAllocator::getInstance();
-            allocator.deallocateBlocks(stack);
-        }
         if (threadMode(this) == Mode::USER) {
             userThreadCount--;
         } else {
             systemThreadCount--;
         }
         if (this == runningThread) runningThread = nullptr;
+        if (stack != nullptr) {
+            auto &allocator = MemoryAllocator::getInstance();
+            allocator.deallocateBlocks(stack);
+        }
     }
 
     void Thread::tick() {
