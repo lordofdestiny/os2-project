@@ -88,8 +88,9 @@ namespace kernel {
         if(!idleThread) {
             auto& allocator = MemoryAllocator::getInstance();
             void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
-            auto task = [](void*) { while(true); };
-            idleThread = new Thread(task, nullptr, stack, Thread::Owner::SYSTEM);
+            auto task = [](void* arg) { while(true); };
+            idleThread = new Thread(task, nullptr,
+                                    stack, Thread::Mode::SYSTEM);
         }
         return idleThread;
     }
