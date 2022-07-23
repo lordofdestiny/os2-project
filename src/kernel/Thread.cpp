@@ -55,9 +55,10 @@ namespace kernel {
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
 
-    Thread* Thread::getMainThread() {
-        if(mainThread == nullptr) {
-            mainThread = new Thread(nullptr, nullptr, nullptr, Owner::USER);
+    Thread *Thread::getMainThread() {
+        if (mainThread == nullptr) {
+            mainThread = new Thread(nullptr, nullptr,
+                                    nullptr, Mode::SYSTEM);
         }
         return mainThread;
     }
@@ -83,63 +84,68 @@ namespace kernel {
         thread_exit();
     }
 
-    uint64 Thread::sstatusGetInitial() {
-        if(runningThread == nullptr) return 0;
+    uint64 Thread::sstatusGetInitial(Mode mode) {
+        using namespace BitMasks;
         using BitMasks::sstatus;
-        auto mask = (uint64)sstatus::SPP | (uint64) sstatus::SPIE;
-        return runningThread->getContext().getsstatus() & mask;
+        auto status =
+                runningThread == nullptr
+                ? (uint64) sstatus::SPIE
+                : runningThread->context.sstatus;
+//        auto SPP = (mode == Mode::SYSTEM)
+//                ? (uint64) (sstatus::SPP) : 0;
+//        auto SPP = (uint64) sstatus::SPP;
+        auto SPP = (mode == Mode::SYSTEM) << 8;
+        auto SPIE = status & (uint64) sstatus::SPIE;
+        return SPP | SPIE | (uint64) sstatus::SIE;
     }
 
     uint64 Thread::pcGetInitial(Task function) {
-        if(function == nullptr) return 0x00;
+        if (function == nullptr) return 0x00;
         return (uint64) taskWrapper;
     }
 
     /* Return to old version once user mode is the default mode */
-    Thread::Owner Thread::runningThreadOwner() { // Try and replace with runningTrhread->owner
-        //auto status = runningThread->getsstatus();
-        //return status | (uint64) BitMasks::sstatus::SPP? Owner::SYSTEM:Owner::USER;
-        return Owner::USER;
+    Thread::Mode Thread::threadMode(Thread *thread) {
+        if (mainThread == nullptr) return Mode::SYSTEM;
+        if (thread == nullptr) return Mode::SYSTEM;
+        auto status = thread->context.sstatus;
+        if(status == 0) return Mode::SYSTEM;
+        return status & (uint64) BitMasks::sstatus::SPP ? Mode::SYSTEM : Mode::USER;
     }
 
     /* Return to a single constructore once user mode is the default mode */
-    Thread::Thread(Task function, void *argument, void *stack) :
-            Thread::Thread(function, argument, stack, runningThreadOwner()){ }
-
-    Thread::Thread(Task function, void *argument, void *stack, Owner type) :
-            context( pcGetInitial(function), sstatusGetInitial()),
-            task(function), arg(argument), stack((size_t*) stack),
-            owner(type) {
-        if(stack != nullptr) {
+    Thread::Thread(Task function, void *argument, void *stack, Mode mode) :
+            context(pcGetInitial(function), sstatusGetInitial(mode)),
+            task(function), arg(argument), stack((uint64 *) stack) {
+        if (stack != nullptr) {
             auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
             context.registers.sp = stackTop;
         }
 
-        if(owner == Owner::USER) {
+        if (mode == Mode::USER) {
             userThreadCount++;
-        }else if(owner == Owner::SYSTEM) {
+        } else {
             systemThreadCount++;
         }
-
     }
 
     Thread::~Thread() {
-        if(stack != nullptr) {
-            auto& allocator = MemoryAllocator::getInstance();
+        if (stack != nullptr) {
+            auto &allocator = MemoryAllocator::getInstance();
             allocator.deallocateBlocks(stack);
         }
-        if(owner == Owner::USER) {
+        if (threadMode(this) == Mode::USER) {
             userThreadCount--;
-        }else if(owner == Owner::SYSTEM) {
+        } else {
             systemThreadCount--;
         }
-        if(this == runningThread) runningThread = nullptr;
+        if (this == runningThread) runningThread = nullptr;
     }
 
     void Thread::tick() {
-        if(this == runningThread && --runningTimeLeft == 0) {
+        if (this == runningThread && --runningTimeLeft == 0) {
             dispatch();
-        }else {
+        } else {
             sleepingTime--;
         }
     }
