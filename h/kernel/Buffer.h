@@ -9,6 +9,7 @@
 #include "./MemoryAllocator.h"
 
 namespace kernel {
+    template<size_t Capacity = 256>
     class Buffer {
     public:
         void put(char c)  {
@@ -40,7 +41,6 @@ namespace kernel {
             static auto& allocator = MemoryAllocator::getInstance();
             allocator.deallocateBlocks(ptr);
         }
-        static const size_t Capacity = 256;
     private:
         size_t head = 0;
         size_t tail = 0;
