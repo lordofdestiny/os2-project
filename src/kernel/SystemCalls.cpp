@@ -8,6 +8,7 @@
 #include "../../h/syscall_c.h"
 #include "../../h/kernel/Semaphore.h"
 #include "../../h/kernel/Console.h"
+#include "../../h/kernel/BitMasks.h"
 
 #define ACCEPT(type, index) (type) threadRegisters().a##index
 #define RETURN(value) threadRegisters().a0 = (uint64) value
@@ -43,7 +44,8 @@ namespace kernel {
             auto task = ACCEPT(Thread::Task, 2);
             auto argument = ACCEPT(void*, 3);
             auto stack = ACCEPT(void*, 4);
-            auto thread = new Thread(task, argument, stack);
+            auto thread = new Thread(task, argument,
+                                     stack, Thread::Mode::USER);
             if(thread == nullptr) {
                 auto& allocator = MemoryAllocator::getInstance();
                 allocator.deallocateBlocks(stack);
@@ -88,7 +90,7 @@ namespace kernel {
         void sem_signal() {
             auto id = ACCEPT(Semaphore*, 1);
             RETURN_IF(id == nullptr, -0x01);
-            registers.a0 = 0x00;
+            RETURN(0);
             id->signal();
         }
 
@@ -108,8 +110,8 @@ namespace kernel {
         }
 
         void putc() {
-            char c = threadRegisters().a1;
             auto& console = Console::getInstance();
+            auto c = ACCEPT(char, 1);
             console.writeChar(c);
         }
 
