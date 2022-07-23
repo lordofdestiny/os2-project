@@ -28,11 +28,6 @@ namespace kernel {
         SREGISTER_SET_BITS(sstatus, sstatus::SIE);
     }
 
-    void Kernel::disableInterrupts() {
-        using namespace kernel::BitMasks;
-        SREGISTER_CLEAR_BITS(sstatus, sstatus::SIE);
-    }
-
     void Kernel::setTrapHandler(bool keepErrorHandler) {
         using namespace kernel::BitMasks;
         TrapHandlers::Handler errorHandler;
