@@ -15,6 +15,7 @@ namespace kernel {
         setTrapHandler();
         Thread::initialize();
         enableInterrupts();
+        enter_user_mode();
     }
 
     void Kernel::finalize() {
