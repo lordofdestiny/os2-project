@@ -25,6 +25,8 @@ namespace kernel {
             ThreadCreate = 0x11,
             ThreadExit = 0x12,
             ThreadDispatch = 0x13,
+            ThreadInit = 0x14,
+            ThreadStart = 0x15,
             SemaphoreOpen = 0x21,
             SemaphoreClose = 0x22,
             SemaphoreWait = 0x23,
@@ -38,6 +40,8 @@ namespace kernel {
         void mem_free();
         void thread_create();
         void thread_exit();
+        void thread_init();
+        void thread_start();
         void sem_open();
         void sem_close();
         void sem_wait();

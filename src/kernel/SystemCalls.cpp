@@ -32,19 +32,12 @@ namespace kernel {
         }
 
         void thread_create() {
+            thread_init();
             auto handle = ACCEPT(thread_t*, 1);
-            auto task = ACCEPT(Thread::Task, 2);
-            auto argument = ACCEPT(void*, 3);
-            auto stack = ACCEPT(void*, 4);
-            auto thread = new Thread(task, argument,
-                                     stack, Thread::Mode::USER);
-            if(thread == nullptr) {
-                ALLOCATOR.deallocateBlocks(stack);
-            }else {
-                *handle = (thread_t) thread;
-                SCHEDULER.put(thread);
-            }
-            RETURN(-(thread == nullptr));
+            auto thread = (Thread*) *handle;
+            RETURN_IF(thread == nullptr, -0x02);
+            thread->setStatus(Thread::Status::READY);
+            thread_start();
         }
 
         void thread_exit() { // Handle if attempting to exit main
@@ -53,6 +46,36 @@ namespace kernel {
             delete runningThread;
             Thread::dispatch();
             RETURN(0);
+        }
+
+        void thread_init() {
+            auto handle = ACCEPT(thread_t*, 1);
+            RETURN_IF(handle == nullptr, -0x01);
+            auto task = ACCEPT(Thread::Task, 2);
+            auto argument = ACCEPT(void*, 3);
+            auto stack = ACCEPT(void*, 4);
+            auto thread = new Thread(task, argument,
+                                     stack, Thread::Mode::USER);
+            if(thread == nullptr) {
+                ALLOCATOR.deallocateBlocks(stack);
+            }else{
+                *handle = (thread_t) thread;
+            }
+            RETURN_IF(thread == nullptr, -0x01);
+            RETURN(0x00);
+        }
+
+        void thread_start() {
+            auto thread = (Thread*) *ACCEPT(thread_t*, 1);
+            switch (thread->getStatus()) {
+                case Thread::Status::CREATED:
+                    thread->setStatus(Thread::Status::READY);
+                case Thread::Status::READY:
+                    return SCHEDULER.put(thread);
+                case Thread::Status::RUNNING:
+                case Thread::Status::BLOCKED:
+                    return;
+            }
         }
 
         void sem_open() {

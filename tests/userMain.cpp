@@ -1,13 +1,13 @@
 #include "../h/ConsoleUtils.h"
-#include "../h/syscall_c.h"
+#include "../h/syscall_cpp.h"
 
 struct SharedData{
     int arr[2];
     int cycles;
-    sem_t sem;
+    Semaphore* sem;
     bool done[3];
     SharedData() {
-        sem_open(&sem,1);
+        sem = new Semaphore();
         arr[0] = arr[1] = 0;
         cycles = 5;
         for(int i = 0; i < 3; i++){
@@ -15,25 +15,32 @@ struct SharedData{
         }
     }
     ~SharedData() {
-        sem_close(sem);
+        delete sem;
     }
 };
+
+class Greeter : public PeriodicThread {
+public:
+    Greeter() : PeriodicThread(25){}
+    void periodicActivation() override {
+        printString("Hello world!\n");
+    }
+};
+
 void userMain() {
     SharedData data;
 
-    thread_t thread1;
-    thread_create(&thread1, [](void *) {
+    auto thread1 = new Thread([](void *) {
         for(int i = 0 ; i < 2; i++){
             time_sleep(5);
             printString("Hello from A!\n");
             thread_dispatch();
         }
-        thread_exit();
-    }, nullptr);
+        }, nullptr);
+    if(thread1 == nullptr) return;
+    thread1->start();
 
-    thread_t thread2;
-    thread_create(&thread2, [](void * ptr) {
-//        time_sleep(10);
+    auto thread2 = new Thread([](void * ptr) {
         auto data = (SharedData*)ptr;
         while(!data->done[0] && !data->done[1] && !data->done[2]) {
             printString("Thread B says hi!!!\n");
@@ -42,8 +49,10 @@ void userMain() {
         printString("B done here!!!\n");
     }, &data);
 
-    thread_t thread3;
-    thread_create(&thread3, [](void *) {
+    if(thread2 == nullptr) return;
+    thread2->start();
+
+    auto thread3 = new Thread([](void *) {
         for(int i = 0; i < 3;i++){
             if (i == 2) time_sleep(20);
             else time_sleep(3);
@@ -52,35 +61,40 @@ void userMain() {
         }
     }, nullptr);
 
-    thread_t threadA;
-    thread_create(&threadA,[](void* arg){
+    if(thread3 == nullptr) return;
+    thread3->start();
+
+    auto threadA = new Thread([](void* arg){
         auto data = (SharedData*) arg;
         for(int i = 0; i < data->cycles; i++) {
-            sem_wait(data->sem);
+            data->sem->wait();
             data->arr[0] = i;
-            sem_signal(data->sem);
+            data->sem->signal();
             thread_dispatch();
         }
         data->done[0] = true;
     }, &data);
 
-    thread_t threadB;
-    thread_create(&threadB,[](void* arg){
+    if(threadA == nullptr) return;
+    threadA->start();
+
+    auto threadB = new Thread([](void* arg){
         auto data = (SharedData*) arg;
         for(int i = 3; i < 3 + data->cycles; i++){
-            sem_wait(data->sem);
+            data->sem->wait();
             data->arr[1] = i;
-            sem_signal(data->sem);
+            data->sem->signal();
             thread_dispatch();
         }
         data->done[1] = true;
     }, &data);
+    if(threadB == nullptr) return;
+    threadB->start();
 
-    thread_t threadC;
-    thread_create(&threadC,[](void* arg){
+    auto threadC = new Thread([](void* arg){
         auto data = (SharedData*) arg;
         for(int i = 0; i < data->cycles; i++){
-            sem_wait(data->sem);
+            data->sem->wait();
             char str[5];
             str[0] = data->arr[0]+48;
             str[1] = ' ';
@@ -88,33 +102,36 @@ void userMain() {
             str[3] = '\n';
             str[4] = '\0';
             printString(str);
-            sem_signal(data->sem);
+            data->sem->signal();
             thread_dispatch();
         }
         data->done[2] = true;
     }, &data);
+    if(threadC == nullptr) return;
+    threadC->start();
 
     while(!data.done[0] && !data.done[1] && !data.done[2]){
         thread_dispatch();
     }
 
-    printString("???\n");
-    char buffer[40];
-    getString(buffer,30);
+    char buffer[20];
+    getString(buffer,15);
     int num = stringToInt(buffer);
-    num += 25;
+    num += 17;
     printString("Calculating...\n");
-    time_sleep(25);
+    Thread::sleep(25);
     printString("Result: ");
     printInt(num,8);
     putc('\n');
-    time_sleep(5);
+    Thread::sleep(25);
 
     thread_t phantom;
     thread_create(&phantom, [](void*arg){
         printString("Phantom starting!\n");
-        time_sleep(15);
+        Thread::sleep(25);
         printString("Phantom done!\n");
     }, nullptr);
 
+    Greeter* greeter = new Greeter();
+    greeter->start();
 }

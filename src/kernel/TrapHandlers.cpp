@@ -52,6 +52,10 @@ namespace kernel {
                     return thread_create();
                 case CallType::ThreadExit:
                     return thread_exit();
+                case CallType::ThreadInit:
+                    return thread_init();
+                case CallType::ThreadStart:
+                    return thread_start();
                 case CallType::ThreadDispatch:
                     return Thread::dispatch();
                 case CallType::SemaphoreOpen:
