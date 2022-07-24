@@ -4,7 +4,6 @@
 
 #include "../../h/kernel/Kernel.h"
 #include "../../h/kernel/RegisterUtils.h"
-#include "../../h/kernel/TrapHandlers.h"
 #include "../../h/syscall_c.h"
 
 namespace kernel {
