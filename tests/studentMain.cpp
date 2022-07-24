@@ -1,5 +1,5 @@
 #include "../h/ConsoleUtils.h"
-#include "../h/syscall_cpp.h"
+#include "../h/syscall_cpp.hpp"
 
 struct SharedData{
     int arr[2];
