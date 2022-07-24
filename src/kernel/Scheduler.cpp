@@ -81,14 +81,13 @@ namespace kernel {
             auto awake = sleepingHead;
             sleepingHead = sleepingHead->getNext();
             awake->setNext(nullptr);
-            instance.put(awake);
+            put(awake);
         }
     }
 
     Thread* Scheduler::getIdleThread() {
         if(idleThread == nullptr) {
-            auto& allocator = MemoryAllocator::getInstance();
-            void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
+            void* stack = ALLOCATOR.allocateBytes(DEFAULT_STACK_SIZE);
             auto task = [](void* arg) { while(true); };
             idleThread = new Thread(task, nullptr,
                                     stack, Thread::Mode::SYSTEM);

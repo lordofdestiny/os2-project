@@ -7,6 +7,8 @@
 
 #include "../../h/kernel/Thread.h"
 
+#define SCHEDULER Scheduler::getInstance()
+
 namespace kernel {
     class Scheduler final{
     public:

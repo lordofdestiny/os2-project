@@ -1,17 +1,13 @@
 //
 // Created by os on 7/16/22.
 //
-
+#include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/MemoryAllocator.h"
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/syscall_c.h"
 #include "../../h/kernel/Semaphore.h"
 #include "../../h/kernel/Console.h"
-#include "../../h/kernel/BitMasks.h"
-
-#define ACCEPT(type, index) (type) threadRegisters().a##index
-#define RETURN(value) threadRegisters().a0 = (uint64) value
 
 #define RETURN_IF(test, value)      \
     do{                             \
@@ -23,19 +19,15 @@
 
 namespace kernel {
     namespace SystemCalls {
-        Thread::Context::Registers& threadRegisters() {
-            return Thread::getRunning()->getContext().getRegisters();
-        }
-
         void mem_alloc() {
             auto blockCount = ACCEPT(size_t, 1);
-            auto memory = MemoryAllocator::getInstance().allocateBlocks(blockCount);
+            auto memory = ALLOCATOR.allocateBlocks(blockCount);
             RETURN(memory);
         }
 
         void mem_free() {
             auto memory = ACCEPT(void*, 1);
-            int code = MemoryAllocator::getInstance().deallocateBlocks(memory);
+            int code = ALLOCATOR.deallocateBlocks(memory);
             RETURN(code);
         }
 
@@ -47,11 +39,10 @@ namespace kernel {
             auto thread = new Thread(task, argument,
                                      stack, Thread::Mode::USER);
             if(thread == nullptr) {
-                auto& allocator = MemoryAllocator::getInstance();
-                allocator.deallocateBlocks(stack);
+                ALLOCATOR.deallocateBlocks(stack);
             }else {
                 *handle = (thread_t) thread;
-                Scheduler::getInstance().put(thread);
+                SCHEDULER.put(thread);
             }
             RETURN(-(thread == nullptr));
         }
@@ -95,24 +86,21 @@ namespace kernel {
         }
 
         void time_sleep() {
-            auto& scheduler = Scheduler::getInstance();
             auto thread = Thread::getRunning();
             auto ticks = ACCEPT(time_t, 1);
             RETURN_IF(ticks < 0, -0x01);
             RETURN(0);
-            scheduler.putToSleep(thread, ticks);
+            SCHEDULER.entrance(thread, ticks);
         }
 
         void getc() {
-            auto& console = Console::getInstance();
-            auto c = console.readChar();
+            auto c = CONSOLE.readChar();
             RETURN(c);
         }
 
         void putc() {
-            auto& console = Console::getInstance();
             auto c = ACCEPT(char, 1);
-            console.writeChar(c);
+            CONSOLE.writeChar(c);
         }
 
         void enter_user_mode() {

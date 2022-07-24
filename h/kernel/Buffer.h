@@ -34,12 +34,10 @@ namespace kernel {
         }
     public:
         static void* operator new(size_t size) {
-            static auto& allocator = MemoryAllocator::getInstance();
-            return allocator.allocateBytes(size);
+            return ALLOCATOR.allocateBytes(size);
         }
         static void operator delete(void* ptr) {
-            static auto& allocator = MemoryAllocator::getInstance();
-            allocator.deallocateBlocks(ptr);
+            ALLOCATOR.deallocateBlocks(ptr);
         }
     private:
         size_t head = 0;

@@ -6,6 +6,9 @@
 #define PROJECT_THREAD_H
 #include "../../lib/hw.h"
 
+#define CONTEXT Thread::getRunning()->getContext()
+#define RUNNING_REGISTERS CONTEXT.getRegisters()
+#define NEXT_INSTRUCTION() Thread::getRunning()->skipInstruction();
 
 namespace kernel {
     class Thread final{

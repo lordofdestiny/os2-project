@@ -4,6 +4,8 @@
 #ifndef PROJECT_MEMORYALLOCATOR_H
 #define PROJECT_MEMORYALLOCATOR_H
 
+#define ALLOCATOR MemoryAllocator::getInstance()
+
 #include "../../lib/hw.h"
 namespace kernel {
     class MemoryAllocator {

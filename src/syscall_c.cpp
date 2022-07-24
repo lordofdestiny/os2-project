@@ -85,8 +85,7 @@ int time_sleep(time_t ticks) {
 }
 
 char getc() {
-    auto& console = Console::getInstance();
-    auto sem = console.getInputSemaphore();
+    auto sem = CONSOLE.getInputSemaphore();
     sem_wait(sem);
     environmentCall(CallType::GetChar);
     RETURN_AS(char);

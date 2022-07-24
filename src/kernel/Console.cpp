@@ -8,12 +8,11 @@
 
 namespace kernel {
     Console::Console() {
-        auto& allocator = MemoryAllocator::getInstance();
-        void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
+        void* stack = ALLOCATOR.allocateBytes(DEFAULT_STACK_SIZE);
         thread = new Thread(outputTask, nullptr,
                             stack, Thread::Mode::SYSTEM);
 
-        Scheduler::getInstance().put(thread);
+        SCHEDULER.put(thread);
     }
 
     Console &Console::getInstance() {
@@ -44,12 +43,11 @@ namespace kernel {
     }
 
     void Console::outputTask(void* ptr) {
-        auto& console = getInstance();
         while(true) {
-            while(!ConsoleController::isWritable() && console.outputBuffer.empty());
+            while(!ConsoleController::isWritable() && CONSOLE.outputBuffer.empty());
             SREGISTER_CLEAR_BITS(sstatus, BitMasks::sstatus::SIE);
-            while (ConsoleController::isWritable() && !console.outputBuffer.empty()) {
-                auto c = console.outputBuffer.get();
+            while (ConsoleController::isWritable() && !CONSOLE.outputBuffer.empty()) {
+                auto c = CONSOLE.outputBuffer.get();
                 ConsoleController::transmitData(c);
             }
             SREGISTER_SET_BITS(sstatus, BitMasks::sstatus::SIE);

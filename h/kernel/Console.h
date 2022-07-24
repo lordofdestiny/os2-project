@@ -12,6 +12,8 @@
 #include "Scheduler.h"
 #include "../syscall_c.h"
 
+#define CONSOLE Console::getInstance()
+
 namespace kernel {
     class Console final{
     public:

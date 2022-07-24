@@ -26,11 +26,11 @@ namespace kernel {
     }
 
     void* Thread::operator new(size_t size) noexcept {
-        return MemoryAllocator::getInstance().allocateBytes(size);
+        return ALLOCATOR.allocateBytes(size);
     }
 
     void Thread::operator delete(void *ptr) noexcept {
-        MemoryAllocator::getInstance().deallocateBlocks(ptr);
+        ALLOCATOR.deallocateBlocks(ptr);
     }
 
     void Thread::initialize() {
@@ -39,15 +39,14 @@ namespace kernel {
     }
 
     void Thread::dispatch() {
-        auto& scheduler = Scheduler::getInstance();
 
         auto oldThread = runningThread;
 
         if (oldThread && oldThread->status != Status::BLOCKED) {
-            scheduler.put(oldThread);
+            SCHEDULER.put(oldThread);
         }
 
-        auto newThread = scheduler.get();
+        auto newThread = SCHEDULER.get();
 
         runningThread = newThread;
         runningThread->status = Status::RUNNING;
@@ -133,8 +132,7 @@ namespace kernel {
         }
         if (this == runningThread) runningThread = nullptr;
         if (stack != nullptr) {
-            auto &allocator = MemoryAllocator::getInstance();
-            allocator.deallocateBlocks(stack);
+            ALLOCATOR.deallocateBlocks(stack);
         }
     }
 
@@ -148,8 +146,9 @@ namespace kernel {
 
     void Thread::enterUserMode() {
         if(threadMode(this) == Mode::SYSTEM) {
-            auto newsstatus = context.sstatus  & (~(uint64) BitMasks::sstatus::SPP);
-            context.setsstatus(newsstatus);
+            using namespace BitMasks;
+            auto newsstatus = context.sstatus  & (~(uint64) sstatus::SPP);
+            context.sstatus = newsstatus;
             systemThreadCount--;
             userThreadCount++;
         }

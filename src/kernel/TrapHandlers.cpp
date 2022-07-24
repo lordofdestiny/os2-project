@@ -5,7 +5,6 @@
 #include "../../h/kernel/TrapHandlers.h"
 #include "../../h/kernel/RegisterUtils.h"
 #include "../../h/kernel/Thread.h"
-#include "../../h/kernel/ConsoleUtils.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/Console.h"
 
@@ -26,25 +25,23 @@ namespace kernel {
 
         void timerInterruptHandler() {
             Thread::getRunning()->tick();
-            Scheduler::getInstance().tick();
+            SCHEDULER.tick();
             SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
         }
 
         void hardwareInterruptHandler() {
             auto irqSrc = plic_claim();
             if(irqSrc == CONSOLE_IRQ) {
-                static auto& console = Console::getInstance();
-                console.handle();
+                CONSOLE.handle();
             }
             plic_complete(irqSrc);
         }
 
         void systemCallHandler() {
             using namespace SystemCalls;
-            auto runningThread = Thread::getRunning();
-            auto type = (CallType) runningThread->getContext().getRegisters().a0;
+            auto type = ACCEPT(CallType, 0);
 
-            runningThread->skipInstruction();
+            NEXT_INSTRUCTION();
 
             switch (type) {
                 case CallType::MemoryAllocate:
