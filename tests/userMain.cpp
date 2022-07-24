@@ -3,12 +3,13 @@
 
 struct SharedData{
     int arr[2];
-    int cycles = 1;
+    int cycles;
     sem_t sem;
     bool done[3];
     SharedData() {
         sem_open(&sem,1);
         arr[0] = arr[1] = 0;
+        cycles = 5;
         for(int i = 0; i < 3; i++){
             done[i]=false;
         }
@@ -17,8 +18,9 @@ struct SharedData{
         sem_close(sem);
     }
 };
-
 void userMain() {
+    SharedData data;
+
     thread_t thread1;
     thread_create(&thread1, [](void *) {
         for(int i = 0 ; i < 2; i++){
@@ -29,16 +31,15 @@ void userMain() {
         thread_exit();
     }, nullptr);
 
-    SharedData data;
-
     thread_t thread2;
     thread_create(&thread2, [](void * ptr) {
-        time_sleep(10);
+//        time_sleep(10);
         auto data = (SharedData*)ptr;
         while(!data->done[0] && !data->done[1] && !data->done[2]) {
-            time_sleep(5);
             printString("Thread B says hi!!!\n");
+            time_sleep(5);
         };
+        printString("B done here!!!\n");
     }, &data);
 
     thread_t thread3;
@@ -93,10 +94,10 @@ void userMain() {
         data->done[2] = true;
     }, &data);
 
-
     while(!data.done[0] && !data.done[1] && !data.done[2]){
         thread_dispatch();
     }
+
     printString("???\n");
     char buffer[40];
     getString(buffer,30);
@@ -111,9 +112,9 @@ void userMain() {
 
     thread_t phantom;
     thread_create(&phantom, [](void*arg){
-        printString("Phantom starting!");
-//        time_sleep(15);
-        printString("Phantom done!");
+        printString("Phantom starting!\n");
+        time_sleep(15);
+        printString("Phantom done!\n");
     }, nullptr);
 
 }
