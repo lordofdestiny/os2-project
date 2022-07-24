@@ -7,35 +7,33 @@
 
 #include "Semaphore.h"
 #include "Buffer.h"
+#include "MemoryAllocator.h"
 #include "ConsoleController.h"
+#include "Scheduler.h"
 #include "../syscall_c.h"
 
 namespace kernel {
     class Console final{
     public:
-        Console() {
-        }
+        Console();
         Console(Console const&)=delete;
         Console& operator=(Console const&)=delete;
         ~Console()=default;
 
-        enum class Direction {
-            IN, OUT
-        };
-
-        sem_t getSemaphore(Direction direction);
-
+        sem_t getInputSemaphore();
         char readChar();
         void writeChar(char c);
         void handle();
     public:
         static Console& getInstance();
 
-        static const size_t BufferSize = 256;
     private:
-        Semaphore* outputItemsAvailable = new Semaphore{0};
-        Semaphore* inputItemAvailable = new Semaphore{BufferSize};
-        Buffer inputBuffer, outputBuffer;
+        [[noreturn]] static void outputTask(void* ptr);
+    private:
+        Semaphore* inputItemAvailable = new Semaphore{0};
+        Buffer<512> inputBuffer, outputBuffer;
+        Thread* thread;
+
     };
 
 } // kernel
