@@ -18,10 +18,10 @@ namespace kernel {
         void put(Thread *thread);
         Thread *get();
 
-        void putToSleep(Thread* thread, uint64 ticks);
+        void entrance(Thread* thread, uint64 ticks);
         void tick();
     private:
-        void wakeUpThreads();
+        void awaken();
         Scheduler() = default;
         Thread *getIdleThread();
     private:

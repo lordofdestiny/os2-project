@@ -37,7 +37,7 @@ namespace kernel {
         return thread;
     }
 
-    void Scheduler::putToSleep(Thread *thread, uint64 ticks) {
+    void Scheduler::entrance(Thread *thread, uint64 ticks) {
         if(ticks == 0) return;
 
         thread->setStatus(Thread::Status::BLOCKED);
@@ -72,10 +72,10 @@ namespace kernel {
     void Scheduler::tick() {
         if(sleepingHead == nullptr) return;
         sleepingHead->tick();
-        wakeUpThreads();
+        awaken();
     }
 
-    void Scheduler::wakeUpThreads() {
+    void Scheduler::awaken() {
         while(sleepingHead != nullptr && sleepingHead->getSleepingTime() == 0) {
             auto awake = sleepingHead;
             sleepingHead = sleepingHead->getNext();
