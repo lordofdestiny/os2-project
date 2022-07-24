@@ -27,7 +27,7 @@ public:
     }
 };
 
-void userMain() {
+void studentMain() {
     SharedData data;
 
     auto thread1 = new Thread([](void *) {
