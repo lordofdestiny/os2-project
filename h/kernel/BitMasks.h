@@ -6,12 +6,13 @@
 #define PROJECT_BITMASKS_H
 #include "../../lib/hw.h"
 
-static constexpr uint64 maskBit(uint8 bit) {
-    return (uint64) 0x01 << (uint64) bit;
-}
 
 namespace kernel {
     namespace BitMasks {
+        inline constexpr uint64 maskBit(uint8 bit) {
+            return (uint64) 0x01 << (uint64) bit;
+        }
+
         enum class sstatus : uint64 {
             SPP = maskBit(8),
             SPIE = maskBit(5),

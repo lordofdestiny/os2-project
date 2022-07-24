@@ -5,6 +5,18 @@
 #ifndef PROJECT_SYSTEMCALLS_H
 #define PROJECT_SYSTEMCALLS_H
 
+#define ACCEPT(type, index) (type) RUNNING_REGISTERS.a##index
+#define RETURN(value) RUNNING_REGISTERS.a0 = (uint64) value
+
+#define RETURN_IF(test, value)      \
+    do{                             \
+        if((test)) {                \
+            RETURN(value);          \
+            return;                 \
+        }                           \
+    }while(0)                       \
+
+
 namespace kernel {
     namespace SystemCalls {
         enum class CallType {
@@ -19,9 +31,9 @@ namespace kernel {
             SemaphoreSignal = 0x24,
             TimeSleep = 0x31,
             GetChar = 0x41,
-            PutChar = 0x42
+            PutChar = 0x42,
+            EnterUserMode = 0xFF
         };
-        void handle();
         void mem_alloc();
         void mem_free();
         void thread_create();
@@ -33,6 +45,7 @@ namespace kernel {
         void time_sleep();
         void getc();
         void putc();
+        void enter_user_mode();
         void environmentCall(CallType type) asm("__environmentCall__");
     };
 } // kernel

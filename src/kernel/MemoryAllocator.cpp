@@ -3,14 +3,16 @@
 //
 
 #include "../../h/kernel/MemoryAllocator.h"
-#include "../../h/kernel/ConsoleUtils.h"
 
 namespace kernel {
-
     MemoryAllocator::MemoryAllocator() {
-        auto heapByteSize = (size_t) HEAP_END_ADDR - (size_t) HEAP_START_ADDR;
-        auto heapBlockCount = heapByteSize / MEM_BLOCK_SIZE;
-        head = new((FreeBlock *) HEAP_START_ADDR) FreeBlock(heapBlockCount);
+        size_t heapByteSize = (uint64) HEAP_END_ADDR - (uint64) HEAP_START_ADDR;
+        size_t heapBlockCount = heapByteSize / MEM_BLOCK_SIZE;
+        auto originBlock = (MemoryAllocator::FreeMemoryBlock *) HEAP_START_ADDR;
+        originBlock->size = heapBlockCount;
+        originBlock->prev = nullptr;
+        originBlock->next = nullptr;
+        this->freeMemoryHead = originBlock;
     }
 
     MemoryAllocator &MemoryAllocator::getInstance() {
@@ -23,126 +25,129 @@ namespace kernel {
     }
 
 /* Algorithm: Best Fit*/
-    void *MemoryAllocator::allocateBlocks(size_t count) {
-        FreeBlock *block = nullptr;
+    void *MemoryAllocator::allocateBlocks(size_t blockCount) {
+        FreeMemoryBlock *block = nullptr;
 
-        for (auto curr = head; curr != nullptr; curr = curr->next) {
-            if ((block == nullptr && curr->size >= count)
-                || (curr->size >= count && curr->size < block->size)) {
+        for (auto curr = this->freeMemoryHead; curr != nullptr; curr = curr->next) {
+            if (block == nullptr && curr->size >= blockCount) {
+                block = curr;
+            } else if (curr->size >= blockCount && curr->size < block->size) {
                 block = curr;
             }
         }
 
-        if (block == nullptr) return nullptr;
+        if (block == nullptr) {
+            return nullptr;
+        }
 
-        auto remainingBlocks = block->size - count;
-        /* If the current segment is not emtpy after being consumed
-         * Use required space and create new block that represent
-         * remaining space
-         * */
-        if (remainingBlocks > 0) {
-            auto offset = count * MEM_BLOCK_SIZE;
-            auto newBlock = (FreeBlock *) ((char *) block + offset);
+        size_t remainingBlockCount = block->size - blockCount;
+        if (remainingBlockCount > 0) {
+            size_t offset = blockCount * MEM_BLOCK_SIZE;
+            auto newBlock = (FreeMemoryBlock*) ((char*) block + offset);
 
-            block->prev != nullptr
-            ? block->prev->next
-            : head
-                      = newBlock;
-
-            if (block->next != nullptr) {
+            if (block->prev) {
+                block->prev->next = newBlock;
+            } else {
+                freeMemoryHead = newBlock;
+            }
+            if(block->next){
                 block->next->prev = newBlock;
             }
-
-            new(newBlock) FreeBlock(*block);
-            newBlock->size = remainingBlocks;
+            newBlock->prev = block->prev;
+            newBlock->next = block->next;
+            newBlock->size = remainingBlockCount;
         } else {
-            /* Consume the entire current block, and
-             * then remove it
-             * */
-            block->prev != nullptr
-            ? block->prev->next
-            : head
-                      = block->next;
-
-            if (block->next != nullptr) {
+            if (block->prev) {
+                block->prev->next = block->next;
+            } else {
+                freeMemoryHead = block->next;
+            }
+            if(block->next) {
                 block->next->prev = block->prev;
             }
         }
 
-        block->next = block->prev = nullptr;
-        *((size_t *) block) = count; // Upisi velicinu
+        block->next = nullptr;
+        block->prev = nullptr;
+        *((size_t*)block) = blockCount; // Upisi velicinu
 
         return (char *) block + sizeof(size_t);
     }
 
-    int MemoryAllocator::deallocateBlocks(void *ptr) {
-        if (ptr == nullptr) return -1;
+    int MemoryAllocator::deallocateBlocks(void* address) {
+        if(address == nullptr) return -1;
 
-        auto address = (char *) ptr - sizeof(size_t);
+        char* blockAddress = (char*)address - sizeof(size_t);
 
-        // If ptr was not in heap range
-        if (HEAP_START_ADDR > address || address >= HEAP_END_ADDR) {
+        // If address was not in heap range
+        if(HEAP_START_ADDR > blockAddress || blockAddress >= HEAP_END_ADDR){
             return -2;
         }
 
-        auto blockCount = *((size_t *) address);
-        auto byteSize = blockCount * MEM_BLOCK_SIZE;
+        size_t blockCount = *((size_t*) blockAddress);
+        size_t blocksSizeBytes = blockCount * MEM_BLOCK_SIZE;
+
+        // If end of address is after end of the heap
+        if((char*)blockAddress + blocksSizeBytes >= HEAP_END_ADDR) {
+            return  -3;
+        }
 
         // Find the place where to insert new free segment
         // Insertion happens after the block pointed to by curr
-        FreeBlock *curr = head;
-        if (head == nullptr || address < (char *) head) {
+        FreeMemoryBlock* curr = nullptr;
+        if(!freeMemoryHead || blockAddress < (char*) freeMemoryHead){
             curr = nullptr; // Insert as the first
-        } else {
-            while (curr->next != nullptr && address > (char *) (curr->next))
-                curr = curr->next;
+        }else{
+            for(curr=freeMemoryHead; curr->next != nullptr && blockAddress > (char*)(curr->next); curr=curr->next);
         }
 
         // Try to append block to the previous free segment curr
-        if (curr != nullptr && (char *) curr->end() == address) {
+        if(curr && (char*)curr + curr->size * MEM_BLOCK_SIZE == blockAddress){
             curr->size += blockCount;
-            // Try to join curr with the next free ptr
-            if (curr->next != nullptr && curr->end() == (char *) (curr->next)) {
+            // Try to join curr with the next free address
+            if(curr->next && (char*)curr+curr->size * MEM_BLOCK_SIZE  == (char*)(curr->next)){
                 curr->size += curr->next->size;
                 curr->next = curr->next->next;
-                if (curr->next != nullptr) curr->next->prev = curr;
+                if(curr->next) curr->next->prev = curr;
             }
             return 0;
-        } else {
+        }else {
             // Try to append it to the next free segment
-            auto *nextSeg = curr ? curr->next : head;
-            if (nextSeg != nullptr && address + byteSize == (char *) nextSeg) {
-                auto newSeg = new((FreeBlock *) address) auto(*nextSeg);
-                newSeg->size += blockCount;
-
-                if (nextSeg->next != nullptr) {
+            FreeMemoryBlock* nextSeg = curr?curr->next:freeMemoryHead;
+            if(nextSeg && (char*)blockAddress + blocksSizeBytes == (char*)nextSeg){
+                auto newSeg = (FreeMemoryBlock*)blockAddress;
+                newSeg->size = blockCount + nextSeg->size;
+                newSeg->prev = nextSeg->prev;
+                newSeg->next = newSeg->next;
+                if(nextSeg->next){
                     nextSeg->next->prev = newSeg;
                 }
-
-                newSeg->next == nullptr
-                ? head
-                : nextSeg->prev->next
-                          = nextSeg;
-
+                if(nextSeg->prev) {
+                    nextSeg->prev->next = newSeg;
+                }else{
+                    freeMemoryHead = newSeg;
+                }
                 return 0;
             }
         }
 
-        // No need to join; insert the new ptr after curr
-        auto newSeg = new ((FreeBlock *) address) FreeBlock(blockCount);
+        // No need to join; insert the new address after curr
+        auto newSeg = (FreeMemoryBlock*) blockAddress;
+        newSeg->size = blockCount;
         newSeg->prev = curr;
-        newSeg->next = curr == nullptr
-                       ? head
-                       : curr->next;
-
-        if (newSeg->next != nullptr) {
-            newSeg->next->prev = newSeg;
+        if(curr) {
+            newSeg->next = curr->next;
+        }else{
+            newSeg->next = freeMemoryHead;
         }
-
-        curr == nullptr
-        ? head
-        : curr->next
-                  = newSeg;
+        if(newSeg->next) {
+            newSeg ->next->prev = newSeg;
+        }
+        if(curr) {
+            curr->next = newSeg;
+        }else{
+            freeMemoryHead = newSeg;
+        }
 
         return 0;
     }

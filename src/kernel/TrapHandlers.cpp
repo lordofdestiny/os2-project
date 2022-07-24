@@ -5,46 +5,43 @@
 #include "../../h/kernel/TrapHandlers.h"
 #include "../../h/kernel/RegisterUtils.h"
 #include "../../h/kernel/Thread.h"
-#include "../../h/kernel/ConsoleUtils.h"
 #include "../../h/kernel/Scheduler.h"
+#include "../../h/kernel/Console.h"
 
 namespace kernel {
     namespace TrapHandlers {
-        void defaultErrorHandler() {
-            uint64 temp;
-            SREGISTER_READ(scause, temp);
-            printReg("scause", temp);
-            SREGISTER_READ(sepc, temp);
-            printReg("sepc", temp);
-            SREGISTER_READ(stval, temp);
-            printReg("stval", temp);
-        }
-
-        static Handler errorHandler = defaultErrorHandler;
+        static Handler errorHandler = nullptr;
 
         void setErrorHandler(Handler handler) {
             errorHandler = handler;
         }
 
         void instructionErrorHandler() {
-            errorHandler();
-            if(errorHandler == &defaultErrorHandler){
-                Thread::getRunning()->skipInstruction();
+            Thread::getRunning()->skipInstruction();
+            if(errorHandler != nullptr) {
+                errorHandler();
             }
         }
 
-        void timerHandler() {
+        void timerInterruptHandler() {
             Thread::getRunning()->tick();
-            Scheduler::getInstance().tick();
+            SCHEDULER.tick();
             SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
+        }
+
+        void hardwareInterruptHandler() {
+            auto irqSrc = plic_claim();
+            if(irqSrc == CONSOLE_IRQ) {
+                CONSOLE.handle();
+            }
+            plic_complete(irqSrc);
         }
 
         void systemCallHandler() {
             using namespace SystemCalls;
-            auto runningThread = Thread::getRunning();
-            auto type = (CallType) runningThread->getContext().getRegisters().a0;
+            auto type = ACCEPT(CallType, 0);
 
-            runningThread->skipInstruction();
+            NEXT_INSTRUCTION();
 
             switch (type) {
                 case CallType::MemoryAllocate:
@@ -67,11 +64,12 @@ namespace kernel {
                     return sem_signal();
                 case CallType::TimeSleep:
                     return time_sleep();
-                    break;
                 case CallType::GetChar:
-                    break;
+                    return getc();
                 case CallType::PutChar:
-                    break;
+                    return putc();
+                case CallType::EnterUserMode:
+                    return enter_user_mode();
             }
         }
 
@@ -83,9 +81,9 @@ namespace kernel {
 
             switch (trapCause) {
                 case TrapType::TimerTrap:
-                    return timerHandler();
+                    return timerInterruptHandler();
                 case TrapType::ExternalHardwareTrap:
-                    break;
+                    return hardwareInterruptHandler();
                 case TrapType::UserEnvironmentCall:
                 case TrapType::SystemEnvironmentCall:
                     return systemCallHandler();

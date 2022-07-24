@@ -4,41 +4,43 @@
 
 #include "../../h/kernel/Kernel.h"
 #include "../../h/kernel/RegisterUtils.h"
-#include "../../h/kernel/TrapHandlers.h"
 #include "../../h/syscall_c.h"
+#include "../../h/kernel/Console.h"
+
+#define BLOCK_ON_ERROR
+
+#ifdef BLOCK_ON_ERROR
+const static bool block = true;
+#else
+const static bool block = false;
+#endif
 
 namespace kernel {
     alignas(uint16) uint8 Kernel::kernelStack[Kernel::stackSize];
-    void* Kernel::kernelStackTopAddress= (void*)((uint64) &Kernel::kernelStack + stackSize);
+    uint8* Kernel::kernelStackTopAddress = ((uint8*) &Kernel::kernelStack + stackSize);
 
     void Kernel::initialize() {
-        setTrapHandler();
+        setTrapHandler(block);
         Thread::initialize();
         enableInterrupts();
+        enter_user_mode();
     }
 
     void Kernel::finalize() {
         waitForUserThreads();
-        disableInterrupts();
+        thread_dispatch(); // Wait for console to finish
     }
 
     void Kernel::enableInterrupts() {
         using namespace kernel::BitMasks;
-        // Disable external hardware interrupts
-        SREGISTER_CLEAR_BITS(sie, BitMasks::sie::SEIE);
         // Enable external interrupts
         SREGISTER_SET_BITS(sstatus, sstatus::SIE);
     }
 
-    void Kernel::disableInterrupts() {
-        using namespace kernel::BitMasks;
-        SREGISTER_CLEAR_BITS(sstatus, sstatus::SIE);
-    }
-
-    void Kernel::setTrapHandler(bool keepErrorHandler) {
+    void Kernel::setTrapHandler(bool blockOnError) {
         using namespace kernel::BitMasks;
         TrapHandlers::Handler errorHandler;
-        if(keepErrorHandler) {
+        if(blockOnError) {
             SREGISTER_READ(stvec, errorHandler);
             TrapHandlers::setErrorHandler(errorHandler);
         }
@@ -46,7 +48,7 @@ namespace kernel {
     }
 
     void Kernel::waitForUserThreads() {
-        while (Thread::threadCount(Thread::Owner::ANY) != 0) {
+        while (Thread::threadCount(Thread::Mode::USER) > 1) {
             thread_dispatch();
         }
     }

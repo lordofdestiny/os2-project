@@ -6,15 +6,16 @@
 #define PROJECT_THREAD_H
 #include "../../lib/hw.h"
 
+#define CONTEXT Thread::getRunning()->getContext()
+#define RUNNING_REGISTERS CONTEXT.getRegisters()
+#define NEXT_INSTRUCTION() Thread::getRunning()->skipInstruction();
 
 namespace kernel {
-    class Thread {
+    class Thread final{
     public:
         using Task = void(*)(void*);
 
-        enum class Owner {
-            ANY, USER, SYSTEM
-        };
+        enum class Mode { USER, SYSTEM };
 
         enum class Status {
             CREATED, READY, RUNNING, BLOCKED
@@ -42,7 +43,7 @@ namespace kernel {
             void setPC(uint64 value) { pc = value; }
 
             uint64 getsstatus() const{ return sstatus; }
-
+            void setsstatus(uint64 value) { sstatus = value; }
         };
     public:
         static void* operator new(size_t size) noexcept;
@@ -55,13 +56,13 @@ namespace kernel {
         static Thread* getMainThread();
         static Thread* getRunning();
         static void shelveRunning();
-        static uint64 threadCount(Owner owner = Owner::ANY);
+        static uint64 threadCount(Mode mode);
     private:
         static void taskWrapper();
 
-        static uint64 sstatusGetInitial();
+        static uint64 sstatusGetInitial(Mode mode);
         static uint64 pcGetInitial(Task function);
-        static Owner runningThreadOwner();
+        static Mode threadMode(Thread* thread);
 
         static Thread* mainThread;
         static Thread* runningThread asm("__runningThread");
@@ -75,32 +76,29 @@ namespace kernel {
         Task task;
         void* arg;
         uint64* stack;
-        Owner owner;
         uint64 id = threadIdSource++;
         Status status = Status::READY;
         uint64 sleepingTime = 0;
         Thread* next = nullptr;
     public:
-        Thread(Task function, void* argument, void* stack);
-        Thread(Task function, void* argument, void* stack, Owner type);
+        Thread(Task function, void* argument, void* stack, Mode mode);
         Thread(Thread const&)=delete;
         Thread& operator=(Thread const&)=delete;
         ~Thread();
 
         void skipInstruction() { context.pc += 4; }
 
-        uint64 getId() const { return id; }
         Context& getContext() { return context; }
+
+        uint64 getId() const { return id; }
 
         Status getStatus() { return status; };
         void setStatus(Status value) { status = value; }
 
-        bool isUserThread() const { return owner == Owner::USER; }
-
         uint64 getSleepingTime() const { return sleepingTime; }
         void setSleepingTime(uint64 time) { sleepingTime = time; }
         void tick();
-
+        void enterUserMode();
         Thread* getNext() { return next; }
         void setNext(Thread* thread) { next = thread;}
     };

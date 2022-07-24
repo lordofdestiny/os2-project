@@ -16,13 +16,12 @@ namespace kernel {
         static void finalize();
     private:
         static void enableInterrupts();
-        static void disableInterrupts();
-        static void setTrapHandler(bool keepErrorHandler = false);
+        static void setTrapHandler(bool blockOnError = false);
         static void waitForUserThreads();
     private:
         static const size_t stackSize = DEFAULT_STACK_SIZE * sizeof(uint64);
         alignas(uint16) static uint8 kernelStack[stackSize];
-        static void* kernelStackTopAddress asm("__kernelStack");
+        static uint8* kernelStackTopAddress asm("__kernelStack");
     };
 } // kernel
 

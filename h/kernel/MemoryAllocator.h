@@ -4,37 +4,26 @@
 #ifndef PROJECT_MEMORYALLOCATOR_H
 #define PROJECT_MEMORYALLOCATOR_H
 
+#define ALLOCATOR MemoryAllocator::getInstance()
+
 #include "../../lib/hw.h"
 namespace kernel {
     class MemoryAllocator {
     private:
         MemoryAllocator();
-        struct FreeBlock{
-            FreeBlock *prev = nullptr;
-            FreeBlock *next = nullptr;
-            size_t size= 0;
-
-            FreeBlock(FreeBlock const& base)=default;
-
-            FreeBlock(size_t size) : size(size) { }
-
-            static void* operator new(size_t, void* ptr) noexcept {
-                return ptr;
-            };
-
-            char* end() {
-                return (char*)this + size * MEM_BLOCK_SIZE;
-            }
+        struct FreeMemoryBlock{
+            FreeMemoryBlock *prev, *next;
+            size_t size;
         };
-        FreeBlock* head = nullptr;
+        FreeMemoryBlock* freeMemoryHead;
     public:
         MemoryAllocator(MemoryAllocator const&)=delete;
         MemoryAllocator& operator=(MemoryAllocator const&)=delete;
         static MemoryAllocator& getInstance();
         static size_t byteSizeToBlockCount(size_t blocks);
-        void* allocateBlocks(size_t count);
+        void* allocateBlocks(size_t blockCount);
         void* allocateBytes(size_t byteCount);
-        int deallocateBlocks(void* ptr);
+        int deallocateBlocks(void* address);
     };
 }
 

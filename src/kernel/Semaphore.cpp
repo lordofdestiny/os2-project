@@ -5,28 +5,25 @@
 #include "../../h/kernel/Semaphore.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/MemoryAllocator.h"
-#include "../../h/kernel/ConsoleUtils.h"
 
 namespace kernel {
 
     void* Semaphore::operator new(size_t size) noexcept {
-        auto blocks = MemoryAllocator::byteSizeToBlockCount(size);
-        return MemoryAllocator::getInstance().allocateBlocks(blocks);
+        return ALLOCATOR.allocateBytes(size);
     }
 
     void Semaphore::operator delete(void *ptr) noexcept {
-        MemoryAllocator::getInstance().deallocateBlocks(ptr);
+        ALLOCATOR.deallocateBlocks(ptr);
     }
 
     Semaphore::Semaphore(int value) :
         value(value) { }
 
     Semaphore::~Semaphore() {
-        auto& scheduler = Scheduler::getInstance();
         auto curr = head;
         while(curr != nullptr) {
             curr->getContext().getRegisters().a0 = -0x02;
-            scheduler.put(curr);
+            SCHEDULER.put(curr);
             curr=curr->getNext();
         }
     }
@@ -50,11 +47,10 @@ namespace kernel {
     void Semaphore::unblock() {
         auto thread = dequeue();
         if(thread == nullptr) return;
-        Scheduler::getInstance().put(thread);
+        SCHEDULER.put(thread);
     }
 
     void Semaphore::enqueue(Thread *thread) {
-
         if(head == nullptr){
             head = thread;
         }else{

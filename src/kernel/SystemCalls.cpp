@@ -1,108 +1,111 @@
 //
 // Created by os on 7/16/22.
 //
-
 #include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/MemoryAllocator.h"
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/syscall_c.h"
-#include "../../h/kernel/TrapHandlers.h"
 #include "../../h/kernel/Semaphore.h"
+#include "../../h/kernel/Console.h"
 
-#define RETURN_IF(test, value)        \
+#define RETURN_IF(test, value)      \
     do{                             \
         if((test)) {                \
-            registers.a0 = value;   \
+            RETURN(value);          \
             return;                 \
         }                           \
     }while(0)                       \
 
 namespace kernel {
     namespace SystemCalls {
-        Thread::Context::Registers& getRunningThreadRegisters() {
-            return Thread::getRunning()->getContext().getRegisters();
-        }
-
         void mem_alloc() {
-            auto &registers = getRunningThreadRegisters();
-            size_t blockCount = registers.a1;
-            auto memory = MemoryAllocator::getInstance().allocateBlocks(blockCount);
-            registers.a0 = (uint64) memory;
+            auto blockCount = ACCEPT(size_t, 1);
+            auto memory = ALLOCATOR.allocateBlocks(blockCount);
+            RETURN(memory);
         }
 
         void mem_free() {
-            auto &registers = getRunningThreadRegisters();
-            auto memory = (void *) registers.a1;
-            int code = MemoryAllocator::getInstance().deallocateBlocks(memory);
-            registers.a0 = code;
+            auto memory = ACCEPT(void*, 1);
+            int code = ALLOCATOR.deallocateBlocks(memory);
+            RETURN(code);
         }
 
         void thread_create() {
-            auto &registers = getRunningThreadRegisters();
-
-            auto handle = (thread_t *) registers.a1;
-            auto task = (Thread::Task) registers.a2;
-            auto argument = (void *) registers.a3;
-            auto stack = (void *) registers.a4;
-            auto thread = new Thread(task, argument, stack);
-            RETURN_IF(thread == nullptr, -0x01);
-            *handle = (thread_t) thread;
-            Scheduler::getInstance().put(thread);
-            registers.a0 = 0x00;
+            auto handle = ACCEPT(thread_t*, 1);
+            auto task = ACCEPT(Thread::Task, 2);
+            auto argument = ACCEPT(void*, 3);
+            auto stack = ACCEPT(void*, 4);
+            auto thread = new Thread(task, argument,
+                                     stack, Thread::Mode::USER);
+            if(thread == nullptr) {
+                ALLOCATOR.deallocateBlocks(stack);
+            }else {
+                *handle = (thread_t) thread;
+                SCHEDULER.put(thread);
+            }
+            RETURN(-(thread == nullptr));
         }
 
         void thread_exit() { // Handle if attempting to exit main
             auto runningThread = Thread::getRunning();
-            auto &registers = getRunningThreadRegisters();
             RETURN_IF(runningThread == Thread::getMainThread(), -0x01);
             delete runningThread;
             Thread::dispatch();
-            registers.a0 = 0x00;
+            RETURN(0);
         }
 
         void sem_open() {
-            auto &registers = getRunningThreadRegisters();
-            auto init = (unsigned ) registers.a2;
-            auto handle = (sem_t *) registers.a1;
+            auto handle = ACCEPT(sem_t*, 1);
+            auto init = ACCEPT(unsigned , 2);
             auto semaphore = new Semaphore((int) init);
             RETURN_IF(semaphore == nullptr, -0x01);
             *handle = (sem_t) semaphore;
-            registers.a0 = 0x00;
+            RETURN(0);
         }
 
         void sem_close() {
-            auto &registers = getRunningThreadRegisters();
-            auto handle = (Semaphore*) registers.a1;
+            auto handle = ACCEPT(Semaphore*, 1);
             RETURN_IF(handle == nullptr, -0x01);
             delete handle;
-            registers.a0 = 0x00;
+            RETURN(0);
         }
 
         void sem_wait() {
-            auto &registers = getRunningThreadRegisters();
-            auto id = (Semaphore*) registers.a1;
+            auto id = ACCEPT(Semaphore*, 1);
             RETURN_IF(id == nullptr, -0x01);
-            registers.a0 = 0x00;
+            RETURN(0);
             id->wait();
         }
 
         void sem_signal() {
-            auto &registers = getRunningThreadRegisters();
-            auto id = (Semaphore*) registers.a1;
+            auto id = ACCEPT(Semaphore*, 1);
             RETURN_IF(id == nullptr, -0x01);
-            registers.a0 = 0x00;
+            RETURN(0);
             id->signal();
         }
 
         void time_sleep() {
-            auto& registers = getRunningThreadRegisters();
-            auto& scheduler = Scheduler::getInstance();
             auto thread = Thread::getRunning();
-            auto ticks = registers.a1;
+            auto ticks = ACCEPT(time_t, 1);
             RETURN_IF(ticks < 0, -0x01);
-            registers.a0 = 0x00;
-            scheduler.putToSleep(thread, ticks);
+            RETURN(0);
+            SCHEDULER.entrance(thread, ticks);
+        }
+
+        void getc() {
+            auto c = CONSOLE.readChar();
+            RETURN(c);
+        }
+
+        void putc() {
+            auto c = ACCEPT(char, 1);
+            CONSOLE.writeChar(c);
+        }
+
+        void enter_user_mode() {
+            auto thread = Thread::getRunning();
+            thread->enterUserMode();
         }
     }
 }

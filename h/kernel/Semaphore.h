@@ -7,7 +7,7 @@
 #include "./Thread.h"
 
 namespace kernel {
-    class Semaphore {
+    class Semaphore final{
     public:
         explicit Semaphore(int value);
         Semaphore(Semaphore const&)=delete;
@@ -17,7 +17,7 @@ namespace kernel {
         void wait();
         void signal();
 
-        uint64 getValue() const { return value; }
+        long int getValue() const { return value; }
     public:
         static void* operator new(size_t size) noexcept;
         static void operator delete(void* ptr) noexcept;
@@ -27,7 +27,7 @@ namespace kernel {
         void enqueue(Thread* thread);
         Thread* dequeue();
 
-        uint64 value;
+        long int value;
         Thread *head= nullptr, *tail= nullptr;
     };
 

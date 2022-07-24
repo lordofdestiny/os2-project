@@ -7,8 +7,10 @@
 
 #include "../../h/kernel/Thread.h"
 
+#define SCHEDULER Scheduler::getInstance()
+
 namespace kernel {
-    class Scheduler {
+    class Scheduler final{
     public:
         Scheduler(Scheduler const &) = delete;
         Scheduler &operator=(Scheduler const &) = delete;
@@ -18,10 +20,10 @@ namespace kernel {
         void put(Thread *thread);
         Thread *get();
 
-        void putToSleep(Thread* thread, uint64 ticks);
+        void entrance(Thread* thread, uint64 ticks);
         void tick();
     private:
-        void wakeUpThreads();
+        void awaken();
         Scheduler() = default;
         Thread *getIdleThread();
     private:
@@ -31,8 +33,6 @@ namespace kernel {
         Thread* sleepingHead = nullptr;
 
         Thread* idleThread = nullptr;
-
-        static Scheduler instance;
     };
 }
 

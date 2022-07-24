@@ -4,12 +4,12 @@
 
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/MemoryAllocator.h"
-#include "../../h/kernel/ConsoleUtils.h"
 
 namespace kernel {
-    Scheduler Scheduler::instance{};
+//    Scheduler Scheduler::instance{};
 
     Scheduler& Scheduler::getInstance() {
+        static Scheduler instance{};
         return instance;
     }
 
@@ -37,7 +37,7 @@ namespace kernel {
         return thread;
     }
 
-    void Scheduler::putToSleep(Thread *thread, uint64 ticks) {
+    void Scheduler::entrance(Thread *thread, uint64 ticks) {
         if(ticks == 0) return;
 
         thread->setStatus(Thread::Status::BLOCKED);
@@ -72,24 +72,24 @@ namespace kernel {
     void Scheduler::tick() {
         if(sleepingHead == nullptr) return;
         sleepingHead->tick();
-        wakeUpThreads();
+        awaken();
     }
 
-    void Scheduler::wakeUpThreads() {
+    void Scheduler::awaken() {
         while(sleepingHead != nullptr && sleepingHead->getSleepingTime() == 0) {
             auto awake = sleepingHead;
             sleepingHead = sleepingHead->getNext();
             awake->setNext(nullptr);
-            instance.put(awake);
+            put(awake);
         }
     }
 
     Thread* Scheduler::getIdleThread() {
-        if(!idleThread) {
-            auto& allocator = MemoryAllocator::getInstance();
-            void* stack = allocator.allocateBytes(DEFAULT_STACK_SIZE);
-            auto task = [](void*) { while(true); };
-            idleThread = new Thread(task, nullptr, stack, Thread::Owner::SYSTEM);
+        if(idleThread == nullptr) {
+            void* stack = ALLOCATOR.allocateBytes(DEFAULT_STACK_SIZE);
+            auto task = [](void* arg) { while(true); };
+            idleThread = new Thread(task, nullptr,
+                                    stack, Thread::Mode::SYSTEM);
         }
         return idleThread;
     }
