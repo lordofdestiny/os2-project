@@ -95,7 +95,7 @@ namespace kernel {
         uint64 getSleepingTime() const { return sleepingTime; }
         void setSleepingTime(uint64 time) { sleepingTime = time; }
         void tick();
-
+        void enterUserMode();
         Thread* getNext() { return next; }
         void setNext(Thread* thread) { next = thread;}
     };

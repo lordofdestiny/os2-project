@@ -145,4 +145,13 @@ namespace kernel {
             sleepingTime--;
         }
     }
+
+    void Thread::enterUserMode() {
+        if(threadMode(this) == Mode::SYSTEM) {
+            auto newsstatus = context.sstatus  & (~(uint64) BitMasks::sstatus::SPP);
+            context.setsstatus(newsstatus);
+            systemThreadCount--;
+            userThreadCount++;
+        }
+    }
 } // kernel
