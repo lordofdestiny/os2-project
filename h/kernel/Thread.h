@@ -77,7 +77,7 @@ namespace kernel {
         void* arg;
         uint64* stack;
         uint64 id = threadIdSource++;
-        Status status = Status::READY;
+        Status status = Status::CREATED;
         uint64 sleepingTime = 0;
         Thread* next = nullptr;
     public:

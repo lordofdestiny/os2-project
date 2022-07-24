@@ -31,15 +31,12 @@ int mem_free(void* address) {
 
 int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
     auto stack_space = mem_alloc(DEFAULT_STACK_SIZE);
-    if (stack_space == nullptr) return -0x02;
-
+    if (stack_space == nullptr) return -0x03;
     REGISTER_WRITE(a4, stack_space);
     REGISTER_WRITE(a3, arg);
     REGISTER_WRITE(a2, start_routine);
     REGISTER_WRITE(a1, handle);
-
     environmentCall(CallType::ThreadCreate);
-
     RETURN_AS(int);
 }
 
@@ -51,6 +48,23 @@ int thread_exit() {
 
 void thread_dispatch() {
    environmentCall(CallType::ThreadDispatch);
+}
+
+int thread_init(thread_t* handle, void(*start_routine)(void*), void* arg) {
+    auto stack_space = mem_alloc(DEFAULT_STACK_SIZE);
+    if (stack_space == nullptr) return -0x03;
+    REGISTER_WRITE(a4, stack_space);
+    REGISTER_WRITE(a3, arg);
+    REGISTER_WRITE(a2, start_routine);
+    REGISTER_WRITE(a1, handle);
+    environmentCall(CallType::ThreadInit);
+    RETURN_AS(int);
+}
+
+int thread_start(thread_t* handle) {
+    if(handle == nullptr) return -0x03;
+    environmentCall(CallType::ThreadStart);
+    RETURN_AS(int);
 }
 
 int sem_open(sem_t* handle, unsigned init) {
