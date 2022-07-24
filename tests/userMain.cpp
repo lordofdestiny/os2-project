@@ -1,4 +1,4 @@
-#include "../h/kernel/ConsoleUtils.h"
+#include "../h/ConsoleUtils.h"
 #include "../h/syscall_c.h"
 
 struct SharedData{

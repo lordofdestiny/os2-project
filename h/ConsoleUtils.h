@@ -4,7 +4,7 @@
 
 #ifndef PROJECT_CONSOLEUTILS_H
 #define PROJECT_CONSOLEUTILS_H
-#include "../../lib/hw.h"
+#include "../lib/hw.h"
 
 extern "C" uint64 copy_and_swap(uint64 &lock, uint64 expected, uint64 desired);
 

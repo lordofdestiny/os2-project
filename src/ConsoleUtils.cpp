@@ -1,8 +1,8 @@
 //
 // Created by os on 7/18/22.
 //
-#include "../../h/kernel/ConsoleUtils.h"
-#include "../../h/syscall_c.h"
+#include "../h/ConsoleUtils.h"
+#include "../h/syscall_c.h"
 
 uint64 lockPrint = 0;
 
