@@ -7,9 +7,10 @@
 #include "../../h/kernel/ConsoleUtils.h"
 
 namespace kernel {
-    Scheduler Scheduler::instance{};
+//    Scheduler Scheduler::instance{};
 
     Scheduler& Scheduler::getInstance() {
+        static Scheduler instance{};
         return instance;
     }
 

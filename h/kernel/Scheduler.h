@@ -31,8 +31,6 @@ namespace kernel {
         Thread* sleepingHead = nullptr;
 
         Thread* idleThread = nullptr;
-
-        static Scheduler instance;
     };
 }
 
