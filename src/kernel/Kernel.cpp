@@ -28,6 +28,7 @@ namespace kernel {
 
     void Kernel::finalize() {
         waitForUserThreads();
+        thread_dispatch(); // Wait for console to finish
     }
 
     void Kernel::enableInterrupts() {
@@ -50,6 +51,5 @@ namespace kernel {
         while (Thread::threadCount(Thread::Mode::USER) > 1) {
             thread_dispatch();
         }
-//        thread_dispatch(); // Let the console finish
     }
 } // kernel
