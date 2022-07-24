@@ -10,8 +10,7 @@
 namespace kernel {
 
     void* Semaphore::operator new(size_t size) noexcept {
-        auto blocks = MemoryAllocator::byteSizeToBlockCount(size);
-        return MemoryAllocator::getInstance().allocateBlocks(blocks);
+        return MemoryAllocator::getInstance().allocateBytes(size);
     }
 
     void Semaphore::operator delete(void *ptr) noexcept {

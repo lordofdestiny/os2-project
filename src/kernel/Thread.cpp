@@ -26,8 +26,7 @@ namespace kernel {
     }
 
     void* Thread::operator new(size_t size) noexcept {
-        auto blocks = MemoryAllocator::byteSizeToBlockCount(size);
-        return MemoryAllocator::getInstance().allocateBlocks(blocks);
+        return MemoryAllocator::getInstance().allocateBytes(size);
     }
 
     void Thread::operator delete(void *ptr) noexcept {
