@@ -16,7 +16,7 @@ namespace kernel {
         static void finalize();
     private:
         static void enableInterrupts();
-        static void setTrapHandler(bool keepErrorHandler = false);
+        static void setTrapHandler(bool blockOnError = false);
         static void waitForUserThreads();
     private:
         static const size_t stackSize = DEFAULT_STACK_SIZE * sizeof(uint64);

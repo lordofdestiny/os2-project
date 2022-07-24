@@ -11,26 +11,16 @@
 
 namespace kernel {
     namespace TrapHandlers {
-        void defaultErrorHandler() {
-            uint64 temp;
-            SREGISTER_READ(scause, temp);
-            printReg("scause", temp);
-            SREGISTER_READ(sepc, temp);
-            printReg("sepc", temp);
-            SREGISTER_READ(stval, temp);
-            printReg("stval", temp);
-        }
-
-        static Handler errorHandler = defaultErrorHandler;
+        static Handler errorHandler = nullptr;
 
         void setErrorHandler(Handler handler) {
             errorHandler = handler;
         }
 
         void instructionErrorHandler() {
-            errorHandler();
-            if(errorHandler == &defaultErrorHandler){
-                Thread::getRunning()->skipInstruction();
+            Thread::getRunning()->skipInstruction();
+            if(errorHandler != nullptr) {
+                errorHandler();
             }
         }
 
