@@ -117,7 +117,7 @@ namespace kernel {
             if(nextSeg && (char*)address + blocksSizeBytes == (char*)nextSeg){
                 auto newSeg = (FreeBlock*)address;
                 newSeg->prev = nextSeg->prev;
-                newSeg->next = newSeg->next;
+                newSeg->next = nextSeg->next;
                 newSeg->size = blockCount + nextSeg->size;
                 if(nextSeg->next){
                     nextSeg->next->prev = newSeg;
