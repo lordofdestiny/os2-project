@@ -16,8 +16,8 @@ namespace kernel {
     }
 
     MemoryAllocator &MemoryAllocator::getInstance() {
-        static MemoryAllocator allocatorInstance{};
-        return allocatorInstance;
+        static MemoryAllocator instance{};
+        return instance;
     }
 
     size_t MemoryAllocator::byteSizeToBlockCount(size_t blocks) {
@@ -65,8 +65,7 @@ namespace kernel {
             }
         }
 
-        block->next = nullptr;
-        block->prev = nullptr;
+        block->next = block->prev = nullptr;
         *((size_t*)block) = count; // Upisi velicinu
 
         return (char *) block + sizeof(size_t);
@@ -83,10 +82,10 @@ namespace kernel {
         }
 
         auto blockCount = *((size_t*) address);
-        auto blocksSizeBytes = blockCount * MEM_BLOCK_SIZE;
+        auto byteSize = blockCount * MEM_BLOCK_SIZE;
 
         // If end of ptr is after end of the heap
-        if((char*)address + blocksSizeBytes >= HEAP_END_ADDR) {
+        if((char*)address + byteSize >= HEAP_END_ADDR) {
             return  -3;
         }
 
@@ -114,15 +113,15 @@ namespace kernel {
         }else {
             // Try to append it to the next free segment
             auto nextSeg = curr ? curr->next : head;
-            if(nextSeg && (char*)address + blocksSizeBytes == (char*)nextSeg){
+            if(nextSeg != nullptr && address + byteSize == (char*)nextSeg){
                 auto newSeg = (FreeBlock*)address;
                 newSeg->prev = nextSeg->prev;
                 newSeg->next = nextSeg->next;
                 newSeg->size = blockCount + nextSeg->size;
-                if(nextSeg->next){
+                if(nextSeg->next != nullptr){
                     nextSeg->next->prev = newSeg;
                 }
-                if(nextSeg->prev) {
+                if(nextSeg->prev != nullptr) {
                     nextSeg->prev->next = newSeg;
                 }else{
                     head = newSeg;
