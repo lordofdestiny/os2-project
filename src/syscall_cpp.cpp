@@ -3,7 +3,6 @@
 //
 #include "../h/syscall_c.h"
 #include "../h/syscall_cpp.hpp"
-#include "../h/kernel/Thread.h"
 
 void* operator new (size_t size) {
     return mem_alloc(size);
@@ -24,7 +23,7 @@ int Thread::start() {
 }
 
 void Thread::dispatch() {
-    kernel::Thread::dispatch();
+    thread_dispatch();
 }
 
 int Thread::sleep(time_t time) {
