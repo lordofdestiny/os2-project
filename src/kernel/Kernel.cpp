@@ -28,6 +28,7 @@ namespace kernel {
 
     void Kernel::finalize() {
         waitForUserThreads();
+        Thread::setMainFinished();
         thread_dispatch(); // Wait for console to finish
     }
 

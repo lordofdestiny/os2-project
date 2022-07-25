@@ -12,6 +12,7 @@ namespace kernel {
     Thread* Thread::mainThread = nullptr;
     Thread* Thread::runningThread = nullptr;
     time_t Thread::runningTimeLeft = DEFAULT_TIME_SLICE;
+    bool Thread::mainFinished = false;
     uint64 Thread::threadIdSource = 0;
     uint64 Thread::userThreadCount = 0;
     uint64 Thread::systemThreadCount = 0;
@@ -108,6 +109,17 @@ namespace kernel {
         return status & (uint64) BitMasks::sstatus::SPP ? Mode::SYSTEM : Mode::USER;
     }
 
+
+    void Thread::setMainFinished() {
+        mainFinished = true;
+    }
+
+    bool Thread::isMainFished() {
+        return mainFinished;
+    }
+
+
+
     /* Return to a single constructore once user mode is the default mode */
     Thread::Thread(Task function, void *argument, void *stack, Mode mode) :
             context(pcGetInitial(function), sstatusGetInitial(mode)),
@@ -153,4 +165,5 @@ namespace kernel {
             userThreadCount++;
         }
     }
+
 } // kernel

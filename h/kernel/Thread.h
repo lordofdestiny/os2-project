@@ -54,6 +54,9 @@ namespace kernel {
         static void dispatch();
 
         static Thread* getMainThread();
+        static void setMainFinished();
+        static bool isMainFished();
+
         static Thread* getRunning();
         static void shelveRunning();
         static uint64 threadCount(Mode mode);
@@ -68,6 +71,7 @@ namespace kernel {
         static Thread* runningThread asm("__runningThread");
         static time_t runningTimeLeft;
 
+        static bool mainFinished;
         static uint64 threadIdSource;
         static uint64 userThreadCount;
         static uint64 systemThreadCount;

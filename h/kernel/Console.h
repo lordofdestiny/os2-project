@@ -30,9 +30,10 @@ namespace kernel {
         static Console& getInstance();
 
     private:
-        [[noreturn]] static void outputTask(void* ptr);
+        static void outputTask(void* ptr);
     private:
         Semaphore* inputItemAvailable = new Semaphore{0};
+        Semaphore* outputItemAvailable = new Semaphore{0};
         Buffer<512> inputBuffer, outputBuffer;
         Thread* thread;
 
