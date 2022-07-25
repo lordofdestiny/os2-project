@@ -63,6 +63,7 @@ int thread_init(thread_t* handle, void(*start_routine)(void*), void* arg) {
 
 int thread_start(thread_t* handle) {
     if(handle == nullptr) return -0x03;
+    REGISTER_WRITE(a1, handle);
     environmentCall(CallType::ThreadStart);
     RETURN_AS(int);
 }
