@@ -4,7 +4,7 @@
 #include "../h/ConsoleUtils.h"
 #include "../h/syscall_c.h"
 
-uint64 lockPrint = 0;
+/*uint64 lockPrint = 0;
 
 #define LOCK() while(copy_and_swap(lockPrint, 0, 1))
 #define UNLOCK() while(copy_and_swap(lockPrint, 1, 0))
@@ -101,3 +101,4 @@ void printInt(int xx, int base, int sgn)
 
     UNLOCK();
 }
+*/

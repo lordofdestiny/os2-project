@@ -1,6 +1,6 @@
 #include "../h/ConsoleUtils.h"
 #include "../h/syscall_cpp.hpp"
-
+/*
 struct SharedData{
     int arr[2];
     int cycles;
@@ -134,4 +134,4 @@ void studentMain() {
 
     Greeter* greeter = new Greeter();
     greeter->start();
-}
+}*/
