@@ -118,6 +118,7 @@ namespace kernel {
 
         void getc() {
             auto c = CONSOLE.readChar();
+            if ( c >= 127) c = EOF;
             RETURN(c);
         }
 
