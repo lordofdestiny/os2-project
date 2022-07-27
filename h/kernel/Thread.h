@@ -60,12 +60,12 @@ namespace kernel {
         static Thread* getRunning();
         static void shelveRunning();
         static uint64 threadCount(Mode mode);
+        static Mode threadMode(Thread* thread);
     private:
         static void taskWrapper();
 
         static uint64 sstatusGetInitial(Mode mode);
         static uint64 pcGetInitial(Task function);
-        static Mode threadMode(Thread* thread);
 
         static Thread* mainThread;
         static Thread* runningThread asm("__runningThread");

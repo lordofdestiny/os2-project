@@ -54,8 +54,8 @@ namespace kernel {
             auto task = ACCEPT(Thread::Task, 2);
             auto argument = ACCEPT(void*, 3);
             auto stack = ACCEPT(void*, 4);
-            auto thread = new Thread(task, argument,
-                                     stack, Thread::Mode::USER);
+            auto mode = Thread::threadMode(Thread::getRunning());
+            auto thread = new Thread(task, argument, stack, mode);
             if(thread == nullptr) {
                 ALLOCATOR.deallocateBlocks(stack);
             }else{

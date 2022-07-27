@@ -78,6 +78,14 @@ namespace kernel {
         }
     }
 
+    Thread::Mode Thread::threadMode(Thread *thread) {
+        if (mainThread == nullptr) return Mode::SYSTEM;
+        if (thread == nullptr) return Mode::SYSTEM;
+        auto status = thread->context.sstatus;
+        if(status == 0) return Mode::SYSTEM;
+        return status & (uint64) BitMasks::sstatus::SPP ? Mode::SYSTEM : Mode::USER;
+    }
+
     void Thread::taskWrapper() {
         runningThread->task(runningThread->arg);
         thread_exit();
@@ -99,16 +107,6 @@ namespace kernel {
         if (function == nullptr) return 0x00;
         return (uint64) taskWrapper;
     }
-
-    /* Return to old version once user mode is the default mode */
-    Thread::Mode Thread::threadMode(Thread *thread) {
-        if (mainThread == nullptr) return Mode::SYSTEM;
-        if (thread == nullptr) return Mode::SYSTEM;
-        auto status = thread->context.sstatus;
-        if(status == 0) return Mode::SYSTEM;
-        return status & (uint64) BitMasks::sstatus::SPP ? Mode::SYSTEM : Mode::USER;
-    }
-
 
     void Thread::setMainFinished() {
         mainFinished = true;
