@@ -50,7 +50,6 @@ namespace kernel {
         void getc();
         void putc();
         void enter_user_mode();
-        void environmentCall(CallType type) asm("__environmentCall__");
     };
 } // kernel
 
