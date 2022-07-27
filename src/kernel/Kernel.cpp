@@ -23,6 +23,7 @@ namespace kernel {
         setTrapHandler(block);
         Thread::initialize();
         enableInterrupts();
+        CONSOLE.initialize();
         enter_user_mode();
     }
 

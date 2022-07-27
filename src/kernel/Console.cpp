@@ -8,21 +8,13 @@
 #include "../../h/syscall_c.h"
 
 namespace kernel {
-    Console::Console() {
-        void* stack = ALLOCATOR.allocateBytes(DEFAULT_STACK_SIZE);
-        thread = new Thread(outputTask, nullptr,
-                            stack, Thread::Mode::SYSTEM);
-        thread->setStatus(Thread::Status::READY);
-        SCHEDULER.put(thread);
-    }
-
     Console &Console::getInstance() {
         static Console instance;
         return instance;
     }
 
     sem_t Console::getInputSemaphore() {
-        return (sem_t) inputItemAvailable;
+        return inputItemAvailable;
     }
 
     char Console::readChar() {
@@ -32,14 +24,14 @@ namespace kernel {
     void Console::writeChar(char c) {
         if(c == '\r') c = '\n';
         outputBuffer.put(c);
-        outputItemAvailable->signal();
+        ((Semaphore*)outputItemAvailable)->signal();
     }
 
     void Console::handle() {
         while (ConsoleController::isReadable() && !inputBuffer.full()) {
             auto c = ConsoleController::receiveData();
             inputBuffer.put(c);
-            inputItemAvailable->signal();
+            ((Semaphore*)inputItemAvailable)->signal();
             writeChar(c);
         }
     }
@@ -47,19 +39,24 @@ namespace kernel {
     void Console::outputTask(void* ptr) {
         while(true) {
             if(Thread::isMainFished()
-            && Thread::threadCount(Thread::Mode::USER) == 1) {
+            && CONSOLE.outputBuffer.empty()) {
                 break;
             }
-//            CONSOLE.outputItemAvailable->wait();
-            sem_wait((sem_t)CONSOLE.outputItemAvailable);
-//            while(!ConsoleController::isWritable() && CONSOLE.outputBuffer.empty());
-//            SREGISTER_CLEAR_BITS(sstatus, BitMasks::sstatus::SIE);
+
+            sem_wait(CONSOLE.outputItemAvailable);
+            SREGISTER_CLEAR_BITS(sstatus, BitMasks::sstatus::SIE);
             while (ConsoleController::isWritable() && !CONSOLE.outputBuffer.empty()) {
                 auto c = CONSOLE.outputBuffer.get();
                 ConsoleController::transmitData(c);
             }
-//            thread_dispatch();
-//            SREGISTER_SET_BITS(sstatus, BitMasks::sstatus::SIE);
+            SREGISTER_SET_BITS(sstatus, BitMasks::sstatus::SIE);
         }
+    }
+
+    void Console::initialize() {
+        thread_create(&thread,&outputTask, nullptr);
+        sem_open(&inputItemAvailable, 0);
+        sem_open(&outputItemAvailable, 0);
+        sem_open(&outputLock, 0);
     }
 } // kernel

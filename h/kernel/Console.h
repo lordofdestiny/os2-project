@@ -17,12 +17,15 @@
 namespace kernel {
     class Console final{
     public:
-        Console();
+        Console()=default;
         Console(Console const&)=delete;
         Console& operator=(Console const&)=delete;
         ~Console()=default;
 
+        void initialize();
+
         sem_t getInputSemaphore();
+
         char readChar();
         void writeChar(char c);
         void handle();
@@ -32,11 +35,11 @@ namespace kernel {
     private:
         static void outputTask(void* ptr);
     private:
-        Semaphore* inputItemAvailable = new Semaphore{0};
-        Semaphore* outputItemAvailable = new Semaphore{0};
+        sem_t inputItemAvailable;
+        sem_t outputItemAvailable;
+        sem_t outputLock;
         Buffer<512> inputBuffer, outputBuffer;
-        Thread* thread;
-
+        thread_t thread;
     };
 
 } // kernel
