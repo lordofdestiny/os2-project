@@ -40,7 +40,6 @@ namespace kernel {
     }
 
     void Kernel::setTrapHandler(bool blockOnError) {
-        using namespace kernel::BitMasks;
         TrapHandlers::Handler errorHandler;
         if(blockOnError) {
             SREGISTER_READ(stvec, errorHandler);
