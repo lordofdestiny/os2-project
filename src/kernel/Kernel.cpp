@@ -49,7 +49,7 @@ namespace kernel {
     }
 
     void Kernel::waitForUserThreads() {
-        while (Thread::threadCount(Thread::Mode::USER) > 1) {
+        while (Thread::getCount(Thread::Mode::USER) > 1) {
             thread_dispatch();
         }
     }

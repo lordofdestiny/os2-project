@@ -70,15 +70,15 @@ namespace kernel {
         runningThread = nullptr;
     }
 
-    uint64 Thread::threadCount(Thread::Mode owner) {
-        if (owner == Mode::USER) {
+    uint64 Thread::getCount(Thread::Mode mode) {
+        if (mode == Mode::USER) {
             return userThreadCount;
         } else {
             return systemThreadCount;
         }
     }
 
-    Thread::Mode Thread::threadMode(Thread *thread) {
+    Thread::Mode Thread::getMode(Thread *thread) {
         if (mainThread == nullptr) return Mode::SYSTEM;
         if (thread == nullptr) return Mode::SYSTEM;
         auto status = thread->context.sstatus;
@@ -135,7 +135,7 @@ namespace kernel {
     }
 
     Thread::~Thread() {
-        if (threadMode(this) == Mode::USER) {
+        if (getMode(this) == Mode::USER) {
             userThreadCount--;
         } else {
             systemThreadCount--;
@@ -155,7 +155,7 @@ namespace kernel {
     }
 
     void Thread::enterUserMode() {
-        if(threadMode(this) == Mode::SYSTEM) {
+        if(getMode(this) == Mode::SYSTEM) {
             using namespace BitMasks;
             auto newsstatus = context.sstatus  & (~(uint64) sstatus::SPP);
             context.sstatus = newsstatus;

@@ -59,8 +59,8 @@ namespace kernel {
 
         static Thread* getRunning();
         static void shelveRunning();
-        static uint64 threadCount(Mode mode);
-        static Mode threadMode(Thread* thread);
+        static uint64 getCount(Mode mode);
+        static Mode getMode(Thread* thread);
     private:
         static void taskWrapper();
 
