@@ -98,7 +98,10 @@ namespace kernel {
                 runningThread == nullptr
                 ? (uint64) sstatus::SPIE
                 : runningThread->context.sstatus;
-        auto SPP = (mode == Mode::SYSTEM) << 8;
+        auto SPP =
+                mode == Mode::SYSTEM
+                ? (uint64) sstatus::SPP
+                : 0x00;
         auto SPIE = status & (uint64) sstatus::SPIE;
         return SPP | SPIE | (uint64) sstatus::SIE;
     }
@@ -116,9 +119,6 @@ namespace kernel {
         return mainFinished;
     }
 
-
-
-    /* Return to a single constructore once user mode is the default mode */
     Thread::Thread(Task function, void *argument, void *stack, Mode mode) :
             context(pcGetInitial(function), sstatusGetInitial(mode)),
             task(function), arg(argument), stack((uint64 *) stack) {
