@@ -6,14 +6,15 @@
 
 namespace kernel {
     uint8 ConsoleController::status() {
-        return *(uint64*) CONSOLE_STATUS;
+        return *(uint8*) CONSOLE_STATUS;
     }
+
     char ConsoleController::receiveData() {
-        return *(uint64*) CONSOLE_RX_DATA;
+        return *(char*) CONSOLE_RX_DATA;
     }
 
     void ConsoleController::transmitData(char data) {
-        *((uint64*)CONSOLE_TX_DATA) = data;
+        *((char*)CONSOLE_TX_DATA) = data;
     }
 
     bool ConsoleController::isReadable() {
