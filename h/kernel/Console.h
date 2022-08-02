@@ -37,7 +37,6 @@ namespace kernel {
     private:
         sem_t inputItemAvailable;
         sem_t outputItemAvailable;
-        sem_t outputLock;
         Buffer<512> inputBuffer, outputBuffer;
         thread_t thread;
     };

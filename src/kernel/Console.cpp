@@ -57,6 +57,5 @@ namespace kernel {
         thread_create(&thread,&outputTask, nullptr);
         sem_open(&inputItemAvailable, 0);
         sem_open(&outputItemAvailable, 0);
-        sem_open(&outputLock, 0);
     }
 } // kernel
