@@ -9,14 +9,6 @@
 #include "../../h/kernel/Semaphore.h"
 #include "../../h/kernel/Console.h"
 
-#define RETURN_IF(test, value)      \
-    do{                             \
-        if((test)) {                \
-            RETURN(value);          \
-            return;                 \
-        }                           \
-    }while(0)                       \
-
 namespace kernel {
     namespace SystemCalls {
         void mem_alloc() {
