@@ -38,8 +38,7 @@ namespace kernel {
 
     void Console::outputTask(void* ptr) {
         while(true) {
-            if(Thread::isMainFished()
-            && CONSOLE.outputBuffer.empty()) {
+            if(Thread::isMainFished() && CONSOLE.outputBuffer.empty()) {
                 break;
             }
 
