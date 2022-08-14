@@ -7,57 +7,44 @@
 #include "../../h/kernel/RegisterUtils.h"
 #include "../../h/syscall_c.h"
 
-namespace kernel
-{
-    Console &Console::getInstance()
-    {
+namespace kernel {
+    Console &Console::getInstance() {
         static Console instance;
         return instance;
     }
 
-    sem_t Console::getInputSemaphore()
-    {
+    sem_t Console::getInputSemaphore() {
         return inputItemAvailable;
     }
 
-    char Console::readChar()
-    {
+    char Console::readChar() {
         return inputBuffer.get();
     }
 
-    void Console::writeChar(char c)
-    {
-        if (c == '\r')
-            c = '\n';
+    void Console::writeChar(char c) {
+        if(c == '\r') c = '\n';
         outputBuffer.put(c);
-        ((Semaphore *)outputItemAvailable)->signal();
+        ((Semaphore*)outputItemAvailable)->signal();
     }
 
-    void Console::handle()
-    {
-        while (ConsoleController::isReadable() && !inputBuffer.full())
-        {
+    void Console::handle() {
+        while (ConsoleController::isReadable() && !inputBuffer.full()) {
             auto c = ConsoleController::receiveData();
             inputBuffer.put(c);
-            ((Semaphore *)inputItemAvailable)->signal();
+            ((Semaphore*)inputItemAvailable)->signal();
             writeChar(c);
         }
     }
 
-    void Console::outputTask(void *ptr)
-    {
-        while (true)
-        {
-            if (Thread::isMainFished() && CONSOLE.outputBuffer.empty())
-            {
+    void Console::outputTask(void* ptr) {
+        while(true) {
+            if(Thread::isMainFished() && CONSOLE.outputBuffer.empty()) {
                 break;
             }
 
+            sem_wait(CONSOLE.outputItemAvailable);
             SREGISTER_CLEAR_BITS(sstatus, BitMasks::sstatus::SIE);
-            while (ConsoleController::isWritable() && !CONSOLE.outputBuffer.empty())
-            {
-                sem_wait(CONSOLE.outputItemAvailable);
-
+            while (ConsoleController::isWritable() && !CONSOLE.outputBuffer.empty()) {
                 auto c = CONSOLE.outputBuffer.get();
                 ConsoleController::transmitData(c);
             }
@@ -65,9 +52,8 @@ namespace kernel
         }
     }
 
-    void Console::initialize()
-    {
-        thread_create(&thread, &outputTask, nullptr);
+    void Console::initialize() {
+        thread_create(&thread,&outputTask, nullptr);
         sem_open(&inputItemAvailable, 0);
         sem_open(&outputItemAvailable, 0);
     }
