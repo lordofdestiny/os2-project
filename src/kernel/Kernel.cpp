@@ -34,9 +34,8 @@ namespace kernel {
     }
 
     void Kernel::enableInterrupts() {
-        using namespace kernel::BitMasks;
         // Enable external interrupts
-        SREGISTER_SET_BITS(sstatus, sstatus::SIE);
+        SREGISTER_SET_BITS(sstatus, BitMasks::sstatus::SIE);
     }
 
     void Kernel::setTrapHandler(bool blockOnError) {
