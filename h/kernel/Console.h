@@ -23,6 +23,7 @@ namespace kernel {
         ~Console()=default;
 
         void initialize();
+        void join();
 
         sem_t getInputSemaphore();
 
@@ -37,6 +38,7 @@ namespace kernel {
     private:
         sem_t inputItemAvailable;
         sem_t outputItemAvailable;
+        sem_t finished;
         Buffer<512> inputBuffer, outputBuffer;
         thread_t thread;
     };

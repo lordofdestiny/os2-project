@@ -22,6 +22,10 @@ namespace kernel {
         thread_start(&thread);
     }
 
+    void Console::join() {
+        sem_wait(finished);
+    }
+
     sem_t Console::getInputSemaphore() const {
         return inputItemAvailable;
     }
@@ -48,6 +52,7 @@ namespace kernel {
     void Console::outputTask(void* ptr) {
         while(true) {
             if(Thread::isMainFished() && CONSOLE.outputBuffer.empty()) {
+                sem_signal(CONSOLE.finished);
                 break;
             }
 

@@ -30,7 +30,7 @@ namespace kernel {
     void Kernel::finalize() {
         waitForUserThreads();
         Thread::setMainFinished();
-        thread_dispatch(); // Wait for console to finish
+        CONSOLE.join();
     }
 
     void Kernel::enableInterrupts() {
