@@ -11,7 +11,7 @@
         return (type) value;            \
    }while(0)                            \
 
-#define ECALL asm volatile("ecall")
+#define ECALL() asm volatile("ecall")
 
 namespace SystemCalls = kernel::SystemCalls;
 using SystemCalls::CallType;
@@ -22,7 +22,7 @@ void* mem_alloc(size_t size){
     auto blockCount = MemoryAllocator::byteSizeToBlockCount(size);
     REGISTER_WRITE(a1, blockCount);
     REGISTER_WRITE(a0, CallType::MemoryAllocate);
-    ECALL;
+    ECALL();
     RETURN_AS(void*);
 }
 
@@ -40,20 +40,20 @@ int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
     REGISTER_WRITE(a2, start_routine);
     REGISTER_WRITE(a1, handle);
     REGISTER_WRITE(a0, CallType::ThreadCreate);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
 
 int thread_exit() {
     REGISTER_WRITE(a0, CallType::ThreadExit);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
 void thread_dispatch() {
     REGISTER_WRITE(a0, CallType::ThreadDispatch);
-    ECALL;
+    ECALL();
 }
 
 int thread_init(thread_t* handle, void(*start_routine)(void*), void* arg) {
@@ -64,7 +64,7 @@ int thread_init(thread_t* handle, void(*start_routine)(void*), void* arg) {
     REGISTER_WRITE(a2, start_routine);
     REGISTER_WRITE(a1, handle);
     REGISTER_WRITE(a0, CallType::ThreadInit);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
@@ -72,7 +72,7 @@ int thread_start(thread_t* handle) {
     if(handle == nullptr) return -0x03;
     REGISTER_WRITE(a1, handle);
     REGISTER_WRITE(a0, CallType::ThreadStart);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
@@ -80,53 +80,53 @@ int sem_open(sem_t* handle, unsigned init) {
     REGISTER_WRITE(a2, init);
     REGISTER_WRITE(a1, handle);
     REGISTER_WRITE(a0, CallType::SemaphoreOpen);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
 int sem_close(sem_t handle) {
     REGISTER_WRITE(a1, handle);
     REGISTER_WRITE(a0, CallType::SemaphoreClose);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
 int sem_wait(sem_t id) {
     REGISTER_WRITE(a1, id);
     REGISTER_WRITE(a0, CallType::SemaphoreWait);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
 int sem_signal(sem_t id) {
     REGISTER_WRITE(a1, id);
     REGISTER_WRITE(a0, CallType::SemaphoreSignal);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
 int time_sleep(time_t ticks) {
     REGISTER_WRITE(a1, ticks);
     REGISTER_WRITE(a0, CallType::TimeSleep);
-    ECALL;
+    ECALL();
     RETURN_AS(int);
 }
 
 char getc() {
-    auto sem = CONSOLE.getInputSemaphore();
-    sem_wait(sem);
+    sem_wait(CONSOLE.getInputSemaphore());
     REGISTER_WRITE(a0, CallType::GetChar);
-    ECALL;
+    ECALL();
     RETURN_AS(char);
 }
 
 void putc(char c) {
+//    sem_wait(CONSOLE.getOutputSemaphore());
     REGISTER_WRITE(a1, c);
     REGISTER_WRITE(a0, CallType::PutChar);
-    ECALL;
+    ECALL();
 }
 
 void enter_user_mode() {
     REGISTER_WRITE(a0, CallType::EnterUserMode);
-    ECALL;
+    ECALL();
 }

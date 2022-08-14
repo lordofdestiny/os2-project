@@ -58,9 +58,11 @@ namespace kernel {
                 break;
             }
 
-            sem_wait(CONSOLE.outputItemAvailable);
             SREGISTER_CLEAR_BITS(sstatus, BitMasks::sstatus::SIE);
+            thread_dispatch();
             while (ConsoleController::isWritable() && !CONSOLE.outputBuffer.empty()) {
+                sem_wait(CONSOLE.outputItemAvailable);
+
                 auto c = CONSOLE.outputBuffer.get();
                 ConsoleController::transmitData(c);
             }
