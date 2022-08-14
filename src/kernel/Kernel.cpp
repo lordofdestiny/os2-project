@@ -22,8 +22,8 @@ namespace kernel {
     void Kernel::initialize() {
         setTrapHandler(block);
         Thread::initialize();
-        enableInterrupts();
         CONSOLE.initialize();
+        enableInterrupts();
         enter_user_mode();
     }
 
