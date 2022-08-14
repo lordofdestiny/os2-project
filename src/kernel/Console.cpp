@@ -13,7 +13,16 @@ namespace kernel {
         return instance;
     }
 
-    sem_t Console::getInputSemaphore() {
+    void Console::initialize() {
+        thread_init(&thread,&outputTask, nullptr);
+        sem_open(&inputItemAvailable, 0);
+        sem_open(&outputSpaceAvailable, 512);
+        sem_open(&outputItemAvailable, 0);
+        sem_open(&finished,0);
+        thread_start(&thread);
+    }
+
+    sem_t Console::getInputSemaphore() const {
         return inputItemAvailable;
     }
 
@@ -52,9 +61,4 @@ namespace kernel {
         }
     }
 
-    void Console::initialize() {
-        thread_create(&thread,&outputTask, nullptr);
-        sem_open(&inputItemAvailable, 0);
-        sem_open(&outputItemAvailable, 0);
-    }
 } // kernel
