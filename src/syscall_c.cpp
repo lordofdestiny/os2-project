@@ -29,6 +29,7 @@ void* mem_alloc(size_t size){
 int mem_free(void* address) {
     REGISTER_WRITE(a1, address);
     REGISTER_WRITE(a0, CallType::MemoryFree);
+    ECALL();
     RETURN_AS(int);
 }
 
