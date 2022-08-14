@@ -43,9 +43,11 @@ namespace kernel {
     void Console::handle() {
         while (ConsoleController::isReadable() && !inputBuffer.full()) {
             auto c = ConsoleController::receiveData();
-            inputBuffer.put(c);
-            ((Semaphore*)inputItemAvailable)->signal();
-            writeChar(c);
+            if(!inputBuffer.full()) {
+                inputBuffer.put(c); // Add handling overfilling buffer
+                ((Semaphore*)inputItemAvailable)->signal();
+                writeChar(c);
+            }
         }
     }
 
