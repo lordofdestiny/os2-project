@@ -16,7 +16,7 @@ namespace kernel {
     void Console::initialize() {
         thread_init(&thread,&outputTask, nullptr);
         sem_open(&inputItemAvailable, 0);
-        sem_open(&outputSpaceAvailable, 512);
+        sem_open(&outputSpaceAvailable, 1024);
         sem_open(&outputItemAvailable, 0);
         sem_open(&finished,0);
         thread_start(&thread);
@@ -28,6 +28,9 @@ namespace kernel {
 
     sem_t Console::getInputSemaphore() const {
         return inputItemAvailable;
+    }
+    sem_t Console::getOutputSemaphore() const {
+        return outputSpaceAvailable;
     }
 
     char Console::readChar() {
@@ -65,6 +68,8 @@ namespace kernel {
 
                 auto c = CONSOLE.outputBuffer.get();
                 ConsoleController::transmitData(c);
+
+                sem_signal(CONSOLE.outputSpaceAvailable);
             }
             SREGISTER_SET_BITS(sstatus, BitMasks::sstatus::SIE);
         }

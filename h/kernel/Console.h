@@ -25,7 +25,8 @@ namespace kernel {
         void initialize();
         void join();
 
-        sem_t getInputSemaphore();
+        sem_t getInputSemaphore() const;
+        sem_t getOutputSemaphore() const;
 
         char readChar();
         void writeChar(char c);
@@ -37,6 +38,7 @@ namespace kernel {
         static void outputTask(void* ptr);
     private:
         sem_t inputItemAvailable;
+        sem_t outputSpaceAvailable;
         sem_t outputItemAvailable;
         sem_t finished;
         Buffer<512> inputBuffer, outputBuffer;

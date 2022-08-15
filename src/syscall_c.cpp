@@ -121,7 +121,7 @@ char getc() {
 }
 
 void putc(char c) {
-//    sem_wait(CONSOLE.getOutputSemaphore());
+    sem_wait(CONSOLE.getOutputSemaphore());
     REGISTER_WRITE(a1, c);
     REGISTER_WRITE(a0, CallType::PutChar);
     ECALL();
