@@ -21,7 +21,7 @@ namespace kernel {
     }
 
     size_t MemoryAllocator::byteSizeToBlockCount(size_t blocks) {
-        return (blocks + sizeof(size_t) + MEM_BLOCK_SIZE - 1) / MEM_BLOCK_SIZE;
+        return (blocks + 2 * sizeof(size_t) + MEM_BLOCK_SIZE - 1) / MEM_BLOCK_SIZE;
     }
 
 /* Algorithm: Best Fit*/
@@ -68,13 +68,13 @@ namespace kernel {
         block->next = block->prev = nullptr;
         *((size_t*)block) = count; // Upisi velicinu
 
-        return (char *) block + sizeof(size_t);
+        return (char *) block + 2*sizeof(size_t);
     }
 
     int MemoryAllocator::deallocateBlocks(void* ptr) {
         if(ptr == nullptr) return -1;
 
-        auto address = (char*)ptr - sizeof(size_t);
+        auto address = (char*)ptr - 2*sizeof(size_t);
 
         // If ptr was not in heap range
         if(HEAP_START_ADDR > address || address >= HEAP_END_ADDR){
