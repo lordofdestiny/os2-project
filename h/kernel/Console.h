@@ -41,7 +41,7 @@ namespace kernel {
         sem_t outputSpaceAvailable;
         sem_t outputItemAvailable;
         sem_t finished;
-        Buffer<512> inputBuffer, outputBuffer;
+        Buffer<1024> inputBuffer, outputBuffer;
         thread_t thread;
     };
 
