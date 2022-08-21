@@ -5,6 +5,7 @@
 #include "../../h/kernel/Kernel.h"
 #include "../../h/kernel/RegisterUtils.h"
 #include "../../h/syscall_c.h"
+#include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/Console.h"
 
 #define BLOCK_ON_ERROR
@@ -17,10 +18,11 @@ const static bool block = false;
 
 namespace kernel {
     alignas(uint16) uint8 Kernel::kernelStack[Kernel::stackSize];
-    uint8* Kernel::kernelStackTopAddress = ((uint8*) &Kernel::kernelStack + stackSize);
+    uint8* Kernel::kernelStackTopAddress = ((uint8*)&Kernel::kernelStack + stackSize);
 
     void Kernel::initialize() {
         setTrapHandler(block);
+        SYSTEMCALLS.initialize();
         Thread::initialize();
         CONSOLE.initialize();
         enableInterrupts();
@@ -40,7 +42,7 @@ namespace kernel {
 
     void Kernel::setTrapHandler(bool blockOnError) {
         TrapHandlers::Handler errorHandler;
-        if(blockOnError) {
+        if (blockOnError) {
             SREGISTER_READ(stvec, errorHandler);
             TrapHandlers::setErrorHandler(errorHandler);
         }

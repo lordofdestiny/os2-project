@@ -13,12 +13,11 @@
 
 #define ECALL() asm volatile("ecall")
 
-namespace SystemCalls = kernel::SystemCalls;
-using SystemCalls::CallType;
+using CallType = kernel::CallType;
 using kernel::MemoryAllocator;
 using kernel::Console;
 
-void* mem_alloc(size_t size){
+void* mem_alloc(size_t size) {
     auto blockCount = MemoryAllocator::byteSizeToBlockCount(size);
     REGISTER_WRITE(a1, blockCount);
     REGISTER_WRITE(a0, CallType::MemoryAllocate);
@@ -70,7 +69,7 @@ int thread_init(thread_t* handle, void(*start_routine)(void*), void* arg) {
 }
 
 int thread_start(thread_t* handle) {
-    if(handle == nullptr) return -0x03;
+    if (handle == nullptr) return -0x03;
     REGISTER_WRITE(a1, handle);
     REGISTER_WRITE(a0, CallType::ThreadStart);
     ECALL();
