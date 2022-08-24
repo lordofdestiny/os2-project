@@ -17,10 +17,10 @@ namespace kernel {
         }
 
         void instructionErrorHandler() {
-            Thread::getRunning()->skipInstruction();
             if (errorHandler != nullptr) {
                 errorHandler();
             }
+            Thread::getRunning()->skipInstruction();
         }
 
         void timerInterruptHandler() {
@@ -40,10 +40,10 @@ namespace kernel {
         void systemCallHandler() {
             auto type = ACCEPT(CallType, 0);
 
+            NEXT_INSTRUCTION();
+
             auto handle = SYSTEMCALLS.getHandler(type);
             if (handle != nullptr) handle();
-
-            NEXT_INSTRUCTION();
         }
 
         void supervisorTrapHandle() {
