@@ -108,7 +108,7 @@ namespace kernel {
         mainFinished = true;
     }
 
-    bool Thread::isMainFished() {
+    bool Thread::isMainFinished() {
         return mainFinished;
     }
 

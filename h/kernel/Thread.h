@@ -55,7 +55,7 @@ namespace kernel {
 
         static Thread* getMainThread();
         static void setMainFinished();
-        static bool isMainFished();
+        static bool isMainFinished();
 
         static Thread* getRunning();
         static void shelveRunning();

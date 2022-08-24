@@ -58,7 +58,7 @@ namespace kernel {
 
     void Console::outputTask(void* ptr) {
         while (true) {
-            if (Thread::isMainFished() && CONSOLE.outputBuffer.empty()) {
+            if (Thread::isMainFinished() && CONSOLE.outputBuffer.empty()) {
                 sem_signal(CONSOLE.finished);
                 break;
             }
