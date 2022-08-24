@@ -100,12 +100,11 @@ namespace kernel {
         auto task = ACCEPT(Thread::Task, 2);
         auto argument = ACCEPT(void*, 3);
         auto stack = ACCEPT(void*, 4);
-        auto mode = Thread::getMode(Thread::getRunning());
+        auto mode = Thread::getRunning()->getMode();
         auto thread = new Thread(task, argument, stack, mode);
         if (thread == nullptr) {
             ALLOCATOR.deallocateBlocks(stack);
-        }
-        else {
+        } else {
             *handle = (thread_t)thread;
         }
         RETURN_IF(thread == nullptr, -0x01);

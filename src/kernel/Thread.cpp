@@ -18,10 +18,11 @@ namespace kernel {
     uint64 Thread::systemThreadCount = 0;
 
     Thread::Context::Context(uint64 pc, uint64 status) :
-            pc(pc), sstatus(status), registers(){ }
+        pc(pc), sstatus(status), registers() {
+    }
 
     Thread::Context::Registers::Registers() {
-        for(int i = 0; i < 32; i++){
+        for (int i = 0; i < 32; i++) {
             ((uint64*)this)[i] = 0;
         }
     }
@@ -30,7 +31,7 @@ namespace kernel {
         return ALLOCATOR.allocateBytes(size);
     }
 
-    void Thread::operator delete(void *ptr) noexcept {
+    void Thread::operator delete(void* ptr) noexcept {
         ALLOCATOR.deallocateBlocks(ptr);
     }
 
@@ -54,7 +55,7 @@ namespace kernel {
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
 
-    Thread *Thread::getMainThread() {
+    Thread* Thread::getMainThread() {
         if (mainThread == nullptr) {
             mainThread = new Thread(nullptr, nullptr,
                                     nullptr, Mode::SYSTEM);
@@ -78,14 +79,6 @@ namespace kernel {
         }
     }
 
-    Thread::Mode Thread::getMode(Thread *thread) {
-        if (mainThread == nullptr) return Mode::SYSTEM;
-        if (thread == nullptr) return Mode::SYSTEM;
-        auto status = thread->context.sstatus;
-        if(status == 0) return Mode::SYSTEM;
-        return status & (uint64) BitMasks::sstatus::SPP ? Mode::SYSTEM : Mode::USER;
-    }
-
     void Thread::taskWrapper() {
         runningThread->task(runningThread->arg);
         thread_exit();
@@ -95,20 +88,20 @@ namespace kernel {
         using namespace BitMasks;
         using BitMasks::sstatus;
         auto status =
-                runningThread == nullptr
-                ? (uint64) sstatus::SPIE
-                : runningThread->context.sstatus;
+            runningThread == nullptr
+            ? (uint64)sstatus::SPIE
+            : runningThread->context.sstatus;
         auto SPP =
-                mode == Mode::SYSTEM
-                ? (uint64) sstatus::SPP
-                : 0x00;
-        auto SPIE = status & (uint64) sstatus::SPIE;
-        return SPP | SPIE | (uint64) sstatus::SIE;
+            mode == Mode::SYSTEM
+            ? (uint64)sstatus::SPP
+            : 0x00;
+        auto SPIE = status & (uint64)sstatus::SPIE;
+        return SPP | SPIE | (uint64)sstatus::SIE;
     }
 
     uint64 Thread::pcGetInitial(Task function) {
         if (function == nullptr) return 0x00;
-        return (uint64) taskWrapper;
+        return (uint64)taskWrapper;
     }
 
     void Thread::setMainFinished() {
@@ -119,11 +112,11 @@ namespace kernel {
         return mainFinished;
     }
 
-    Thread::Thread(Task function, void *argument, void *stack, Mode mode) :
-            context(pcGetInitial(function), sstatusGetInitial(mode)),
-            task(function), arg(argument), stack((uint64 *) stack) {
+    Thread::Thread(Task function, void* argument, void* stack, Mode mode) :
+        context(pcGetInitial(function), sstatusGetInitial(mode)),
+        task(function), arg(argument), stack((uint64*)stack), mode(mode) {
         if (stack != nullptr) {
-            auto stackTop = (uint64) &this->stack[DEFAULT_STACK_SIZE];
+            auto stackTop = (uint64)((char*)this->stack + DEFAULT_STACK_SIZE);
             context.registers.sp = stackTop;
         }
 
@@ -135,7 +128,7 @@ namespace kernel {
     }
 
     Thread::~Thread() {
-        if (getMode(this) == Mode::USER) {
+        if (this->mode == Mode::USER) {
             userThreadCount--;
         } else {
             systemThreadCount--;
@@ -149,16 +142,19 @@ namespace kernel {
     void Thread::tick() {
         if (this == runningThread && --runningTimeLeft == 0) {
             dispatch();
-        } else {
+        } else if (sleepingTime > 0) {
             sleepingTime--;
         }
     }
 
     void Thread::enterUserMode() {
-        if(getMode(this) == Mode::SYSTEM) {
+        if (this->mode == Mode::SYSTEM) {
             using namespace BitMasks;
-            auto newsstatus = context.sstatus  & (~(uint64) sstatus::SPP);
+            auto newsstatus = context.sstatus & (~(uint64)sstatus::SPP);
             context.sstatus = newsstatus;
+
+            mode = Mode::USER;
+
             systemThreadCount--;
             userThreadCount++;
         }

@@ -11,7 +11,7 @@
 #define NEXT_INSTRUCTION() Thread::getRunning()->skipInstruction();
 
 namespace kernel {
-    class Thread final{
+    class Thread final {
     public:
         using Task = void(*)(void*);
 
@@ -24,11 +24,11 @@ namespace kernel {
         class Context {
         public:
             friend Thread;
-            struct Registers{
+            struct Registers {
                 uint64 zero, ra, sp, gp, tp, t0, t1, t2,
-                        s0, s1, a0, a1, a2, a3, a4, a5,
-                        a6, a7, s2, s3, s4, s5, s6, s7,
-                        s8, s9, s10, s11, t3, t4, t5, t6;
+                    s0, s1, a0, a1, a2, a3, a4, a5,
+                    a6, a7, s2, s3, s4, s5, s6, s7,
+                    s8, s9, s10, s11, t3, t4, t5, t6;
                 Registers();
             };
         private:
@@ -42,7 +42,7 @@ namespace kernel {
             uint64 getPC() const { return pc; }
             void setPC(uint64 value) { pc = value; }
 
-            uint64 getsstatus() const{ return sstatus; }
+            uint64 getsstatus() const { return sstatus; }
             void setsstatus(uint64 value) { sstatus = value; }
         };
     public:
@@ -60,7 +60,6 @@ namespace kernel {
         static Thread* getRunning();
         static void shelveRunning();
         static uint64 getCount(Mode mode);
-        static Mode getMode(Thread* thread);
     private:
         static void taskWrapper();
 
@@ -80,19 +79,22 @@ namespace kernel {
         Task task;
         void* arg;
         uint64* stack;
+        Mode mode;
         uint64 id = threadIdSource++;
         Status status = Status::CREATED;
         uint64 sleepingTime = 0;
         Thread* next = nullptr;
     public:
         Thread(Task function, void* argument, void* stack, Mode mode);
-        Thread(Thread const&)=delete;
-        Thread& operator=(Thread const&)=delete;
+        Thread(Thread const&) = delete;
+        Thread& operator=(Thread const&) = delete;
         ~Thread();
 
         void skipInstruction() { context.pc += 4; }
 
         Context& getContext() { return context; }
+
+        Mode getMode() const { return mode; }
 
         uint64 getId() const { return id; }
 
@@ -104,7 +106,7 @@ namespace kernel {
         void tick();
         void enterUserMode();
         Thread* getNext() { return next; }
-        void setNext(Thread* thread) { next = thread;}
+        void setNext(Thread* thread) { next = thread; }
     };
 } // kernel
 
