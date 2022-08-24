@@ -8,11 +8,14 @@
 #include "./Scheduler.h"
 #include "./TrapHandlers.h"
 #include "./BitMasks.h"
+#include "../../h/syscall_c.h"
 
 namespace kernel {
     class Kernel {
     public:
+        using TMain = void (*)(void);
         static void initialize();
+        static void execute(TMain userMain);
         static void finalize();
     private:
         static void enableInterrupts();
@@ -22,6 +25,9 @@ namespace kernel {
         static const size_t stackSize = DEFAULT_STACK_SIZE * sizeof(uint64);
         alignas(uint16) static uint8 kernelStack[stackSize];
         static uint8* kernelStackTopAddress asm("__kernelStack");
+
+        static sem_t userMainDone;
+        static thread_t userMainThread;
     };
 } // kernel
 

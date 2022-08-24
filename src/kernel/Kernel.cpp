@@ -4,7 +4,6 @@
 
 #include "../../h/kernel/Kernel.h"
 #include "../../h/kernel/RegisterUtils.h"
-#include "../../h/syscall_c.h"
 #include "../../h/kernel/SystemCalls.h"
 #include "../../h/kernel/Console.h"
 
@@ -19,6 +18,9 @@ const static bool block = false;
 namespace kernel {
     alignas(uint16) uint8 Kernel::kernelStack[Kernel::stackSize];
     uint8* Kernel::kernelStackTopAddress = ((uint8*)&Kernel::kernelStack + stackSize);
+    sem_t Kernel::userMainDone;
+    thread_t Kernel::userMainThread;
+
 
     void Kernel::initialize() {
         setTrapHandler(block);
@@ -26,10 +28,28 @@ namespace kernel {
         Thread::initialize();
         CONSOLE.initialize();
         enableInterrupts();
-        enter_user_mode();
+        sem_open(&Kernel::userMainDone, 0);
+    }
+
+    void Kernel::execute(TMain userMain) {
+        struct Shadow {
+            TMain main;
+            sem_t sem;
+        } argument{ userMain, userMainDone };
+
+        thread_create(
+            &userMainThread,
+            [](void* args) {
+                auto sh = (Shadow*)args;
+                enter_user_mode();
+                sh->main();
+                sem_signal(sh->sem);
+            }, &argument);
+        sem_wait(userMainDone);
     }
 
     void Kernel::finalize() {
+        sem_close(userMainDone);
         waitForUserThreads();
         Thread::setMainFinished();
         CONSOLE.join();
