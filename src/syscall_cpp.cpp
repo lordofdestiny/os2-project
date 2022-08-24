@@ -12,11 +12,11 @@ void operator delete (void* ptr) {
     mem_free(ptr);
 }
 
-Thread::Thread(void (*body)(void *), void *arg) {
+Thread::Thread(void (*body)(void*), void* arg) {
     thread_init(&myHadnle, body, arg);
 }
 
-Thread::~Thread()=default;
+Thread::~Thread() = default;
 
 int Thread::start() {
     return thread_start(&myHadnle);
@@ -31,10 +31,10 @@ int Thread::sleep(time_t time) {
 }
 
 Thread::Thread() {
-    thread_init(&myHadnle,&taskWrapper, this);
+    thread_init(&myHadnle, &taskWrapper, this);
 }
 
-void Thread::taskWrapper(void *arg) {
+void Thread::taskWrapper(void* arg) {
     ((Thread*)arg)->run();
 }
 
@@ -60,12 +60,14 @@ struct StartingInfo {
 };
 
 PeriodicThread::PeriodicThread(time_t period) :
-    Thread(&taskWrapper, new StartingInfo{this, period}) { }
+    Thread(&taskWrapper, new StartingInfo{ this, period }) {
+}
 
 void PeriodicThread::taskWrapper(void* arg) {
-    auto info = (StartingInfo*) arg;
+    auto info = (StartingInfo*)arg;
     auto thread = info->thread;
     auto period = info->period;
+    delete info;
     while (true) {
         time_sleep(period);
         thread->periodicActivation();
