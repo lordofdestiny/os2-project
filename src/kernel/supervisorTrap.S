@@ -16,30 +16,28 @@
 .type __supervisorTrap__, @function
 .align 4
 __supervisorTrap__:
-   addi sp, sp, -16
-   sd t6, 0(sp)
-   ld t6, __runningThread
-   .irp index 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
+    csrw sscratch, t6
+    ld t6, __runningThread
+    .irp index 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
         sd x\index, registersOffsetThread + \index * 8 (t6)
-   .endr
-   csrr t5, sepc
-   sd t5, pcOffsetThread(t6)
-   csrr t5, sstatus
-   sd t5, sstatusOffsetThread(t6)
-   ld t5, 0(sp)
-   sd t5, registersOffsetThread + 31 * 8(t6)
-   ld sp, __kernelStack
+    .endr
+    csrr t5, sscratch
+    sd t5, registersOffsetThread + 31 * 8(t6)
+    csrr t5, sepc
+    sd t5, pcOffsetThread(t6)
+    csrr t5, sstatus
+    sd t5, sstatusOffsetThread(t6)
+    ld sp, __kernelStack
 
-   call __supervisorTrapHandle__
+    call __supervisorTrapHandle__
 
-   ld t6, __runningThread
-   ld t5, pcOffsetThread(t6)
-   csrw sepc, t5
-   ld t5, sstatusOffsetThread(t6)
-   csrw sstatus, t5
-   .irp index 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
-       ld x\index, registersOffsetThread + \index * 8 (t6)
-   .endr
-   addi sp, sp, 16
+    ld t6, __runningThread
+    ld t5, pcOffsetThread(t6)
+    csrw sepc, t5
+    ld t5, sstatusOffsetThread(t6)
+    csrw sstatus, t5
+    .irp index 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+        ld x\index, registersOffsetThread + \index * 8 (t6)
+    .endr
 
     sret
