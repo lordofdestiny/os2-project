@@ -8,11 +8,10 @@ namespace kernel {
     MemoryAllocator::MemoryAllocator() {
         auto heapByteSize = (uint64)HEAP_END_ADDR - (uint64)HEAP_START_ADDR;
         auto heapBlockCount = heapByteSize / MEM_BLOCK_SIZE;
-        auto originBlock = (FreeBlock*)HEAP_START_ADDR;
-        originBlock->size = heapBlockCount;
-        originBlock->prev = nullptr;
-        originBlock->next = nullptr;
-        this->head = originBlock;
+        head = (FreeBlock*)HEAP_START_ADDR;
+        head->size = heapBlockCount;
+        head->prev = nullptr;
+        head->next = nullptr;
     }
 
     MemoryAllocator& MemoryAllocator::getInstance() {
