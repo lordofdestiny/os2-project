@@ -7,11 +7,11 @@
 .set sstatusOffsetThread, 0x08
 .set registersOffsetThread, 0x10
 
-# void kernel::supervisorTrapHandle();
+# void kernel::TrapHandlers::supervisorTrapHandle();
 .extern __supervisorTrapHandle__
 .type __supervisorTrapHandle__, @function
 
-# void kernel::supervisorTrap()
+# void kernel::TrapHandlers::supervisorTrap()
 .global __supervisorTrap__
 .type __supervisorTrap__, @function
 .align 4
