@@ -11,8 +11,8 @@ namespace kernel {
     class MemoryAllocator {
     private:
         MemoryAllocator();
-        struct FreeBlock{
-            FreeBlock *prev, *next;
+        struct FreeBlock {
+            FreeBlock* prev, * next;
             size_t size;
 
             char* end() {
@@ -21,10 +21,10 @@ namespace kernel {
         };
         FreeBlock* head;
     public:
-        MemoryAllocator(MemoryAllocator const&)=delete;
-        MemoryAllocator& operator=(MemoryAllocator const&)=delete;
+        MemoryAllocator(MemoryAllocator const&) = delete;
+        MemoryAllocator& operator=(MemoryAllocator const&) = delete;
         static MemoryAllocator& getInstance();
-        static size_t byteSizeToBlockCount(size_t blocks);
+        static size_t byteSizeToBlockCount(size_t bytes);
         void* allocateBlocks(size_t count);
         void* allocateBytes(size_t count);
         int deallocateBlocks(void* ptr);
