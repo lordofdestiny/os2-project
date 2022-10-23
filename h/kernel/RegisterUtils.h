@@ -15,4 +15,3 @@
 #define SREGISTER_CLEAR_BITS(reg, mask) asm volatile("csrc "#reg ", %0"::"r"((mask)))
 
 #endif //PROJECT_REGISTERUTILS_H
-
