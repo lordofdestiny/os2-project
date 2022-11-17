@@ -48,11 +48,11 @@ void workerBodyC(void* arg) {
     }
 
     printString("C: dispatch\n");
-    __asm__ ("li t1, 7");
+    __asm__("li t1, 7");
     thread_dispatch();
 
     uint64 t1 = 0;
-    __asm__ ("mv %[t1], t1" : [t1] "=r"(t1));
+    __asm__("mv %[t1], t1" : [t1] "=r"(t1));
 
     printString("C: t1="); printInt(t1); printString("\n");
 
@@ -75,7 +75,7 @@ void workerBodyD(void* arg) {
     }
 
     printString("D: dispatch\n");
-    __asm__ ("li t1, 5");
+    __asm__("li t1, 5");
     thread_dispatch();
 
     uint64 result = fibonacci(16);

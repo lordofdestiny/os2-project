@@ -13,25 +13,25 @@ Semaphore* waitForAll;
 
 struct thread_data {
     int id;
-    BufferCPP *buffer;
+    BufferCPP* buffer;
     Semaphore* wait;
 };
 
 volatile int threadEnd = 0;
 
-class ProducerKeyboard:public Thread {
+class ProducerKeyboard :public Thread {
     thread_data* td;
-    void producerKeyboard(void *arg);
+    void producerKeyboard(void* arg);
 public:
-    ProducerKeyboard(thread_data* _td):Thread(), td(_td) {}
+    ProducerKeyboard(thread_data* _td) :Thread(), td(_td) {}
 
     void run() override {
         producerKeyboard(td);
     }
 };
 
-void ProducerKeyboard::producerKeyboard(void *arg) {
-    struct thread_data *data = (struct thread_data *) arg;
+void ProducerKeyboard::producerKeyboard(void* arg) {
+    struct thread_data* data = (struct thread_data*)arg;
 
     int key;
     int i = 0;
@@ -50,19 +50,19 @@ void ProducerKeyboard::producerKeyboard(void *arg) {
     data->wait->signal();
 }
 
-class Producer:public Thread {
+class Producer :public Thread {
     thread_data* td;
-    void producer(void *arg);
+    void producer(void* arg);
 public:
-    Producer(thread_data* _td):Thread(), td(_td) {}
+    Producer(thread_data* _td) :Thread(), td(_td) {}
 
     void run() override {
         producer(td);
     }
 };
 
-void Producer::producer(void *arg) {
-    struct thread_data *data = (struct thread_data *) arg;
+void Producer::producer(void* arg) {
+    struct thread_data* data = (struct thread_data*)arg;
 
     int i = 0;
     while (!threadEnd) {
@@ -77,19 +77,19 @@ void Producer::producer(void *arg) {
     data->wait->signal();
 }
 
-class Consumer:public Thread {
+class Consumer :public Thread {
     thread_data* td;
-    void consumer(void *arg);
+    void consumer(void* arg);
 public:
-    Consumer(thread_data* _td):Thread(), td(_td) {}
+    Consumer(thread_data* _td) :Thread(), td(_td) {}
 
     void run() override {
         consumer(td);
     }
 };
 
-void Consumer::consumer(void *arg) {
-    struct thread_data *data = (struct thread_data *) arg;
+void Consumer::consumer(void* arg) {
+    struct thread_data* data = (struct thread_data*)arg;
 
     int i = 0;
     while (!threadEnd) {
@@ -132,7 +132,7 @@ void producerConsumer_CPP_Sync_API() {
     printString(" i velicina bafera "); printInt(n);
     printString(".\n");
 
-    if(threadNum > n) {
+    if (threadNum > n) {
         printString("Broj proizvodjaca ne sme biti manji od velicine bafera!\n");
         return;
     } else if (threadNum < 1) {
@@ -140,19 +140,21 @@ void producerConsumer_CPP_Sync_API() {
         return;
     }
 
-    BufferCPP *buffer = new BufferCPP(n);
+    BufferCPP* buffer = new BufferCPP(n);
 
     waitForAll = new Semaphore(0);
 
-    Thread* threads[threadNum];
+    // Thread* threads[threadNum];
+    auto threads = (Thread**)mem_alloc(threadNum * sizeof(Thread*));
     Thread* consumerThread;
 
-    struct thread_data data[threadNum + 1];
+    // struct thread_data data[threadNum + 1];
+    auto* data = (thread_data*)mem_alloc((threadNum + 1) * sizeof(thread_data));
 
     data[threadNum].id = threadNum;
     data[threadNum].buffer = buffer;
     data[threadNum].wait = waitForAll;
-    consumerThread = new Consumer(data+threadNum);
+    consumerThread = new Consumer(data + threadNum);
     consumerThread->start();
 
     for (int i = 0; i < threadNum; i++) {
@@ -160,10 +162,10 @@ void producerConsumer_CPP_Sync_API() {
         data[i].buffer = buffer;
         data[i].wait = waitForAll;
 
-        if(i>0) {
-            threads[i] = new Producer(data+i);
+        if (i > 0) {
+            threads[i] = new Producer(data + i);
         } else {
-            threads[i] = new ProducerKeyboard(data+i);
+            threads[i] = new ProducerKeyboard(data + i);
         }
 
         threads[i]->start();

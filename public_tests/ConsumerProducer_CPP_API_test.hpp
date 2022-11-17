@@ -12,20 +12,20 @@
 
 namespace ConsumerProducerCPP {
 
-    Semaphore *waitForAll;
+    Semaphore* waitForAll;
 
     struct thread_data {
         int id;
-        BufferCPP *buffer;
-        Semaphore *sem;
+        BufferCPP* buffer;
+        Semaphore* sem;
     };
 
     volatile int threadEnd = 0;
 
     class ProducerKeyborad : public Thread {
-        thread_data *td;
+        thread_data* td;
     public:
-        ProducerKeyborad(thread_data *_td) : Thread(), td(_td) {}
+        ProducerKeyborad(thread_data* _td) : Thread(), td(_td) {}
 
         void run() override {
             int key;
@@ -43,16 +43,16 @@ namespace ConsumerProducerCPP {
     };
 
     class Producer : public Thread {
-        thread_data *td;
+        thread_data* td;
     public:
-        Producer(thread_data *_td) : Thread(), td(_td) {}
+        Producer(thread_data* _td) : Thread(), td(_td) {}
 
         void run() override {
             int i = 0;
             while (!threadEnd) {
                 td->buffer->put(td->id + '0');
                 i++;
-                Thread::sleep((i+td->id)%5);
+                Thread::sleep((i + td->id) % 5);
             }
 
             td->sem->signal();
@@ -60,9 +60,9 @@ namespace ConsumerProducerCPP {
     };
 
     class Consumer : public Thread {
-        thread_data *td;
+        thread_data* td;
     public:
-        Consumer(thread_data *_td) : Thread(), td(_td) {}
+        Consumer(thread_data* _td) : Thread(), td(_td) {}
 
         void run() override {
             int i = 0;
@@ -102,7 +102,7 @@ namespace ConsumerProducerCPP {
         printString(" i velicina bafera "); printInt(n);
         printString(".\n");
 
-        if(threadNum > n) {
+        if (threadNum > n) {
             printString("Broj proizvodjaca ne sme biti manji od velicine bafera!\n");
             return;
         } else if (threadNum < 1) {
@@ -110,16 +110,18 @@ namespace ConsumerProducerCPP {
             return;
         }
 
-        BufferCPP *buffer = new BufferCPP(n);
+        BufferCPP* buffer = new BufferCPP(n);
 
         waitForAll = new Semaphore(0);
-        Thread *producers[threadNum];
-        thread_data threadData[threadNum + 1];
+        // Thread *producers[threadNum];
+        auto producers = (Thread**)mem_alloc(threadNum * sizeof(Thread*));
+        // thread_data threadData[threadNum + 1];
+        auto threadData = (thread_data*)mem_alloc((threadNum + 1) * sizeof(thread_data));
 
         threadData[threadNum].id = threadNum;
         threadData[threadNum].buffer = buffer;
         threadData[threadNum].sem = waitForAll;
-        Thread *consumer = new Consumer(&threadData[threadNum]);
+        Thread* consumer = new Consumer(&threadData[threadNum]);
         consumer->start();
 
         threadData[0].id = 0;
@@ -148,8 +150,8 @@ namespace ConsumerProducerCPP {
         for (int i = 0; i < threadNum; i++) {
             delete producers[i];
         }
-        delete consumer;
-        delete buffer;
+        mem_free(consumer);
+        mem_free  buffer);
     }
 
 }

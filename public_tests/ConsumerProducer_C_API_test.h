@@ -13,14 +13,14 @@ sem_t waitForAll;
 
 struct thread_data {
     int id;
-    Buffer *buffer;
+    Buffer* buffer;
     sem_t wait;
 };
 
 volatile int threadEnd = 0;
 
-void producerKeyboard(void *arg) {
-    struct thread_data *data = (struct thread_data *) arg;
+void producerKeyboard(void* arg) {
+    struct thread_data* data = (struct thread_data*)arg;
 
     int key;
     int i = 0;
@@ -39,8 +39,8 @@ void producerKeyboard(void *arg) {
     sem_signal(data->wait);
 }
 
-void producer(void *arg) {
-    struct thread_data *data = (struct thread_data *) arg;
+void producer(void* arg) {
+    struct thread_data* data = (struct thread_data*)arg;
 
     int i = 0;
     while (!threadEnd) {
@@ -55,8 +55,8 @@ void producer(void *arg) {
     sem_signal(data->wait);
 }
 
-void consumer(void *arg) {
-    struct thread_data *data = (struct thread_data *) arg;
+void consumer(void* arg) {
+    struct thread_data* data = (struct thread_data*)arg;
 
     int i = 0;
     while (!threadEnd) {
@@ -98,7 +98,7 @@ void producerConsumer_C_API() {
     printString(" i velicina bafera "); printInt(n);
     printString(".\n");
 
-    if(threadNum > n) {
+    if (threadNum > n) {
         printString("Broj proizvodjaca ne sme biti manji od velicine bafera!\n");
         return;
     } else if (threadNum < 1) {
@@ -106,14 +106,16 @@ void producerConsumer_C_API() {
         return;
     }
 
-    Buffer *buffer = new Buffer(n);
+    Buffer* buffer = new Buffer(n);
 
     sem_open(&waitForAll, 0);
 
-    thread_t threads[threadNum];
+    // thread_t threads[threadNum];
+    auto* threads = (thread_t*)mem_alloc(threadNum * sizeof(thread_t));
     thread_t consumerThread;
 
-    struct thread_data data[threadNum + 1];
+    // struct thread_data data[threadNum + 1];
+    auto data = (thread_data*)mem_alloc((threadNum + 1) * sizeof(thread_data));
 
     data[threadNum].id = threadNum;
     data[threadNum].buffer = buffer;
