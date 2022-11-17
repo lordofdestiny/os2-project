@@ -113,9 +113,7 @@ namespace ConsumerProducerCPP {
         BufferCPP* buffer = new BufferCPP(n);
 
         waitForAll = new Semaphore(0);
-        // Thread *producers[threadNum];
         auto producers = (Thread**)mem_alloc(threadNum * sizeof(Thread*));
-        // thread_data threadData[threadNum + 1];
         auto threadData = (thread_data*)mem_alloc((threadNum + 1) * sizeof(thread_data));
 
         threadData[threadNum].id = threadNum;
@@ -151,7 +149,7 @@ namespace ConsumerProducerCPP {
             delete producers[i];
         }
         mem_free(consumer);
-        mem_free  buffer);
+        mem_free(buffer);
     }
 
 }
