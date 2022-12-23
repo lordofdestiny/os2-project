@@ -5,12 +5,12 @@
 #ifndef PROJECT_CONSOLE_H
 #define PROJECT_CONSOLE_H
 
-#include "Semaphore.h"
-#include "Buffer.h"
-#include "MemoryAllocator.h"
-#include "ConsoleController.h"
-#include "Scheduler.h"
-#include "../syscall_c.h"
+#include "../Semaphore.h"
+#include "./Buffer.h"
+#include "../Memory/HeapAllocator.h"
+#include "./ConsoleController.h"
+#include "../Scheduler.h"
+#include "../../syscall_c.h"
 
 #define CONSOLE Console::getInstance()
 

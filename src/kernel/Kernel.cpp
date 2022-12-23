@@ -3,9 +3,9 @@
 //
 
 #include "../../h/kernel/Kernel.h"
-#include "../../h/kernel/RegisterUtils.h"
-#include "../../h/kernel/SystemCalls.h"
-#include "../../h/kernel/Console.h"
+#include "../../h/kernel/Utils/RegisterUtils.h"
+#include "../../h/kernel/SystemCalls/SystemCalls.h"
+#include "../../h/kernel/Console/Console.h"
 
 #define BLOCK_ON_ERROR
 

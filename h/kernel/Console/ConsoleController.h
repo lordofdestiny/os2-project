@@ -4,7 +4,7 @@
 
 #ifndef PROJECT_CONSOLECONTROLLER_H
 #define PROJECT_CONSOLECONTROLLER_H
-#include "../../lib/hw.h"
+#include "../../../lib/hw.h"
 
 namespace kernel {
     namespace ConsoleController {

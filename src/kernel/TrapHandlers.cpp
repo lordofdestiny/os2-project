@@ -1,12 +1,12 @@
 //
 // Created by os on 7/16/22.
 //
-#include "../../h/kernel/SystemCalls.h"
+#include "../../h/kernel/SystemCalls/SystemCalls.h"
 #include "../../h/kernel/TrapHandlers.h"
-#include "../../h/kernel/RegisterUtils.h"
+#include "../../h/kernel/Utils/RegisterUtils.h"
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/Scheduler.h"
-#include "../../h/kernel/Console.h"
+#include "../../h/kernel/Console/Console.h"
 
 namespace kernel {
     namespace TrapHandlers {

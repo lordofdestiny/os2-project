@@ -5,7 +5,7 @@
 #ifndef PROJECT_TRAPHANDLERS_H
 #define PROJECT_TRAPHANDLERS_H
 #include "../../lib/hw.h"
-#include "BitMasks.h"
+#include "Utils/BitMasks.h"
 
 namespace kernel {
     namespace TrapHandlers{

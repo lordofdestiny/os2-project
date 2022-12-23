@@ -1,13 +1,13 @@
 //
 // Created by os on 7/16/22.
 //
-#include "../../h/kernel/SystemCalls.h"
-#include "../../h/kernel/MemoryAllocator.h"
-#include "../../h/kernel/Thread.h"
-#include "../../h/kernel/Scheduler.h"
-#include "../../h/syscall_c.h"
-#include "../../h/kernel/Semaphore.h"
-#include "../../h/kernel/Console.h"
+#include "../../../h/kernel/SystemCalls/SystemCalls.h"
+#include "../../../h/kernel/Memory/HeapAllocator.h"
+#include "../../../h/kernel/Thread.h"
+#include "../../../h/kernel/Scheduler.h"
+#include "../../../h/syscall_c.h"
+#include "../../../h/kernel/Semaphore.h"
+#include "../../../h/kernel/Console/Console.h"
 
 namespace kernel {
     SystemCallHandler SystemCalls::getHandler(CallType type) {

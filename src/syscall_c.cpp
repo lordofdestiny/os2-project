@@ -1,8 +1,8 @@
 #include "../h/syscall_c.h"
-#include "../h/kernel/MemoryAllocator.h"
-#include "../h/kernel/RegisterUtils.h"
-#include "../h/kernel/SystemCalls.h"
-#include "../h/kernel/Console.h"
+#include "../h/kernel/Memory/HeapAllocator.h"
+#include "../h/kernel/Utils/RegisterUtils.h"
+#include "../h/kernel/SystemCalls/SystemCalls.h"
+#include "../h/kernel/Console/Console.h"
 
 #define RETURN_AS(type)                 \
    do {                                 \
@@ -14,11 +14,11 @@
 #define ECALL() asm volatile("ecall")
 
 using CallType = kernel::CallType;
-using kernel::MemoryAllocator;
+using kernel::HeapAllocator;
 using kernel::Console;
 
 void* mem_alloc(size_t size) {
-    auto blockCount = MemoryAllocator::byteSizeToBlockCount(size);
+    auto blockCount = HeapAllocator::byteSizeToBlockCount(size);
     REGISTER_WRITE(a1, blockCount);
     REGISTER_WRITE(a0, CallType::MemoryAllocate);
     ECALL();

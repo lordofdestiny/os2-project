@@ -1,9 +1,9 @@
 #ifndef PROJECT_SYSTEMCALLSGROUP_H
 #define PROJECT_SYSTEMCALLSGROUP_H
 
-#include "./MemoryAllocator.h"
-#include "./RegisterUtils.h"
-#include "../../lib/hw.h"
+#include "./../Memory/HeapAllocator.h"
+#include "../Utils/RegisterUtils.h"
+#include "../../../lib/hw.h"
 
 #define CALL_GROUP(Type) SystemCallGroup<SystemCallType::Type>::getInstance()
 

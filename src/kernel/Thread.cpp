@@ -4,8 +4,8 @@
 
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/Scheduler.h"
-#include "../../h/kernel/MemoryAllocator.h"
-#include "../../h/kernel/BitMasks.h"
+#include "../../h/kernel/Memory/HeapAllocator.h"
+#include "../../h/kernel/Utils/BitMasks.h"
 #include "../../h/syscall_c.h"
 
 namespace kernel {

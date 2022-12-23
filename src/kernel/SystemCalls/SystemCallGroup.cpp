@@ -1,5 +1,5 @@
-#include "../../h/kernel/SystemCallCode.h"
-#include "../../h/kernel/SystemCallGroup.h"
+#include "../../../h/kernel/SystemCalls/SystemCallCode.h"
+#include "../../../h/kernel/SystemCalls/SystemCallGroup.h"
 
 namespace kernel {
     void* SystemCallHandlerGroup::operator new(size_t size) {

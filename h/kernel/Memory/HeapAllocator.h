@@ -4,13 +4,15 @@
 #ifndef PROJECT_MEMORYALLOCATOR_H
 #define PROJECT_MEMORYALLOCATOR_H
 
-#define ALLOCATOR MemoryAllocator::getInstance()
+#define ALLOCATOR HeapAllocator::getInstance()
 
-#include "../../lib/hw.h"
+#include "../../../lib/hw.h"
 namespace kernel {
-    class MemoryAllocator {
+    class HeapAllocator {
     private:
-        MemoryAllocator();
+        HeapAllocator(
+            const void* heap_start_address,
+            const void* heap_end_address);
         struct FreeBlock {
             FreeBlock* prev, * next;
             size_t size;
@@ -21,9 +23,9 @@ namespace kernel {
         };
         FreeBlock* head;
     public:
-        MemoryAllocator(MemoryAllocator const&) = delete;
-        MemoryAllocator& operator=(MemoryAllocator const&) = delete;
-        static MemoryAllocator& getInstance();
+        HeapAllocator(HeapAllocator const&) = delete;
+        HeapAllocator& operator=(HeapAllocator const&) = delete;
+        static HeapAllocator& getInstance();
         static size_t byteSizeToBlockCount(size_t bytes);
         void* allocateBlocks(size_t count);
         void* allocateBytes(size_t count);

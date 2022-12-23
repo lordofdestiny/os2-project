@@ -1,5 +1,5 @@
-#include "../../h/kernel/SystemCallCode.h"
-#include "../../h/kernel/SystemCalls.h"
+#include "../../../h/kernel/SystemCalls/SystemCallCode.h"
+#include "../../../h/kernel/SystemCalls/SystemCalls.h"
 
 namespace kernel {
     SystemCallCode::SystemCallCode(CallType code) :

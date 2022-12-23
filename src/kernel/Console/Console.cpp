@@ -2,10 +2,10 @@
 // Created by os on 7/21/22.
 //
 
-#include "../../h/kernel/Console.h"
-#include "../../h/kernel/BitMasks.h"
-#include "../../h/kernel/RegisterUtils.h"
-#include "../../h/syscall_c.h"
+#include "../../../h/kernel/Console/Console.h"
+#include "../../../h/kernel/Utils/BitMasks.h"
+#include "../../../h/kernel/Utils/RegisterUtils.h"
+#include "../../../h/syscall_c.h"
 
 namespace kernel {
     Console& Console::getInstance() {

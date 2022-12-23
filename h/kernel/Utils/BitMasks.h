@@ -4,7 +4,7 @@
 
 #ifndef PROJECT_BITMASKS_H
 #define PROJECT_BITMASKS_H
-#include "../../lib/hw.h"
+#include "../../../lib/hw.h"
 
 
 namespace kernel {

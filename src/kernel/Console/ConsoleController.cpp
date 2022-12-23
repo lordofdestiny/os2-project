@@ -2,7 +2,7 @@
 // Created by os on 7/21/22.
 //
 
-#include "../../h/kernel/ConsoleController.h"
+#include "../../../h/kernel/Console/ConsoleController.h"
 
 namespace kernel {
     uint8 ConsoleController::status() {

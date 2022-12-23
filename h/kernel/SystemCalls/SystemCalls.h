@@ -4,8 +4,8 @@
 
 #ifndef PROJECT_SYSTEMCALLS_H
 #define PROJECT_SYSTEMCALLS_H
-#include "../../h/kernel/SystemCallCode.h"
-#include "../../h/kernel/SystemCallGroup.h"
+#include "./SystemCallCode.h"
+#include "./SystemCallGroup.h"
 
 #define ACCEPT(type, index) (type) RUNNING_REGISTERS.a##index
 #define RETURN(value) RUNNING_REGISTERS.a0 = (uint64) value

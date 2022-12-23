@@ -5,8 +5,8 @@
 #ifndef PROJECT_BUFFER_H
 #define PROJECT_BUFFER_H
 
-#include "../../lib/hw.h"
-#include "./MemoryAllocator.h"
+#include "../../../lib/hw.h"
+#include "./../Memory/HeapAllocator.h"
 
 namespace kernel {
     template<size_t Capacity = 256>

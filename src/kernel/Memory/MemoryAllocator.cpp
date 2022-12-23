@@ -2,11 +2,14 @@
 // Created by os on 7/15/22.
 //
 
-#include "../../h/kernel/MemoryAllocator.h"
+#include "../../../h/kernel/Memory/HeapAllocator.h"
 
 namespace kernel {
-    MemoryAllocator::MemoryAllocator() {
-        auto heapByteSize = (uint64)HEAP_END_ADDR - (uint64)HEAP_START_ADDR;
+    HeapAllocator::HeapAllocator(
+        const void* heap_start_address,
+        const void* heap_end_address)
+    {
+        auto heapByteSize = (uint64)heap_end_address - (uint64)heap_start_address;
         auto heapBlockCount = heapByteSize / MEM_BLOCK_SIZE;
         head = (FreeBlock*)HEAP_START_ADDR;
         head->size = heapBlockCount;
@@ -14,17 +17,17 @@ namespace kernel {
         head->next = nullptr;
     }
 
-    MemoryAllocator& MemoryAllocator::getInstance() {
-        static MemoryAllocator instance{};
+    HeapAllocator& HeapAllocator::getInstance() {
+        static HeapAllocator instance(HEAP_START_ADDR, HEAP_END_ADDR);
         return instance;
     }
 
-    size_t MemoryAllocator::byteSizeToBlockCount(size_t blocks) {
+    size_t HeapAllocator::byteSizeToBlockCount(size_t blocks) {
         return (blocks + 2 * sizeof(size_t) + MEM_BLOCK_SIZE - 1) / MEM_BLOCK_SIZE;
     }
 
     /* Algorithm: Best Fit*/
-    void* MemoryAllocator::allocateBlocks(size_t count) {
+    void* HeapAllocator::allocateBlocks(size_t count) {
         FreeBlock* block = nullptr;
 
         for (auto curr = head; curr != nullptr; curr = curr->next) {
@@ -69,7 +72,7 @@ namespace kernel {
         return (char*)block + 2 * sizeof(size_t);
     }
 
-    int MemoryAllocator::deallocateBlocks(void* ptr) {
+    int HeapAllocator::deallocateBlocks(void* ptr) {
         if (ptr == nullptr) return -1;
 
         auto address = (char*)ptr - 2 * sizeof(size_t);
@@ -149,7 +152,7 @@ namespace kernel {
         return 0;
     }
 
-    void* MemoryAllocator::allocateBytes(size_t count) {
+    void* HeapAllocator::allocateBytes(size_t count) {
         auto blockCount = byteSizeToBlockCount(count);
         return allocateBlocks(blockCount);
     }
