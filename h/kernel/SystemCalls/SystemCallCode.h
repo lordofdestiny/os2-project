@@ -1,10 +1,12 @@
 #ifndef PROJECT_SYSTEMCALLSCODE_H
 #define PROJECT_SYSTEMCALLSCODE_H
 
-namespace kernel {
+namespace kernel
+{
     enum class SystemCallType;
     enum class CallType;
-    class SystemCallCode {
+    class SystemCallCode
+    {
     public:
         SystemCallCode(CallType code);
         SystemCallType getType() const;

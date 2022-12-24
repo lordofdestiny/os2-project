@@ -10,21 +10,26 @@
 #define RUNNING_REGISTERS CONTEXT.getRegisters()
 #define NEXT_INSTRUCTION() Thread::getRunning()->skipInstruction();
 
-namespace kernel {
-    class Thread final {
+namespace kernel
+{
+    class Thread final
+    {
     public:
         using Task = void(*)(void*);
 
         enum class Mode { USER, SYSTEM };
 
-        enum class Status {
+        enum class Status
+        {
             CREATED, READY, RUNNING, BLOCKED
         };
 
-        class Context {
+        class Context
+        {
         public:
             friend Thread;
-            struct Registers {
+            struct Registers
+            {
                 uint64 zero, ra, sp, gp, tp, t0, t1, t2,
                     s0, s1, a0, a1, a2, a3, a4, a5,
                     a6, a7, s2, s3, s4, s5, s6, s7,

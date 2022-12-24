@@ -10,9 +10,10 @@
 void* operator new (size_t size);
 void operator delete (void* ptr);
 
-class Thread {
+class Thread
+{
 public:
-    Thread (void (*body)(void*), void* arg);
+    Thread(void (*body)(void*), void* arg);
     virtual ~Thread();
 
     int start();
@@ -22,7 +23,7 @@ public:
 
 protected:
     Thread();
-    virtual void run () {}
+    virtual void run() { }
 
 private:
     thread_t myHadnle;
@@ -30,31 +31,34 @@ private:
     static void taskWrapper(void* arg);
 };
 
-class Semaphore {
+class Semaphore
+{
 public:
 
-    Semaphore (unsigned init = 1);
+    Semaphore(unsigned init = 1);
     virtual ~Semaphore();
 
-    int wait ();
-    int signal ();
+    int wait();
+    int signal();
 
 private:
     sem_t myHandle;
 };
 
-class PeriodicThread : public Thread {
+class PeriodicThread: public Thread
+{
 protected:
-    PeriodicThread (time_t period);
-    virtual void periodicActivation(){};
+    PeriodicThread(time_t period);
+    virtual void periodicActivation() { };
 private:
     static void taskWrapper(void*);
 };
 
-class Console {
+class Console
+{
 public:
-    static char getc ();
-    static void putc (char);
+    static char getc();
+    static void putc(char);
 };
 
 #endif //_syscall_cpp

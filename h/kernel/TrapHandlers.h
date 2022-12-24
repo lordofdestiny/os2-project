@@ -7,13 +7,16 @@
 #include "../../lib/hw.h"
 #include "Utils/BitMasks.h"
 
-namespace kernel {
-    namespace TrapHandlers{
+namespace kernel
+{
+    namespace TrapHandlers
+    {
         using Handler = void(*)(void);
 
-        enum class TrapType : size_t {
-            TimerTrap = (size_t) BitMasks::scause::BNT | 0x01,
-            ExternalHardwareTrap = (size_t) BitMasks::scause::BNT | 0x09,
+        enum class TrapType: size_t
+        {
+            TimerTrap = (size_t)BitMasks::scause::BNT | 0x01,
+            ExternalHardwareTrap = (size_t)BitMasks::scause::BNT | 0x09,
             IllegalInstruction = 0x02,
             IllegalReadAddress = 0x05,
             IllegalWriteAddress = 0x07,

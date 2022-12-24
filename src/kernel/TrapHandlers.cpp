@@ -8,36 +8,45 @@
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/Console/Console.h"
 
-namespace kernel {
-    namespace TrapHandlers {
+namespace kernel
+{
+    namespace TrapHandlers
+    {
         static Handler errorHandler = nullptr;
 
-        void setErrorHandler(Handler handler) {
+        void setErrorHandler(Handler handler)
+        {
             errorHandler = handler;
         }
 
-        void instructionErrorHandler() {
-            if (errorHandler != nullptr) {
+        void instructionErrorHandler()
+        {
+            if (errorHandler != nullptr)
+            {
                 errorHandler();
             }
             Thread::getRunning()->skipInstruction();
         }
 
-        void timerInterruptHandler() {
+        void timerInterruptHandler()
+        {
             Thread::getRunning()->tick();
             SCHEDULER.tick();
             SREGISTER_CLEAR_BITS(sip, BitMasks::sip::SSIP);
         }
 
-        void hardwareInterruptHandler() {
+        void hardwareInterruptHandler()
+        {
             auto irqSrc = plic_claim();
-            if (irqSrc == CONSOLE_IRQ) {
+            if (irqSrc == CONSOLE_IRQ)
+            {
                 CONSOLE.handle();
             }
             plic_complete(irqSrc);
         }
 
-        void systemCallHandler() {
+        void systemCallHandler()
+        {
             auto type = ACCEPT(CallType, 0);
 
             NEXT_INSTRUCTION();
@@ -46,13 +55,15 @@ namespace kernel {
             if (handle != nullptr) handle();
         }
 
-        void supervisorTrapHandle() {
+        void supervisorTrapHandle()
+        {
             using TrapType = TrapHandlers::TrapType;
 
             TrapType trapCause;
             SREGISTER_READ(scause, trapCause);
 
-            switch (trapCause) {
+            switch (trapCause)
+            {
             case TrapType::TimerTrap:
                 return timerInterruptHandler();
             case TrapType::ExternalHardwareTrap:

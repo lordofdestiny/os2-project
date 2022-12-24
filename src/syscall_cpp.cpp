@@ -4,81 +4,98 @@
 #include "../h/syscall_c.h"
 #include "../h/syscall_cpp.hpp"
 
-void* operator new (size_t size) {
+void* operator new (size_t size)
+{
     return mem_alloc(size);
 }
 
-void operator delete (void* ptr) {
+void operator delete (void* ptr)
+{
     mem_free(ptr);
 }
 
-Thread::Thread(void (*body)(void*), void* arg) {
+Thread::Thread(void (*body)(void*), void* arg)
+{
     thread_init(&myHadnle, body, arg);
 }
 
 Thread::~Thread() = default;
 
-int Thread::start() {
+int Thread::start()
+{
     return thread_start(&myHadnle);
 }
 
-void Thread::dispatch() {
+void Thread::dispatch()
+{
     thread_dispatch();
 }
 
-int Thread::sleep(time_t time) {
+int Thread::sleep(time_t time)
+{
     return time_sleep(time);
 }
 
-Thread::Thread() {
+Thread::Thread()
+{
     thread_init(&myHadnle, &taskWrapper, this);
 }
 
-void Thread::taskWrapper(void* arg) {
+void Thread::taskWrapper(void* arg)
+{
     ((Thread*)arg)->run();
 }
 
-Semaphore::Semaphore(unsigned int init) {
+Semaphore::Semaphore(unsigned int init)
+{
     sem_open(&myHandle, init);
 }
 
-Semaphore::~Semaphore() {
+Semaphore::~Semaphore()
+{
     sem_close(myHandle);
 }
 
-int Semaphore::wait() {
+int Semaphore::wait()
+{
     return sem_wait(myHandle);
 }
 
-int Semaphore::signal() {
+int Semaphore::signal()
+{
     return sem_signal(myHandle);
 }
 
-struct StartingInfo {
+struct StartingInfo
+{
     PeriodicThread* thread;
     time_t period;
 };
 
-PeriodicThread::PeriodicThread(time_t period) :
-    Thread(&taskWrapper, new StartingInfo{ this, period }) {
-}
+PeriodicThread::PeriodicThread(time_t period):
+    Thread(&taskWrapper, new StartingInfo{ this, period })
+{ }
 
-void PeriodicThread::taskWrapper(void* arg) {
+void PeriodicThread::taskWrapper(void* arg)
+{
     auto info = (StartingInfo*)arg;
     auto thread = info->thread;
     auto period = info->period;
     delete info;
-    while (true) {
+    while (true)
+    {
         time_sleep(period);
         thread->periodicActivation();
     }
 }
 
-char Console::getc() {
+char Console::getc()
+{
     return ::getc();
 }
 
-void Console::putc(char c) {
+void Console::putc(char c)
+{
     ::putc(c);
 }
 

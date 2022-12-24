@@ -6,8 +6,10 @@
 #define PROJECT_CONSOLECONTROLLER_H
 #include "../../../lib/hw.h"
 
-namespace kernel {
-    namespace ConsoleController {
+namespace kernel
+{
+    namespace ConsoleController
+    {
         uint8 status();
         char receiveData();
         void transmitData(char data);

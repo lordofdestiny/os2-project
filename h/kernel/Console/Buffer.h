@@ -8,35 +8,44 @@
 #include "../../../lib/hw.h"
 #include "./../Memory/HeapAllocator.h"
 
-namespace kernel {
+namespace kernel
+{
     template<size_t Capacity = 256>
-    class Buffer {
+    class Buffer
+    {
     public:
-        void put(char c)  {
+        void put(char c)
+        {
             buffer[head++] = c;
             head %= Capacity;
             count++;
         }
-        char get() {
+        char get()
+        {
             auto c = buffer[tail++];
             tail %= Capacity;
             count--;
             return c;
         }
-        size_t capacity() const {
+        size_t capacity() const
+        {
             return Capacity;
         }
-        bool empty() const{
+        bool empty() const
+        {
             return count == 0;
         }
-        bool full() const{
+        bool full() const
+        {
             return count == Capacity;
         }
     public:
-        static void* operator new(size_t size) {
+        static void* operator new(size_t size)
+        {
             return ALLOCATOR.allocateBytes(size);
         }
-        static void operator delete(void* ptr) {
+        static void operator delete(void* ptr)
+        {
             ALLOCATOR.deallocateBlocks(ptr);
         }
     private:

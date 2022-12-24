@@ -7,16 +7,19 @@
 
 #define CALL_GROUP(Type) SystemCallGroup<SystemCallType::Type>::getInstance()
 
-namespace kernel {
+namespace kernel
+{
 
     class SystemCallCode;
     using SystemCallHandler = void(*)(void);
 
-    class SystemCallHandlerGroup {
+    class SystemCallHandlerGroup
+    {
     public:
         static void* operator new(size_t size);
         static void operator delete(void* ptr);
-        SystemCallHandlerGroup(SystemCallType type) : type(type) {
+        SystemCallHandlerGroup(SystemCallType type): type(type)
+        {
             for (int i = 0; i < 16;callHandlers[i++] = nullptr);
         }
     public:

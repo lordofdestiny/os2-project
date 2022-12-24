@@ -14,13 +14,15 @@
 
 #define CONSOLE Console::getInstance()
 
-namespace kernel {
-    class Console final{
+namespace kernel
+{
+    class Console final
+    {
     public:
-        Console()=default;
-        Console(Console const&)=delete;
-        Console& operator=(Console const&)=delete;
-        ~Console()=default;
+        Console() = default;
+        Console(Console const&) = delete;
+        Console& operator=(Console const&) = delete;
+        ~Console() = default;
 
         void initialize();
         void join();

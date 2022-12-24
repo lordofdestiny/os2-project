@@ -22,8 +22,10 @@
 
 #define SYSTEMCALLS SystemCalls::getInstance()
 
-namespace kernel {
-    enum class SystemCallType {
+namespace kernel
+{
+    enum class SystemCallType
+    {
         Memory = 0x00,
         Thread = 0x10,
         Semaphore = 0x20,
@@ -32,7 +34,8 @@ namespace kernel {
         System = 0xF0,
     };
 
-    enum class CallType {
+    enum class CallType
+    {
         MemoryAllocate = 0x01,
         MemoryFree = 0x02,
         ThreadCreate = 0x11,
@@ -50,7 +53,8 @@ namespace kernel {
         EnterUserMode = 0xFF
     };
 
-    class SystemCalls {
+    class SystemCalls
+    {
     public:
         SystemCallHandler getHandler(CallType type);
         static SystemCalls& getInstance();

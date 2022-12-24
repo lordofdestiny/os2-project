@@ -9,23 +9,25 @@
 
 #define SCHEDULER Scheduler::getInstance()
 
-namespace kernel {
-    class Scheduler final{
+namespace kernel
+{
+    class Scheduler final
+    {
     public:
-        Scheduler(Scheduler const &) = delete;
-        Scheduler &operator=(Scheduler const &) = delete;
+        Scheduler(Scheduler const&) = delete;
+        Scheduler& operator=(Scheduler const&) = delete;
 
-        static Scheduler &getInstance();
+        static Scheduler& getInstance();
 
-        void put(Thread *thread);
-        Thread *get();
+        void put(Thread* thread);
+        Thread* get();
 
         void entrance(Thread* thread, uint64 ticks);
         void tick();
     private:
         void awaken();
         Scheduler() = default;
-        Thread *getIdleThread();
+        Thread* getIdleThread();
     private:
         Thread* readyHead = nullptr;
         Thread* readyTail = nullptr;

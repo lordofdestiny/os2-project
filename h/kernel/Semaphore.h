@@ -6,12 +6,14 @@
 #define PROJECT_SEMAPHORE_H
 #include "./Thread.h"
 
-namespace kernel {
-    class Semaphore final{
+namespace kernel
+{
+    class Semaphore final
+    {
     public:
         explicit Semaphore(int value);
-        Semaphore(Semaphore const&)=delete;
-        Semaphore& operator=(Semaphore const&)=delete;
+        Semaphore(Semaphore const&) = delete;
+        Semaphore& operator=(Semaphore const&) = delete;
         ~Semaphore();
 
         void wait();
@@ -28,7 +30,7 @@ namespace kernel {
         Thread* dequeue();
 
         long int value;
-        Thread *head= nullptr, *tail= nullptr;
+        Thread* head = nullptr, * tail = nullptr;
     };
 
 } // kernel

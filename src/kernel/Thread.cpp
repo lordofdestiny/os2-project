@@ -8,7 +8,8 @@
 #include "../../h/kernel/Utils/BitMasks.h"
 #include "../../h/syscall_c.h"
 
-namespace kernel {
+namespace kernel
+{
     Thread* Thread::mainThread = nullptr;
     Thread* Thread::runningThread = nullptr;
     time_t Thread::runningTimeLeft = DEFAULT_TIME_SLICE;
@@ -17,34 +18,41 @@ namespace kernel {
     uint64 Thread::userThreadCount = 0;
     uint64 Thread::systemThreadCount = 0;
 
-    Thread::Context::Context(uint64 pc, uint64 status) :
-        pc(pc), sstatus(status), registers() {
-    }
+    Thread::Context::Context(uint64 pc, uint64 status):
+        pc(pc), sstatus(status), registers()
+    { }
 
-    Thread::Context::Registers::Registers() {
-        for (int i = 0; i < 32; i++) {
+    Thread::Context::Registers::Registers()
+    {
+        for (int i = 0; i < 32; i++)
+        {
             ((uint64*)this)[i] = 0;
         }
     }
 
-    void* Thread::operator new(size_t size) noexcept {
+    void* Thread::operator new(size_t size) noexcept
+    {
         return ALLOCATOR.allocateBytes(size);
     }
 
-    void Thread::operator delete(void* ptr) noexcept {
+    void Thread::operator delete(void* ptr) noexcept
+    {
         ALLOCATOR.deallocateBlocks(ptr);
     }
 
-    void Thread::initialize() {
+    void Thread::initialize()
+    {
         runningThread = getMainThread();
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
 
-    void Thread::dispatch() {
+    void Thread::dispatch()
+    {
 
         auto oldThread = runningThread;
 
-        if (oldThread && oldThread->status != Status::BLOCKED) {
+        if (oldThread && oldThread->status != Status::BLOCKED)
+        {
             SCHEDULER.put(oldThread);
         }
 
@@ -55,36 +63,46 @@ namespace kernel {
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }
 
-    Thread* Thread::getMainThread() {
-        if (mainThread == nullptr) {
+    Thread* Thread::getMainThread()
+    {
+        if (mainThread == nullptr)
+        {
             mainThread = new Thread(nullptr, nullptr,
-                                    nullptr, Mode::SYSTEM);
+                nullptr, Mode::SYSTEM);
         }
         return mainThread;
     }
 
-    Thread* Thread::getRunning() {
+    Thread* Thread::getRunning()
+    {
         return runningThread;
     }
 
-    void Thread::shelveRunning() {
+    void Thread::shelveRunning()
+    {
         runningThread = nullptr;
     }
 
-    uint64 Thread::getCount(Thread::Mode mode) {
-        if (mode == Mode::USER) {
+    uint64 Thread::getCount(Thread::Mode mode)
+    {
+        if (mode == Mode::USER)
+        {
             return userThreadCount;
-        } else {
+        }
+        else
+        {
             return systemThreadCount;
         }
     }
 
-    void Thread::taskWrapper() {
+    void Thread::taskWrapper()
+    {
         runningThread->task(runningThread->arg);
         thread_exit();
     }
 
-    uint64 Thread::sstatusGetInitial(Mode mode) {
+    uint64 Thread::sstatusGetInitial(Mode mode)
+    {
         using namespace BitMasks;
         using BitMasks::sstatus;
         auto status =
@@ -99,56 +117,75 @@ namespace kernel {
         return SPP | SPIE | (uint64)sstatus::SIE;
     }
 
-    uint64 Thread::pcGetInitial(Task function) {
+    uint64 Thread::pcGetInitial(Task function)
+    {
         if (function == nullptr) return 0x00;
         return (uint64)taskWrapper;
     }
 
-    void Thread::setMainFinished() {
+    void Thread::setMainFinished()
+    {
         mainFinished = true;
     }
 
-    bool Thread::isMainFinished() {
+    bool Thread::isMainFinished()
+    {
         return mainFinished;
     }
 
-    Thread::Thread(Task function, void* argument, void* stack, Mode mode) :
+    Thread::Thread(Task function, void* argument, void* stack, Mode mode):
         context(pcGetInitial(function), sstatusGetInitial(mode)),
-        task(function), arg(argument), stack((uint64*)stack), mode(mode) {
-        if (stack != nullptr) {
+        task(function), arg(argument), stack((uint64*)stack), mode(mode)
+    {
+        if (stack != nullptr)
+        {
             auto stackTop = (uint64)((char*)this->stack + DEFAULT_STACK_SIZE);
             context.registers.sp = stackTop;
         }
 
-        if (mode == Mode::USER) {
+        if (mode == Mode::USER)
+        {
             userThreadCount++;
-        } else {
+        }
+        else
+        {
             systemThreadCount++;
         }
     }
 
-    Thread::~Thread() {
-        if (this->mode == Mode::USER) {
+    Thread::~Thread()
+    {
+        if (this->mode == Mode::USER)
+        {
             userThreadCount--;
-        } else {
+        }
+        else
+        {
             systemThreadCount--;
         }
         if (this == runningThread) runningThread = nullptr;
-        if (stack != nullptr) {
+        if (stack != nullptr)
+        {
             ALLOCATOR.deallocateBlocks(stack);
         }
     }
 
-    void Thread::tick() {
-        if (this == runningThread && --runningTimeLeft == 0) {
+    void Thread::tick()
+    {
+        if (this == runningThread && --runningTimeLeft == 0)
+        {
             dispatch();
-        } else if (sleepingTime > 0) {
+        }
+        else if (sleepingTime > 0)
+        {
             sleepingTime--;
         }
     }
 
-    void Thread::enterUserMode() {
-        if (this->mode == Mode::SYSTEM) {
+    void Thread::enterUserMode()
+    {
+        if (this->mode == Mode::SYSTEM)
+        {
             using namespace BitMasks;
             auto newsstatus = context.sstatus & (~(uint64)sstatus::SPP);
             context.sstatus = newsstatus;

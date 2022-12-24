@@ -10,8 +10,10 @@
 #include "./Utils/BitMasks.h"
 #include "../../h/syscall_c.h"
 
-namespace kernel {
-    class Kernel {
+namespace kernel
+{
+    class Kernel
+    {
     public:
         using TMain = void (*)(void);
         static void initialize();

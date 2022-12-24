@@ -7,17 +7,21 @@
 #define ALLOCATOR HeapAllocator::getInstance()
 
 #include "../../../lib/hw.h"
-namespace kernel {
-    class HeapAllocator {
+namespace kernel
+{
+    class HeapAllocator
+    {
     private:
         HeapAllocator(
             const void* heap_start_address,
             const void* heap_end_address);
-        struct FreeBlock {
+        struct FreeBlock
+        {
             FreeBlock* prev, * next;
             size_t size;
 
-            char* end() {
+            char* end()
+            {
                 return (char*)this + size * MEM_BLOCK_SIZE;
             }
         };
