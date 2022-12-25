@@ -4,10 +4,10 @@
 #ifndef PROJECT_MEMORYALLOCATOR_H
 #define PROJECT_MEMORYALLOCATOR_H
 
-#define ALLOCATOR HeapAllocator::getInstance()
+#define ALLOCATOR memory::HeapAllocator::getInstance()
 
 #include "../../../lib/hw.h"
-namespace kernel
+namespace kernel::memory
 {
     class HeapAllocator
     {

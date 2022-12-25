@@ -14,7 +14,7 @@
 #define ECALL() asm volatile("ecall")
 
 using CallType = kernel::CallType;
-using kernel::HeapAllocator;
+using kernel::memory::HeapAllocator;
 using kernel::Console;
 
 void* mem_alloc(size_t size)

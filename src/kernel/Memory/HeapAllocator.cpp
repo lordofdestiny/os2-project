@@ -4,7 +4,7 @@
 
 #include "../../../h/kernel/Memory/HeapAllocator.h"
 
-namespace kernel
+namespace kernel::memory
 {
     HeapAllocator::HeapAllocator(
         const void* heap_start_address,
