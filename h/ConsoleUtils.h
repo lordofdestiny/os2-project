@@ -20,6 +20,8 @@ int stringToInt(const char* s);
 
 void printInt(int xx, int base = 10, int sgn = 0);
 
+void printUInt64(uint64 x, int base = 10);
 
+void printAddress(const void* const address);
 
 #endif //PROJECT_CONSOLEUTILS_H

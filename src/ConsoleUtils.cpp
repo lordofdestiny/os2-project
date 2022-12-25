@@ -90,8 +90,8 @@ void printInt(int xx, int base, int sgn)
     uint x;
 
     neg = 0;
-    if (sgn && xx < 0)    
-{
+    if (sgn && xx < 0)
+    {
         neg = 1;
         x = -xx;
     }
@@ -112,4 +112,43 @@ void printInt(int xx, int base, int sgn)
         putc(buf[i]);
 
     UNLOCK();
+}
+
+void printUInt64(uint64 x, int base)
+{
+    LOCK();
+    char buf[25];
+    int i = 0;
+    do
+    {
+        buf[i++] = digits[x % base];
+    } while ((x /= base) != 0);
+
+    if ((base & 1) == 0)
+    {
+        if (base == 2)
+        {
+            buf[i++] = 'b';
+            buf[i++] = '0';
+        }
+        else if (base == 8)
+        {
+            buf[i++] = '0';
+        }
+        else if (base == 16)
+        {
+            buf[i++] = 'x';
+            buf[i++] = '0';
+        }
+    }
+
+    while (--i >= 0)
+        putc(buf[i]);
+
+    UNLOCK();
+}
+
+void printAddress(const void* const address)
+{
+    printUInt64((uint64)address, 16);
 }
