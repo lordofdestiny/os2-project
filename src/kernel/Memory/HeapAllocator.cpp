@@ -3,6 +3,7 @@
 //
 
 #include "../../../h/kernel/Memory/HeapAllocator.h"
+#include "../../../h/kernel/Memory/MemoryManager.h"
 
 namespace kernel::memory
 {
@@ -20,7 +21,8 @@ namespace kernel::memory
 
     HeapAllocator& HeapAllocator::getInstance()
     {
-        static HeapAllocator instance(HEAP_START_ADDR, HEAP_END_ADDR);
+        static auto section = heapSectionBounds();
+        static HeapAllocator instance(section.startAddress, section.endAddress);
         return instance;
     }
 
