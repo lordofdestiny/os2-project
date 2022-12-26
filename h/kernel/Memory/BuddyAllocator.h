@@ -20,8 +20,9 @@ namespace kernel::memory
         {
             FreeBlock* prev;
             FreeBlock* next;
-            uint64 size;
-            void setSize(uint64 size);
+            uint64 bits;
+            static uint64 sizeToBits(uint64 size);
+            void setSize(uint64 bits);
             FreeBlock* getBuddy() const;
         };
         static_assert(sizeof(FreeBlock) <= (1 << BLOCK_MINIMUM_BITSIZE));
@@ -30,13 +31,18 @@ namespace kernel::memory
 
         FreeBlock* removeBlock(FreeBlock* block);
         void insertBlock(FreeBlock* block);
-        bool trySplitInto(uint64 size);
+        bool trySplitInto(uint64 bits);
         bool isBuddyFree(FreeBlock* block);
         void recursiveJoinBuddies(FreeBlock* block);
     public:
         static BuddyAllocator& getInstance();
         void* allocate(uint64 size);
         void deallocate(void* addr, uint64 size);
+
+        FreeBlock* list(int i)
+        {
+            return blockLists[i];
+        }
     private:
         FreeBlock* blockLists[BLOCK_LISTS_SIZE];
     };

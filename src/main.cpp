@@ -49,6 +49,52 @@ void main()
     putc('\n');
     printString("----------------------------------------\n");
 
+    auto& allocator = memory::BuddyAllocator::getInstance();
+    for (int i = 0; i < BLOCK_LISTS_SIZE; i++)
+    {
+        printInt(i);
+        printString(". ");
+        printAddress(allocator.list(i));
+        putc('\n');
+    }
+
+    int allocSize = (1 << 20);
+    // int allocSize = 20;
+    int allocs = 1;
+    auto first = allocator.allocate(allocSize);
+    void* last = nullptr;
+    void* temp = nullptr;
+    while ((temp = allocator.allocate(allocSize)) != nullptr)
+    {
+        allocs++;
+        last = temp;
+    }
+    printInt(allocs, 16);
+    putc('\n');
+    printAddress(first);
+    putc('\n');
+    printAddress(last);
+    putc('\n');
+    printString("*************************************************************************\n");
+
+    int deallocs = 0;
+    for (auto addr = first; (uint64)addr <= (uint64)last; addr = ((char*)addr) + allocSize)
+    {
+        deallocs++;
+        allocator.deallocate(addr, allocSize);
+    }
+    printInt(deallocs, 16);
+    putc('\n');
+    printString("*************************************************************************\n");
+
+    for (int i = 0; i < BLOCK_LISTS_SIZE; i++)
+    {
+        printInt(i);
+        printString(". ");
+        printAddress(allocator.list(i));
+        putc('\n');
+    }
+
     Kernel::finalize();
 }
 
