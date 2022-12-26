@@ -4,63 +4,35 @@
 
 namespace kernel::memory
 {
-    uint64 MemoryManager::MemorySection::size() const
+    uint64 MemorySection::size() const
     {
         return (uint64)endAddress - (uint64)startAddress;
     }
 
-    uint64 MemoryManager::MemorySection::addressBits() const
-    {
-        return log2(size() - 1);
-    }
-
-    MemoryManager::MemoryManager()
-        : minBlockSize(5),
-        maxBlockSize(log2(dataSectionBounds().size()))
-    { }
-
-    MemoryManager const&
-        MemoryManager::getInstance()
-    {
-        static MemoryManager instance{};
-        return instance;
-    }
-
-    auto MemoryManager::dataSectionBounds() const
-        -> MemorySection
+    MemorySection dataSectionBounds()
     {
         return {
             HEAP_START_ADDR,
-            (char*)HEAP_END_ADDR
-        };
-    }
-
-    auto MemoryManager::kernelSectionBounds() const
-        -> MemorySection
-    {
-        return {
-            HEAP_START_ADDR,
-            (char*)HEAP_START_ADDR
-            + ((2ull << (maxBlockSize - 3)))
-        };
-    }
-
-    auto MemoryManager::heapSectionBounds() const
-        -> MemorySection
-    {
-        return {
-            (char*)HEAP_START_ADDR +
-            kernelSectionBounds().size(),
             HEAP_END_ADDR
         };
     }
 
-    uint64  MemoryManager::getMinBlockSize() const
+    MemorySection kernelSectionBounds()
     {
-        return minBlockSize;
+        return {
+            (char*)(MEMORY_SECOND_HALF)
+            +7 * (((uint64)HEAP_END_ADDR - MEMORY_SECOND_HALF) >> 3),
+            HEAP_END_ADDR
+        };
     }
-    uint64  MemoryManager::getMaxBlockSize() const
+
+    MemorySection heapSectionBounds()
     {
-        return maxBlockSize;
+        return {
+            HEAP_START_ADDR,
+            (char*)(MEMORY_SECOND_HALF)
+            +7 * (((uint64)HEAP_END_ADDR - MEMORY_SECOND_HALF) >> 3)
+        };
     }
+
 } // namespace kernel::memory

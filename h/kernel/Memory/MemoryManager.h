@@ -3,36 +3,30 @@
  * the heap and kernel data storage
  */
 
+#ifndef PROJECT_MEMORYMANAGER_H
+#define PROJECT_MEMORYMANAGER_H
 #include "../../../lib/hw.h"
+
+constexpr uint64 MEMORY_SECOND_HALF = 1ull << 31;
 
 
 namespace kernel::memory
 {
-    class MemoryManager
+    struct MemorySection
     {
-    public:
-        struct MemorySection
-        {
-            void const* const startAddress;
-            void const* const endAddress;
-            MemorySection(void const* const start, void const* const end)
-                : startAddress(start), endAddress(end)
-            { }
+        void const* const startAddress;
+        void const* const endAddress;
+        MemorySection(void const* const start, void const* const end)
+            : startAddress(start), endAddress(end)
+        { }
 
-            uint64 size() const;
-            uint64 addressBits() const;
-        };
-    public:
-        MemorySection dataSectionBounds() const;
-        MemorySection kernelSectionBounds() const;
-        MemorySection heapSectionBounds() const;
-        static MemoryManager const& getInstance();
-        uint64 getMinBlockSize() const;
-        uint64 getMaxBlockSize() const;
-    private:
-        MemoryManager();
-        const uint64 minBlockSize;
-        const uint64 maxBlockSize;
+        uint64 size() const;
     };
 
+    MemorySection dataSectionBounds();
+    MemorySection kernelSectionBounds();
+    MemorySection heapSectionBounds();
+
 } // namespace kernel
+
+#endif
