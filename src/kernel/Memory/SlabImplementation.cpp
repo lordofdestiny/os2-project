@@ -1,4 +1,4 @@
-#include "../../../h/kernel/Memory/Slab.h"
+#include "../../../h/kernel/Memory/SlabImplementation.h"
 
 namespace kernel::memory
 {

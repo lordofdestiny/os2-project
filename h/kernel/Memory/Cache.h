@@ -2,7 +2,7 @@
 #define PROJECT_SLAB_CACHE_H
 
 #include "../../../lib/hw.h"
-#include "./Slab.h"
+#include "./SlabImplementation.h"
 #include "./BuddyAllocator.h"
 #include "../Utils/Utils.h"
 
