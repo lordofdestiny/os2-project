@@ -5,46 +5,31 @@
 
 namespace kernel::memory
 {
-    inline void BuddyAllocator::FreeBlock::setSize(uint64 bits)
+    inline void BuddyAllocator::FreeBlock::setOrder(unsigned int order)
     {
-        this->bits = bits;
+        this->order = order;
     }
 
     inline auto BuddyAllocator::FreeBlock::getBuddy() const
         ->FreeBlock*
     {
-        return (FreeBlock*)((uint64)this ^ (1 << bits));
-    }
-
-    inline uint64
-        BuddyAllocator::FreeBlock::sizeToBits(uint64 size)
-    {
-        const auto log = log2(size);
-
-        printUInt64(size == (1ull << log)
-            ? log
-            : log + 1);
-        printString("\n");
-
-        return size == (1ull << log)
-            ? log
-            : log + 1;
+        return (FreeBlock*)((uint64)this ^ (1 << order));
     }
 
     BuddyAllocator::BuddyAllocator(
         MemorySection const& section
     )
     {
-        for (int i = 0; i < BLOCK_LISTS_SIZE; i++)
+        for (size_t i = 0; i < BLOCK_LISTS_SIZE; i++)
         {
             blockLists[i] = nullptr;
         }
 
-        const auto max = log2(section.size());
-        blockLists[max] = (FreeBlock*)section.startAddress;
-        blockLists[max]->prev = nullptr;
-        blockLists[max]->next = nullptr;
-        blockLists[max]->setSize(max);
+        const auto max = kernel::utils::log2(section.size());
+        (*this)[max] = (FreeBlock*)section.startAddress;
+        (*this)[max]->prev = nullptr;
+        (*this)[max]->next = nullptr;
+        (*this)[max]->setOrder(max);
     }
 
     BuddyAllocator& BuddyAllocator::getInstance()
@@ -59,14 +44,14 @@ namespace kernel::memory
         ->FreeBlock*
     {
         if (block == nullptr
-            || blockLists[block->bits] == nullptr)
+            || (*this)[block->order] == nullptr)
         {
             return nullptr;
         }
 
-        if (blockLists[block->bits] == block)
+        if ((*this)[block->order] == block)
         {
-            blockLists[block->bits] = block->next;
+            (*this)[block->order] = block->next;
         }
 
         if (block->next != nullptr)
@@ -84,38 +69,38 @@ namespace kernel::memory
     void BuddyAllocator::insertBlock(
         FreeBlock* block)
     {
-        auto head = blockLists[block->bits];
+        auto head = (*this)[block->order];
         if (head != nullptr)
         {
             head->prev = block;
         }
         block->next = head;
         block->prev = nullptr;
-        blockLists[block->bits] = block;
+        (*this)[block->order] = block;
     }
 
     // Try to split until 2^size block is found
-    bool BuddyAllocator::trySplitInto(uint64 bits)
+    bool BuddyAllocator::trySplitInto(unsigned int order)
     {
         // Required block already exists, no need to split
-        if (blockLists[bits] != nullptr) return true;
+        if ((*this)[order] != nullptr) return true;
 
-        auto cbits = bits;
-        while (cbits < BLOCK_LISTS_SIZE
-            && blockLists[cbits] == nullptr)
+        auto corder = order;
+        while (corder < MAX_ORDER
+            && (*this)[corder] == nullptr)
         {
-            cbits++;
+            corder++;
         }
 
-        if (cbits == BLOCK_LISTS_SIZE) return false;
+        if (corder == MAX_ORDER) return false;
 
-        while (cbits > bits)
+        while (corder > order)
         {
-            auto block1 = removeBlock(blockLists[cbits]);
-            cbits -= 1;
-            block1->setSize(cbits);
+            auto block1 = removeBlock((*this)[corder]);
+            corder -= 1;
+            block1->setOrder(corder);
             auto block2 = block1->getBuddy();
-            block2->setSize(cbits);
+            block2->setOrder(corder);
 
             insertBlock(block2);
             insertBlock(block1);
@@ -128,7 +113,7 @@ namespace kernel::memory
     {
         auto buddy = block->getBuddy();
 
-        auto curr = blockLists[block->bits];
+        auto curr = (*this)[block->order];
         while (curr != nullptr)
         {
             if ((char*)curr == (char*)buddy) return true;
@@ -149,34 +134,34 @@ namespace kernel::memory
             current = (uint64)current < (uint64)buddy
                 ? current
                 : buddy;
-            current->bits++;
+            current->order++;
         } while (isBuddyFree(current));
         insertBlock(current);
     }
 
-    void* BuddyAllocator::allocate(uint64 size)
+    void* BuddyAllocator::allocate(unsigned int order)
     {
-        const auto bitsize = FreeBlock::sizeToBits(size);
+        const auto blockOrder = MIN_ORDER + order;
 
-        if (bitsize < BLOCK_MINIMUM_BITSIZE
-            || bitsize > BLOCK_MAXIMUM_BITSIZE)
+        if (blockOrder < MIN_ORDER
+            || blockOrder > MAX_ORDER)
         {
             return nullptr;
         }
 
-        if (!trySplitInto(bitsize)) return nullptr;
+        if (!trySplitInto(blockOrder)) return nullptr;
 
-        return removeBlock(blockLists[bitsize]);
+        return removeBlock((*this)[blockOrder]);
     }
 
-    void BuddyAllocator::deallocate(void* addr, uint64 size)
+    void BuddyAllocator::deallocate(void* addr, unsigned int order)
     {
         if (addr == nullptr) return;
 
-        const auto bitsize = FreeBlock::sizeToBits(size);
+        const auto blockOrder = MIN_ORDER + order;
 
         auto block = (FreeBlock*)addr;
-        block->setSize(bitsize);
+        block->setOrder(blockOrder);
         if (isBuddyFree(block))
         {
             recursiveJoinBuddies(block);
@@ -185,6 +170,23 @@ namespace kernel::memory
         {
             insertBlock(block);
         }
+    }
+
+    void BuddyAllocator::printBlockTable()
+    {
+        for (int i = 0; i < BLOCK_LISTS_SIZE; i++)
+        {
+            printInt(i + MIN_ORDER);
+            printString(". ");
+            printAddress(blockLists[i]);
+            printString("\n");
+        }
+    }
+
+    inline auto BuddyAllocator::operator[](size_t i)
+        -> FreeBlock*&
+    {
+        return blockLists[i - MIN_ORDER];
     }
 
 }
