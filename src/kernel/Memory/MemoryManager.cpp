@@ -1,5 +1,5 @@
 #include "../../../h/kernel/Memory/MemoryManager.h"
-#include "../../../h/kernel/Utils/Math.h"
+#include "../../../h/kernel/Utils/Utils.h"
 #include "../../../lib/hw.h"
 
 namespace kernel::memory

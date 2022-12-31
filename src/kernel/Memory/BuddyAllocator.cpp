@@ -1,7 +1,7 @@
 #include "../../../h/kernel/Memory/BuddyAllocator.h"
 #include "../../../h/kernel/Memory/MemoryManager.h"
 #include "../../../h/ConsoleUtils.h"
-#include "../../../h/kernel/Utils/Math.h"
+#include "../../../h/kernel/Utils/Utils.h"
 
 namespace kernel::memory
 {
