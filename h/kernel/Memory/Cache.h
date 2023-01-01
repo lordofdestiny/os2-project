@@ -58,13 +58,23 @@ namespace kernel::memory
     private:
         friend class Slab;
         size_t allocationsSinceFree = 0;
+
+        Slab* free = nullptr;
+        Slab* partial = nullptr;
+        Slab* full = nullptr;
+
         Cache* prev = nullptr;
         Cache* next = nullptr;
+
         const size_t obj_size;
+
         const FunPtr constructor;
         const FunPtr destructor;
+
         const SlabCtorPtr allocatePage;
         const SlabDtorPtr deallocatePage;
+
+        char m_name[NAME_MAX_LENGTH + 1];
     public:
         static Cache kmem_cache_Cache;
     };
