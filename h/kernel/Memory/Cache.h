@@ -8,6 +8,15 @@
 
 namespace kernel::memory
 {
+    class Cache;
+} // namespace kernel::memory
+
+void insertIntoCacheList(kernel::memory::Cache* cache);
+bool isValidCahce(kernel::memory::Cache* cachep);
+
+
+namespace kernel::memory
+{
     class Slab;
     class Cache;
 
@@ -17,6 +26,9 @@ namespace kernel::memory
     class Cache
     {
     public:
+        friend void ::insertIntoCacheList(kernel::memory::Cache* cache);
+        friend bool ::isValidCahce(kernel::memory::Cache* cachep);
+
         using FunPtr = void(*)(void*);
         // make static make function
         void* operator new(size_t);
