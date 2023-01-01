@@ -19,6 +19,8 @@ namespace kernel::memory
     public:
         using FunPtr = void(*)(void*);
         // make static make function
+        void* operator new(size_t);
+        void operator delete(void*);
         Cache(const char* name, size_t size, FunPtr ctor, FunPtr dtor);
 
         void* allocate();
@@ -51,7 +53,8 @@ namespace kernel::memory
         const FunPtr destructor;
         const SlabCtorPtr allocatePage;
         const SlabDtorPtr deallocatePage;
-        char m_name[NAME_MAX_LENGTH]; // Change later
+    public:
+        static Cache kmem_cache_Cache;
     };
 }
 #endif
