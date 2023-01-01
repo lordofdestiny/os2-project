@@ -3,6 +3,8 @@
 //
 
 #include "../../h/kernel/Kernel.h"
+#include "../../h/kernel/Memory/slab.h"
+#include "../../h/kernel/Memory/MemoryManager.h"
 #include "../../h/kernel/Utils/RegisterUtils.h"
 #include "../../h/kernel/SystemCalls/SystemCalls.h"
 #include "../../h/kernel/Console/Console.h"
@@ -25,6 +27,9 @@ namespace kernel
 
     void Kernel::initialize()
     {
+        auto kmem_section = memory::kernelSectionBounds();
+        kmem_init(kmem_section.startAddress,
+            kmem_section.size() / BLOCK_SIZE);
         setTrapHandler(block);
         SYSTEMCALLS.initialize();
         Thread::initialize();
@@ -41,13 +46,15 @@ namespace kernel
             sem_t sem;
         } argument{ userMain, userMainDone };
 
-        thread_create(
-            &userMainThread,
-            [](void* args) {
-                auto sh = (Shadow*)args;
-        enter_user_mode();
-        sh->main();
-        sem_signal(sh->sem);
+        thread_create(&userMainThread,
+            [](void* args)
+            {
+                {
+                    auto sh = (Shadow*)args;
+                    enter_user_mode();
+                    sh->main();
+                    sem_signal(sh->sem);
+                }
             }, &argument);
         sem_wait(userMainDone);
     }
