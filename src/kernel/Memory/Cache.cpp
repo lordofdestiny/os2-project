@@ -19,6 +19,7 @@ namespace kernel::memory
         if (slab == nullptr)
         {
             const auto new_slab = allocatePage(this);
+            if (new_slab == nullptr) return nullptr;
             // One slot will be allocated from this slab, so it can be placed into
             // the partial list immediately
             insertIntoList(partial, new_slab);
@@ -39,6 +40,7 @@ namespace kernel::memory
 
     void Cache::deallocate(void* ptr)
     {
+        if (ptr == nullptr) return;
         // Find which slab from partial list this ptr bellongs to
         auto slab = findOwningSlab(ptr);
         if (slab == nullptr) return;
@@ -82,12 +84,12 @@ namespace kernel::memory
         return cnt;
     }
 
-    bool Cache::owns(void* ptr)
+    bool Cache::owns(void const* ptr) const
     {
-        return false;
+        return findOwningSlab(ptr) != nullptr;
     }
 
-    Slab* Cache::findMinPartialSlab()
+    Slab* Cache::findMinPartialSlab() const
     {
         if (partial == nullptr) return nullptr;
 
@@ -107,7 +109,7 @@ namespace kernel::memory
         return min_slab;
     }
 
-    Slab* Cache::findOwningSlab(void* ptr)
+    Slab* Cache::findOwningSlab(void const* ptr) const
     {
         auto slab = partial;
         while (slab != nullptr)
@@ -127,6 +129,7 @@ namespace kernel::memory
 
     void Cache::insertIntoList(Slab*& list_ptr, Slab* slab)
     {
+        if (slab == nullptr) return;
         if (list_ptr != nullptr)
         {
             list_ptr->prev = slab;
@@ -167,32 +170,32 @@ namespace kernel::memory
         return size;
     }
 
-    const char* Cache::name()
+    const char* Cache::name() const
     {
         return m_name;
     }
-    size_t Cache::objectSize()
+    size_t Cache::objectSize() const
     {
         return obj_size;
     }
-    size_t Cache::slabCount()
+    size_t Cache::slabCount() const
     {
         return getListSize(free)
             + getListSize(partial)
             + getListSize(full);
     }
-    size_t Cache::totalSize()
+    size_t Cache::totalSize() const
     {
         return PAGE_SIZE * slabCount();
     }
-    size_t Cache::objectsPerSlab()
+    size_t Cache::objectsPerSlab() const
     {
         return (PAGE_SIZE - sizeof(Slab))
             / (obj_size + sizeof(bool));
     }
-    int Cache::totalUsage()
+    int Cache::totalUsage() const
     {
-        auto totalCount = slabCount() * objectsPerSlab();
+        const auto totalCount = slabCount() * objectsPerSlab();
         if (totalCount == 0) return 0;
 
         auto freeCount = getListSize(free) * objectsPerSlab();

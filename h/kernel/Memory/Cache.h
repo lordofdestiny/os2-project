@@ -38,23 +38,23 @@ namespace kernel::memory
         void* allocate();
         void deallocate(void* ptr);
         size_t freeEmptySlabs();
-        bool owns(void* ptr);
+        bool owns(void const* ptr) const;
     private:
 
-        Slab* findMinPartialSlab();
-        Slab* findOwningSlab(void* ptr);
+        Slab* findMinPartialSlab() const;
+        Slab* findOwningSlab(void const* ptr) const;
         void insertIntoList(Slab*& list_ptr, Slab* slab);
         void removeFromList(Slab*& list_ptr, Slab* slab);
         static size_t getListSize(Slab const* head);
     public:
-        static constexpr size_t NAME_MAX_LENGTH = 32;
+        static constexpr size_t NAME_MAX_LENGTH = 31;
     public:
-        const char* name();
-        size_t objectSize();
-        size_t totalSize();
-        size_t slabCount();
-        size_t objectsPerSlab();
-        int totalUsage();
+        const char* name() const;
+        size_t objectSize() const;
+        size_t totalSize() const;
+        size_t slabCount() const;
+        size_t objectsPerSlab() const;
+        int totalUsage() const;
     private:
         friend class Slab;
         size_t allocationsSinceFree = 0;
