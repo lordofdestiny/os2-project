@@ -86,13 +86,13 @@ namespace kernel::memory
         if ((*this)[order] != nullptr) return true;
 
         auto corder = order;
-        while (corder < MAX_ORDER
+        while (corder <= MAX_ORDER
             && (*this)[corder] == nullptr)
         {
             corder++;
         }
 
-        if (corder == MAX_ORDER) return false;
+        if (corder > MAX_ORDER) return false;
 
         while (corder > order)
         {
@@ -143,8 +143,7 @@ namespace kernel::memory
     {
         const auto blockOrder = MIN_ORDER + order;
 
-        if (blockOrder < MIN_ORDER
-            || blockOrder > MAX_ORDER)
+        if (blockOrder < MIN_ORDER || blockOrder > MAX_ORDER)
         {
             return nullptr;
         }
@@ -158,7 +157,15 @@ namespace kernel::memory
     {
         if (addr == nullptr) return;
 
+        if ((uint64)start_address > (uint64)addr
+            || (uint64)addr >= (uint64)end_address) return;
+
         const auto blockOrder = MIN_ORDER + order;
+
+        if (blockOrder < MIN_ORDER || blockOrder > MAX_ORDER)
+        {
+            return;
+        }
 
         auto block = (FreeBlock*)addr;
         block->setOrder(blockOrder);
