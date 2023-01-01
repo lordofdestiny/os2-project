@@ -1,10 +1,11 @@
 #include "../../../h/kernel/Memory/SlabImplementation.h"
+#include "../../../h/ConsoleUtils.h"
 
 namespace kernel::memory
 {
     Slab* Slab::allocateSlab(small_slab_tag_t, Cache* owner)
     {
-        auto slab = (Slab*)BuddyAllocator::getInstance().allocate(1);
+        auto slab = (Slab*)BuddyAllocator::getInstance().allocate(0);
         if (slab == nullptr) return nullptr;
 
         slab->prev = nullptr;
@@ -25,6 +26,7 @@ namespace kernel::memory
     Slab* Slab::allocateSlab(large_slab_tag_t, Cache* owner)
     {
         /* NOT IMPLEMENTED*/
+
         return nullptr;
     }
 
@@ -34,14 +36,13 @@ namespace kernel::memory
         const auto obj_size = slab->owner->obj_size;
         const auto cap = slab->m_capacity;
         const auto buff = slab->buffer;
-        if (destructor != nullptr)
-        {
+        if (destructor == nullptr) return;
 
-            for (size_t i = 0; i < cap; i++)
-            {
-                destructor(buff + i * obj_size);
-            }
+        for (size_t i = 0; i < cap; i++)
+        {
+            destructor(buff + i * obj_size);
         }
+
     }
     void Slab::deallocateSlab(large_slab_tag_t, Slab* slab)
     {
@@ -52,13 +53,15 @@ namespace kernel::memory
     {
         if (obj_size < PAGE_SIZE >> 3)
         {
-            return (SlabCtorPtr)[](Cache* owner) {
+            return (SlabCtorPtr)[](Cache* owner)
+            {
                 return Slab::allocateSlab(small_slab_tag_t{}, owner);
             };
         }
         else
         {
-            return (SlabCtorPtr)[](Cache* owner) {
+            return (SlabCtorPtr)[](Cache* owner)
+            {
                 return Slab::allocateSlab(large_slab_tag_t{}, owner);
             };
         }
@@ -67,13 +70,15 @@ namespace kernel::memory
     {
         if (obj_size < PAGE_SIZE >> 3)
         {
-            return (SlabDtorPtr)[](Slab* slab) {
+            return (SlabDtorPtr)[](Slab* slab)
+            {
                 return Slab::deallocateSlab(small_slab_tag_t{}, slab);
             };
         }
         else
         {
-            return (SlabDtorPtr)[](Slab* slab) {
+            return (SlabDtorPtr)[](Slab* slab)
+            {
                 return Slab::deallocateSlab(large_slab_tag_t{}, slab);
             };
         }
@@ -120,12 +125,11 @@ namespace kernel::memory
         const auto obj_size = owner->obj_size;
         for (size_t i = 0; i < m_capacity; i++)
         {
-            if (!allocated[i])
-            {
-                allocated[i] = true;
-                freeSlotCount--;
-                return buffer + i * obj_size;
-            }
+            if (allocated[i]) continue;
+
+            allocated[i] = true;
+            freeSlotCount--;
+            return buffer + i * obj_size;
         }
 
         return nullptr;
@@ -133,10 +137,15 @@ namespace kernel::memory
 
     void Slab::deallocate(void* ptr)
     {
-        if (!owns(ptr)) return;
+        if (ptr == nullptr) return;
+
         const auto obj_size = owner->obj_size;
-        auto index = ((uint64)(ptr)-(uint64)buffer + obj_size - 1) / obj_size;
-        if (ptr != (void*)(buffer + index * obj_size)) return;
+        const auto index =
+            ((uint64)(ptr)-(uint64)buffer + obj_size - 1) / obj_size;
+
+        if (!owns(ptr) ||
+            ptr != (void*)(buffer + index * obj_size)) return;
+
         allocated[index] = false;
         freeSlotCount++;
     }
@@ -156,7 +165,7 @@ namespace kernel::memory
         return freeSlotCount;
     }
 
-    bool Slab::owns(void* obj) const
+    bool Slab::owns(void const* obj) const
     {
         return (uint64)buffer <= (uint64)obj
             && (uint64)(obj) < (uint64)((char*)buffer + PAGE_SIZE);

@@ -18,15 +18,14 @@ namespace kernel::memory
 
     class Slab
     {
-    public:
         friend class Cache;
-
+    private:
         static Slab* allocateSlab(small_slab_tag_t, Cache* owner);
         static Slab* allocateSlab(large_slab_tag_t, Cache* owner);
 
         static void deallocateSlab(small_slab_tag_t, Slab* slab);
         static void deallocateSlab(large_slab_tag_t, Slab* slab);
-
+    public:
         static SlabCtorPtr getSlabAllocator(size_t obj_size);
         static SlabDtorPtr getSlabDeallocator(size_t obj_size);
     private:
@@ -47,7 +46,7 @@ namespace kernel::memory
         bool isFull() const;
         bool isEmpty() const;
         size_t getFreeSlotCount() const;
-        bool owns(void* obj) const;
+        bool owns(void const* obj) const;
         size_t capacity() const;
     private:
         Slab* prev;
