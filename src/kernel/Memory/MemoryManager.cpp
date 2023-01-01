@@ -12,8 +12,8 @@ namespace kernel::memory
     MemorySection dataSectionBounds()
     {
         return {
-            HEAP_START_ADDR,
-            HEAP_END_ADDR
+            (void*)HEAP_START_ADDR,
+            (void*)HEAP_END_ADDR
         };
     }
 
@@ -22,14 +22,14 @@ namespace kernel::memory
         return {
             (char*)(MEMORY_SECOND_HALF)
             +7 * (((uint64)HEAP_END_ADDR - MEMORY_SECOND_HALF) >> 3),
-            HEAP_END_ADDR
+            (void*)HEAP_END_ADDR
         };
     }
 
     MemorySection heapSectionBounds()
     {
         return {
-            HEAP_START_ADDR,
+            (void*)HEAP_START_ADDR,
             (char*)(MEMORY_SECOND_HALF)
             +7 * (((uint64)HEAP_END_ADDR - MEMORY_SECOND_HALF) >> 3)
         };

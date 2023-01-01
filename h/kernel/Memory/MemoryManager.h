@@ -14,9 +14,9 @@ namespace kernel::memory
 {
     struct MemorySection
     {
-        void const* const startAddress;
-        void const* const endAddress;
-        MemorySection(void const* const start, void const* const end)
+        void* const startAddress;
+        void* const endAddress;
+        MemorySection(void* const start, void* const end)
             : startAddress(start), endAddress(end)
         { }
 
