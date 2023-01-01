@@ -44,9 +44,8 @@ namespace kernel::memory
     private:
         friend class Slab;
         size_t allocationsSinceFree = 0;
-        Slab* free;
-        Slab* partial;
-        Slab* full;
+        Cache* prev = nullptr;
+        Cache* next = nullptr;
         const size_t obj_size;
         const FunPtr constructor;
         const FunPtr destructor;
