@@ -2,6 +2,19 @@
 
 namespace kernel::memory
 {
+    Cache Cache::kmem_cache_Cache("kmem_cache_t", sizeof(Cache), nullptr, nullptr);
+
+
+    void* Cache:: operator new(size_t)
+    {
+        return kmem_cache_Cache.allocate();
+    }
+
+    void Cache:: operator delete(void* ptr)
+    {
+        return kmem_cache_Cache.deallocate(ptr);
+    }
+
     Cache::Cache(const char* name, size_t size, FunPtr ctor, FunPtr dtor)
         : obj_size(size), constructor(ctor), destructor(dtor),
         allocatePage(Slab::getSlabAllocator(size)),
