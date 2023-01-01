@@ -16,27 +16,35 @@ namespace kernel::memory
         return (FreeBlock*)((uint64)this ^ (1 << order));
     }
 
-    BuddyAllocator::BuddyAllocator(
-        MemorySection const& section
-    )
+    BuddyAllocator::BuddyAllocator()
     {
+        start_address = nullptr;
+        end_address = nullptr;
         for (size_t i = 0; i < BLOCK_LISTS_SIZE; i++)
         {
             blockLists[i] = nullptr;
         }
+    }
 
-        const auto max = kernel::utils::log2(section.size());
-        (*this)[max] = (FreeBlock*)section.startAddress;
-        (*this)[max]->prev = nullptr;
-        (*this)[max]->next = nullptr;
-        (*this)[max]->setOrder(max);
+    void BuddyAllocator::initialize(void* space, int block_num)
+    {
+        auto& instance = getInstance();
+        if (!instance.initialized)
+        {
+            instance.start_address = space;
+            instance.end_address = ((char*)space + block_num * PAGE_SIZE);
+            const auto max = kernel::utils::log2(block_num * PAGE_SIZE);
+            instance[max] = (FreeBlock*)space;
+            instance[max]->prev = nullptr;
+            instance[max]->next = nullptr;
+            instance[max]->setOrder(max);
+            instance.initialized = true;
+        }
     }
 
     BuddyAllocator& BuddyAllocator::getInstance()
     {
-        static auto bounds = kernelSectionBounds();
-        static BuddyAllocator instance{ bounds };
-
+        static BuddyAllocator instance{};
         return instance;
     }
 

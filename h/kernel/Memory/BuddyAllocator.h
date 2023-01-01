@@ -2,7 +2,7 @@
 #define PROJECT_BUDDY_LLOCATOR_H
 
 #define MIN_ORDER 12
-#define MAX_ORDER 27
+#define MAX_ORDER 24
 #define BLOCK_LISTS_SIZE (MAX_ORDER-MIN_ORDER+1)
 #define PAGE_SIZE (1 << MIN_ORDER)
 
@@ -28,7 +28,7 @@ namespace kernel::memory
         };
         static_assert(sizeof(FreeBlock) <= (1 << MIN_ORDER));
 
-        BuddyAllocator(MemorySection const& section);
+        BuddyAllocator();
 
         FreeBlock* removeBlock(FreeBlock* block);
         void insertBlock(FreeBlock* block);
@@ -37,10 +37,14 @@ namespace kernel::memory
         void recursiveJoinBuddies(FreeBlock* block);
     public:
         static BuddyAllocator& getInstance();
+        static void initialize(void* space, int block_num);
         void* allocate(unsigned int order);
         void deallocate(void* addr, unsigned int order);
         void printBlockTable();
     private:
+        bool initialized = false;
+        void* start_address;
+        void* end_address;
         FreeBlock* blockLists[BLOCK_LISTS_SIZE];
         inline FreeBlock*& operator[](size_t i);
     };
