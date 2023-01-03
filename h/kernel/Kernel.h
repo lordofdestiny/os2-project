@@ -24,8 +24,8 @@ namespace kernel
         static void setTrapHandler(bool blockOnError = false);
         static void waitForUserThreads();
     private:
-        static const size_t stackSize = DEFAULT_STACK_SIZE * sizeof(uint64);
-        alignas(uint16) static uint8 kernelStack[stackSize];
+        static constexpr size_t stackSize = DEFAULT_STACK_SIZE;
+        static uint8* kernelStack;
         static uint8* kernelStackTopAddress asm("__kernelStack");
 
         static sem_t userMainDone;

@@ -7,6 +7,7 @@
 
 #include "../../../lib/hw.h"
 #include "./../Memory/HeapAllocator.h"
+#include "./../Memory/slab.h"
 
 namespace kernel
 {
@@ -42,11 +43,11 @@ namespace kernel
     public:
         static void* operator new(size_t size)
         {
-            return ALLOCATOR.allocateBytes(size);
+            return kmalloc(size);
         }
         static void operator delete(void* ptr)
         {
-            ALLOCATOR.deallocateBlocks(ptr);
+            kfree(ptr);
         }
     private:
         size_t head = 0;

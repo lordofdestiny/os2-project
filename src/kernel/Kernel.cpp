@@ -19,17 +19,21 @@ const static bool block = false;
 
 namespace kernel
 {
-    alignas(uint16) uint8 Kernel::kernelStack[Kernel::stackSize];
-    uint8* Kernel::kernelStackTopAddress = ((uint8*)&Kernel::kernelStack + stackSize);
-    sem_t Kernel::userMainDone;
-    thread_t Kernel::userMainThread;
+    uint8* Kernel::kernelStack = nullptr;
+    uint8* Kernel::kernelStackTopAddress = nullptr;
+    sem_t Kernel::userMainDone = nullptr;
+    thread_t Kernel::userMainThread = nullptr;
 
 
     void Kernel::initialize()
     {
-        auto kmem_section = memory::kernelSectionBounds();
-        kmem_init(kmem_section.startAddress,
-            kmem_section.size() / BLOCK_SIZE);
+        auto kmem = memory::kernelSectionBounds();
+        kmem_init(kmem.startAddress, kmem.size() / BLOCK_SIZE);
+
+        /* allocate kernel stack */
+        kernelStack = (uint8*)kmalloc(Kernel::stackSize);
+        kernelStackTopAddress = (uint8*)kernelStack + stackSize;
+
         setTrapHandler(block);
         SYSTEMCALLS.initialize();
         Thread::initialize();
