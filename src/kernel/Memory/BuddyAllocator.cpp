@@ -117,7 +117,7 @@ namespace kernel::memory
         return true;
     }
 
-    bool  BuddyAllocator::isBuddyFree(FreeBlock* block)
+    bool  BuddyAllocator::isBuddyFree(FreeBlock* block) const
     {
         auto buddy = block->getBuddy();
 
@@ -139,39 +139,61 @@ namespace kernel::memory
             const auto buddy = current->getBuddy();
             removeBlock(buddy);
 
-            current = (uint64)current < (uint64)buddy
+            current = current < buddy
                 ? current
                 : buddy;
             current->order++;
+
         } while (isBuddyFree(current));
+
         insertBlock(current);
     }
 
-    void* BuddyAllocator::allocate(unsigned int order)
+    void* BuddyAllocator::allocate(
+        unsigned int order,
+        MemoryErrorManager& errmng)
     {
+        auto escope = errmng.getScope(ErrorOrigin::BUDDY, Operation::ALLOCATE);
         const auto blockOrder = MIN_ORDER + order;
 
         if (blockOrder < MIN_ORDER || blockOrder > MAX_ORDER)
         {
+            escope.setError(BuddyError::INVALID_PAGES_ORDER);
             return nullptr;
         }
 
-        if (!trySplitInto(blockOrder)) return nullptr;
+        if (!trySplitInto(blockOrder))
+        {
+            escope.setError(BuddyError::ALLOCATION_FAILED);
+            return nullptr;
+        }
 
         return removeBlock((*this)[blockOrder]);
     }
 
-    void BuddyAllocator::deallocate(void* addr, unsigned int order)
+    void BuddyAllocator::deallocate(
+        void* addr, unsigned int order,
+        MemoryErrorManager& errmng)
     {
-        if (addr == nullptr) return;
+        auto escope = errmng.getScope(ErrorOrigin::BUDDY, Operation::DEALLOCATE);
 
-        if ((uint64)start_address > (uint64)addr
-            || (uint64)addr >= (uint64)end_address) return;
+        if (addr == nullptr)
+        {
+            escope.setError(BuddyError::DEALLOCATE_NULLPTR);
+            return;
+        }
+
+        if (start_address > addr || addr >= end_address)
+        {
+            escope.setError(BuddyError::INVALID_DEALLOCATION_ADDRESS);
+            return;
+        }
 
         const auto blockOrder = MIN_ORDER + order;
 
         if (blockOrder < MIN_ORDER || blockOrder > MAX_ORDER)
         {
+            escope.setError(BuddyError::INVALID_PAGES_ORDER);
             return;
         }
 
@@ -181,13 +203,11 @@ namespace kernel::memory
         {
             recursiveJoinBuddies(block);
         }
-        else
-        {
-            insertBlock(block);
-        }
+        else insertBlock(block);
+
     }
 
-    void BuddyAllocator::printBlockTable()
+    void BuddyAllocator::printBlockTable() const
     {
         for (int i = 0; i < BLOCK_LISTS_SIZE; i++)
         {
@@ -200,6 +220,12 @@ namespace kernel::memory
 
     inline auto BuddyAllocator::operator[](size_t i)
         -> FreeBlock*&
+    {
+        return blockLists[i - MIN_ORDER];
+    }
+
+    inline auto BuddyAllocator::operator[](size_t i) const
+        -> FreeBlock* const&
     {
         return blockLists[i - MIN_ORDER];
     }

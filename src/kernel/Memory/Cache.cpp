@@ -2,8 +2,28 @@
 
 namespace kernel::memory
 {
-    Cache Cache::kmem_cache_Cache("kmem_cache_t", sizeof(Cache), nullptr, nullptr);
+    Cache Cache::kmem_cache_Cache;
+    bool Cache::initialized = false;
 
+    void Cache::initializeCacheCache()
+    {
+        if (!initialized)
+        {
+            const auto obj_size = sizeof(Cache);
+            const auto blockOrder = Slab::getSlabBlockOrder(obj_size);
+            const auto blockCap = Slab::getSlabCapacity(obj_size, blockOrder);
+
+            kmem_cache_Cache.obj_size = obj_size;
+            kmem_cache_Cache.allocateSlab = Slab::getSlabAllocator(obj_size);
+            kmem_cache_Cache.deallocateSlab = Slab::getSlabDeallocator(obj_size);
+            kmem_cache_Cache.slabBlockOrder = blockOrder;
+            kmem_cache_Cache.slabCapacity = blockCap;
+
+            utils::strcpy(kmem_cache_Cache.m_name, "kmem_cache_t");
+
+            initialized = true;
+        }
+    }
 
     void* Cache:: operator new(size_t)
     {
@@ -17,31 +37,60 @@ namespace kernel::memory
 
     Cache::Cache(const char* name, size_t size, FunPtr ctor, FunPtr dtor)
         : obj_size(size), constructor(ctor), destructor(dtor),
-        allocatePage(Slab::getSlabAllocator(size)),
-        deallocatePage(Slab::getSlabDeallocator(size))
+        allocateSlab(Slab::getSlabAllocator(size)),
+        deallocateSlab(Slab::getSlabDeallocator(size)),
+        slabBlockOrder(Slab::getSlabBlockOrder(size)),
+        slabCapacity(Slab::getSlabCapacity(size, slabBlockOrder))
     {
         kernel::utils::strcpy(this->m_name, name);
+    }
+
+    void Cache::deallocateList(Slab*& list)
+    {
+        while (list != nullptr)
+        {
+            auto tmp = list;
+            removeFromList(list, tmp);
+            deallocateSlab(tmp);
+        }
+    }
+
+    void Cache::destroyAllObjects()
+    {
+        deallocateList(free);
+        deallocateList(partial);
+        deallocateList(full);
     }
 
 
     void* Cache::allocate()
     {
+        // Register due to consistency, but no error is ever reported here
+        auto scope = errmng.getScope(ErrorOrigin::CACHE, Operation::ALLOCATE);
+
         // Check if there is a free slot in any of the partial slabs
-        auto slab = findMinPartialSlab();
+        auto slab = findMinNonEmptySlab();
+
         // If found allocate from it, if not, allocate a free slab and use it
         if (slab == nullptr)
         {
-            const auto new_slab = allocatePage(this);
+            // Error already reported in the buddy allocator
+            const auto new_slab = allocateSlab(this);
             if (new_slab == nullptr) return nullptr;
             // One slot will be allocated from this slab, so it can be placed into
             // the partial list immediately
+
             insertIntoList(partial, new_slab);
+
             slab = new_slab;
         }
+        // Error already reported in the slab
         const auto obj = slab->allocate();
+        if (obj == nullptr) return nullptr;
 
         // If a slab that was allocated from was completly used,
         // place it into the full list
+
         if (slab->isEmpty())
         {
             removeFromList(partial, slab);
@@ -53,10 +102,19 @@ namespace kernel::memory
 
     void Cache::deallocate(void* ptr)
     {
-        if (ptr == nullptr) return;
+        auto escope = errmng.getScope(ErrorOrigin::CACHE, Operation::DEALLOCATE);
+        if (ptr == nullptr)
+        {
+            escope.setError(CacheError::DEALLOCATE_NULLPTR);
+            return;
+        }
         // Find which slab from partial list this ptr bellongs to
         auto slab = findOwningSlab(ptr);
-        if (slab == nullptr) return;
+        if (slab == nullptr)
+        {
+            escope.setError(CacheError::INVALID_DEALLOCATION_ADDRESS);
+            return;
+        }
 
         // If salb was previously fully allocated
         if (slab->isEmpty())
@@ -89,7 +147,7 @@ namespace kernel::memory
         {
             auto slab = free;
             removeFromList(free, slab);
-            deallocatePage(slab);
+            deallocateSlab(slab);
             cnt++;
         }
 
@@ -102,10 +160,20 @@ namespace kernel::memory
         return findOwningSlab(ptr) != nullptr;
     }
 
-    Slab* Cache::findMinPartialSlab() const
+    Slab* Cache::findMinNonEmptySlab()
     {
-        if (partial == nullptr) return nullptr;
-
+        if (partial == nullptr)
+        {
+            if (free == nullptr) return nullptr;
+            /*
+             * If there is  parital slabs
+             * try to allocate from first free slab
+             */
+            auto slab = free;
+            removeFromList(free, slab);
+            insertIntoList(partial, slab);
+            return slab; // return first free slab
+        }
         auto min_slab = partial;
         auto min = min_slab->capacity();
 
@@ -119,6 +187,7 @@ namespace kernel::memory
             }
             slab = slab->next;
         }
+
         return min_slab;
     }
 
@@ -199,12 +268,14 @@ namespace kernel::memory
     }
     size_t Cache::totalSize() const
     {
-        return PAGE_SIZE * slabCount();
+        return PAGE_SIZE * (1 << slabBlockOrder) * slabCount();
     }
     size_t Cache::objectsPerSlab() const
     {
-        return (PAGE_SIZE - sizeof(Slab))
-            / (obj_size + sizeof(bool));
+        return obj_size < (PAGE_SIZE >> 3)
+            ? (PAGE_SIZE - sizeof(Slab))
+            / (obj_size + sizeof(bool))
+            : (PAGE_SIZE + obj_size - 1) / obj_size;
     }
     int Cache::totalUsage() const
     {
@@ -220,5 +291,16 @@ namespace kernel::memory
         }
 
         return (totalCount - freeCount) * 100 / totalCount;
+    }
+
+    MemoryErrorManager&
+        Cache::getErrorManager()
+    {
+        return errmng;
+    }
+    MemoryErrorManager const&
+        Cache::getErrorManager() const
+    {
+        return errmng;
     }
 } // namespace kernem::memory

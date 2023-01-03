@@ -9,6 +9,7 @@
 
 #include "../../../lib/hw.h"
 #include "./MemoryManager.h"
+#include  "./MemoryErrorManager.h"
 
 namespace kernel::memory
 {
@@ -33,20 +34,27 @@ namespace kernel::memory
         FreeBlock* removeBlock(FreeBlock* block);
         void insertBlock(FreeBlock* block);
         bool trySplitInto(unsigned int order);
-        bool isBuddyFree(FreeBlock* block);
+        bool isBuddyFree(FreeBlock* block) const;
         void recursiveJoinBuddies(FreeBlock* block);
     public:
         static BuddyAllocator& getInstance();
         static void initialize(void* space, int block_num);
-        void* allocate(unsigned int order);
-        void deallocate(void* addr, unsigned int order);
-        void printBlockTable();
+
+        void* allocate(unsigned int order,
+            MemoryErrorManager& emg);
+        void deallocate(void* addr, unsigned int order,
+            MemoryErrorManager& emg);
+
+        void printBlockTable() const;
     private:
         bool initialized = false;
-        void* start_address;
-        void* end_address;
+        void* start_address = nullptr;
+        void* end_address = nullptr;
+
         FreeBlock* blockLists[BLOCK_LISTS_SIZE];
+
         inline FreeBlock*& operator[](size_t i);
+        inline FreeBlock* const& operator[](size_t i) const;
     };
 }
 

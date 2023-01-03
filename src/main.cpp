@@ -6,6 +6,7 @@
 #include "../lib/hw.h"
 #include "../h/ConsoleUtils.h"
 #include "../h/kernel/Utils/Utils.h"
+#include "../h/kernel/Memory/slab.h"
 
 extern void userMain();
 
@@ -33,18 +34,19 @@ void main()
     using namespace kernel;
     Kernel::initialize();
     // Kernel::execute(userMain);
-    /* printMemorySection("DATA", memory::dataSectionBounds());
+    printMemorySection("DATA", memory::dataSectionBounds());
     printMemorySection("KERNEL", memory::kernelSectionBounds());
     printMemorySection("HEAP", memory::heapSectionBounds());
+    printString("*************************************************************************\n");
 
     auto& allocator = memory::BuddyAllocator::getInstance();
-
+    /*memory::MemoryErrorManager em;
     int pagesToAllocate = 7;
-    auto first = allocator.allocate(pagesToAllocate);
+    auto first = allocator.allocate(pagesToAllocate, em);
     int allocs = first != nullptr ? 1 : 0;
     void* last = nullptr;
     void* temp = nullptr;
-    while ((temp = allocator.allocate(pagesToAllocate)) != nullptr)
+    while ((temp = allocator.allocate(pagesToAllocate, em)) != nullptr)
     {
         allocs++;
         last = temp;
@@ -52,73 +54,127 @@ void main()
     printString("Allocations: ");
     printInt(allocs);
     putc('\n');
-    printString("*************************************************************************\n");
-
-    allocator.printBlockTable();
-
-    printString("*************************************************************************\n");
 
     int deallocs = 0;
     for (auto addr = first; addr != nullptr && (uint64)addr <= (uint64)last; addr = ((char*)addr) + (PAGE_SIZE << pagesToAllocate))
     {
         deallocs++;
-        allocator.deallocate(addr, pagesToAllocate);
+        allocator.deallocate(addr, pagesToAllocate, em);
     }
     printString("Deallocations: ");
     printInt(deallocs);
     putc('\n');
 
-    allocator.printBlockTable(); */
+    allocator.printBlockTable();
+    printString("*************************************************************************\n");
 
-    memory::Cache allocator("Test", 24, nullptr, nullptr);
-    printString(allocator.name());
-    printString("; SIZE= ");
-    printInt(allocator.objectSize());
-    printString("; OBJECT/SLAB=");
-    printInt(allocator.objectsPerSlab());
-    putc('\n');
-    printString("*****************************************\n");
-    printString("TOTAL_SIZE=");
-    printInt(allocator.totalSize());
-    putc('\n');
-    printString("SLAB_CNT=");
-    printInt(allocator.slabCount());
-    putc('\n');
-    printString("USAGE=");
-    printInt(allocator.totalUsage());
-    putc('\n');
-    printString("*****************************************\n");
-#define ALLOCS 200
+    auto cache = kmem_cache_create("Test", 36, nullptr, nullptr);
+    kmem_cache_info(cache);
+#define ALLOCS 100
     void* ptrs[ALLOCS];
     for (int i = 0; i < ALLOCS; i++)
     {
-        ptrs[i] = allocator.allocate();
+        ptrs[i] = kmem_cache_alloc(cache);
     }
-    printString("TOTAL_SIZE=");
-    printInt(allocator.totalSize());
-    putc('\n');
-    printString("SLAB_CNT=");
-    printInt(allocator.slabCount());
-    putc('\n');
-    printString("USAGE=");
-    printInt(allocator.totalUsage());
-    putc('\n');
-    printString("*****************************************\n");
+    kmem_cache_info(cache);
     for (int i = 0; i < ALLOCS; i++)
     {
-        allocator.deallocate(ptrs[i]);
+        kmem_cache_free(cache, ptrs[i]);
     }
-    printString("TOTAL_SIZE=");
-    printInt(allocator.totalSize());
-    putc('\n');
-    printString("SLAB_CNT=");
-    printInt(allocator.slabCount());
-    putc('\n');
-    printString("USAGE=");
-    printInt(allocator.totalUsage());
-    putc('\n');
-    printString("*****************************************\n");
+    kmem_cache_info(cache);
+    kmem_cache_shrink(cache);
+    kmem_cache_info(cache);
 
-    Kernel::finalize();
+
+    allocator.printBlockTable();
+    printString("*************************************************************************\n");
+
+    kmem_cache_free(cache, (void*)1000);
+    kmem_cache_error(cache);
+    kmem_cache_free(cache, nullptr);
+    kmem_cache_error(cache);
+
+    kmalloc(1 << 20);
+    if (kmem_cache_error(nullptr))
+    {
+        printString("Success\n");
+    };
+    kfree(nullptr);
+    if (kmem_cache_error(nullptr))
+    {
+        printString("Success\n");
+    }
+    auto c = kmem_cache_create("should_work", 32, nullptr, nullptr);
+    kmem_cache_error(nullptr);
+    kmem_cache_destroy(c);
+    kmem_cache_error(nullptr);
+
+    kmem_cache_create("jakodugackoimekojecupokusatidanateramdabudeduzeod32", 100, nullptr, nullptr);
+    if (kmem_cache_error(nullptr))
+    {
+        printString("Success\n");
+    }
+    kmem_cache_create("jakodugackoimek", 56, nullptr, [](void*) { });
+    if (kmem_cache_error(nullptr))
+    {
+        printString("Success\n");
+    }
+    kmem_cache_create("jakodugackoimek", 1 << 18, nullptr, [](void*) { });
+    if (kmem_cache_error(nullptr))
+    {
+        printString("Success\n");
+    }*/
+
+    allocator.printBlockTable();
+    printString("*********************************************\n");
+
+    auto big_buff = kmem_cache_create("Big Daddy", 1 << 7, nullptr, nullptr);
+    kmem_cache_info(big_buff);
+    kmem_cache_error(big_buff);
+    kmem_cache_error(nullptr);
+    printString("*********************************************\n");
+
+
+    auto ptr = kmem_cache_alloc(big_buff);
+    printAddress(ptr);
+    putc('\n');
+    kmem_cache_info(big_buff);
+    kmem_cache_error(big_buff);
+    auto ptr1 = kmem_cache_alloc(big_buff);
+    printAddress(ptr1);
+    putc('\n');
+    kmem_cache_info(big_buff);
+    kmem_cache_error(big_buff);
+    auto ptr2 = kmem_cache_alloc(big_buff);
+    printAddress(ptr2);
+    putc('\n');
+    kmem_cache_info(big_buff);
+    kmem_cache_error(big_buff);
+    printString("*********************************************\n");
+    allocator.printBlockTable();
+
+    kmem_cache_free(big_buff, ptr);
+    kmem_cache_info(big_buff);
+    kmem_cache_error(big_buff);
+    printString("*********************************************\n");
+
+    kmem_cache_free(big_buff, ptr1);
+    kmem_cache_info(big_buff);
+    kmem_cache_error(big_buff);
+    printString("*********************************************\n");
+
+    kmem_cache_free(big_buff, ptr2);
+    kmem_cache_info(big_buff);
+    kmem_cache_error(big_buff);
+    printString("*********************************************\n");
+
+    kmem_cache_shrink(big_buff);
+    kmem_cache_info(big_buff);
+    kmem_cache_error(big_buff);
+
+    printString("*********************************************\n");
+    allocator.printBlockTable();
+
+    Kernel::finalize(); // Add disposing of all caches via the API?
 }
 

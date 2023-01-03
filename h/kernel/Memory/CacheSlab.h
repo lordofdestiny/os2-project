@@ -13,27 +13,22 @@ namespace kernel::memory
     using SlabCtorPtr = Slab * (*)(Cache*);
     using SlabDtorPtr = void (*)(Slab*);
 
-    struct small_slab_tag_t { };
-    struct large_slab_tag_t { };
-
     class Slab
     {
         friend class Cache;
     private:
-        static Slab* allocateSlab(small_slab_tag_t, Cache* owner);
-        static Slab* allocateSlab(large_slab_tag_t, Cache* owner);
+        static Slab* allocateSmallSlab(Cache* owner);
+        static Slab* allocateLargeSlab(Cache* owner);
+        void initialize(Cache* owner, char* buff, char* alloc);
 
-        static void deallocateSlab(small_slab_tag_t, Slab* slab);
-        static void deallocateSlab(large_slab_tag_t, Slab* slab);
+        static void deallocateSmallSlab(Slab* slab);
+        static void deallocateLargeSlab(Slab* slab);
+        void destroyAll();
     public:
         static SlabCtorPtr getSlabAllocator(size_t obj_size);
         static SlabDtorPtr getSlabDeallocator(size_t obj_size);
-    private:
-        static size_t calculateCapacity(Cache* owner);
-        static char* calculateBufferAddress(Slab* slab);
-        static bool* calulateAllocatedAddress(Slab* slab);
-    public:
-        void initialize();
+        static unsigned int getSlabBlockOrder(size_t obj_size);
+        static size_t getSlabCapacity(size_t obj_size, unsigned int block_order);
     public:
         Slab() = delete;
         Slab(Slab const&) = delete;
@@ -43,11 +38,11 @@ namespace kernel::memory
         void* allocate();
         void deallocate(void* ptr);
 
-        bool isFull() const;
-        bool isEmpty() const;
-        size_t getFreeSlotCount() const;
+        bool isFull() const { return freeSlotCount == m_capacity; };
+        bool isEmpty() const { return freeSlotCount == 0; };
+        size_t getFreeSlotCount() const { return freeSlotCount; };
         bool owns(void const* obj) const;
-        size_t capacity() const;
+        size_t capacity() const { return m_capacity; }
     private:
         Slab* prev;
         Slab* next;
