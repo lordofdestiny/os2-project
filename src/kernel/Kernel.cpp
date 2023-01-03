@@ -8,6 +8,7 @@
 #include "../../h/kernel/Utils/RegisterUtils.h"
 #include "../../h/kernel/SystemCalls/SystemCalls.h"
 #include "../../h/kernel/Console/Console.h"
+#include "../../h/kernel/Memory/BuddyAllocator.h"
 
 #define BLOCK_ON_ERROR
 

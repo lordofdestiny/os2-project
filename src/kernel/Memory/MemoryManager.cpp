@@ -1,12 +1,27 @@
+#include "../../../h/kernel/Memory/BuddyAllocator.h"
 #include "../../../h/kernel/Memory/MemoryManager.h"
 #include "../../../h/kernel/Utils/Utils.h"
+#include "../../../h/ConsoleUtils.h"
 #include "../../../lib/hw.h"
 
 namespace kernel::memory
 {
-    uint64 MemorySection::size() const
+    size_t MemorySection::size() const
     {
-        return (uint64)endAddress - (uint64)startAddress;
+        return (size_t)endAddress - (size_t)startAddress;
+    }
+
+    void* nextPage(void const* page)
+    {
+        return (void*)(((uint64)(page) & ((uint64)-1 << (PAGE_ORDER - 1))) + PAGE_SIZE);
+    }
+
+    MemorySection RAMSection()
+    {
+        return {
+            (void*)MEMORY_SECOND_HALF,
+            (void*)HEAP_END_ADDR
+        };
     }
 
     MemorySection dataSectionBounds()
@@ -20,8 +35,7 @@ namespace kernel::memory
     MemorySection kernelSectionBounds()
     {
         return {
-            (char*)(MEMORY_SECOND_HALF)
-            +7 * (((uint64)HEAP_END_ADDR - MEMORY_SECOND_HALF) >> 3),
+            (char*)(MEMORY_SECOND_HALF)+7 * (RAMSection().size() >> 3),
             (void*)HEAP_END_ADDR
         };
     }
@@ -29,9 +43,8 @@ namespace kernel::memory
     MemorySection heapSectionBounds()
     {
         return {
-            (void*)HEAP_START_ADDR,
-            (char*)(MEMORY_SECOND_HALF)
-            +7 * (((uint64)HEAP_END_ADDR - MEMORY_SECOND_HALF) >> 3)
+            (void*)nextPage(HEAP_START_ADDR),
+            (char*)(MEMORY_SECOND_HALF)+7 * (RAMSection().size() >> 3)
         };
     }
 

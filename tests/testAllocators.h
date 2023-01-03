@@ -31,26 +31,26 @@ void testMain()
     printString("*************************************************************************\n");
 
     auto& allocator = memory::BuddyAllocator::getInstance();
+    allocator.printBlockTable();
     memory::MemoryErrorManager em;
-    int pagesToAllocate = 7;
+    int pagesToAllocate = 8;
+    void* ptrs0[100];
     auto first = allocator.allocate(pagesToAllocate, em);
     int allocs = first != nullptr ? 1 : 0;
-    void* last = nullptr;
+    if (first != nullptr) ptrs0[0] = first;
     void* temp = nullptr;
     while ((temp = allocator.allocate(pagesToAllocate, em)) != nullptr)
     {
-        allocs++;
-        last = temp;
+        ptrs0[allocs++] = temp;
     }
     printString("Allocations: ");
     printInt(allocs);
     putc('\n');
 
     int deallocs = 0;
-    for (auto addr = first; addr != nullptr && (uint64)addr <= (uint64)last; addr = ((char*)addr) + (PAGE_SIZE << pagesToAllocate))
+    for (int i = 0; i < allocs; i++)
     {
-        deallocs++;
-        allocator.deallocate(addr, pagesToAllocate, em);
+        allocator.deallocate(ptrs0[deallocs++], pagesToAllocate, em);
     }
     printString("Deallocations: ");
     printInt(deallocs);

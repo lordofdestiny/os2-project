@@ -132,8 +132,8 @@ namespace kernel::memory
     {
         using fptr = int(*)(int, int);
         static fptr max = [](int a, int b) { return a > b ? a : b; };
-        const auto buffer_order = utils::log2((obj_size << 1) - 1);
-        return max(buffer_order - MIN_ORDER, 0);
+        const auto buffer_order = utils::log2((obj_size << 1) - 1); // FIX
+        return max(buffer_order - PAGE_ORDER, 0);
     }
 
     size_t Slab::getSlabCapacity(size_t obj_size, unsigned int block_order)

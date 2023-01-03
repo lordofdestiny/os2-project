@@ -1,10 +1,9 @@
 #ifndef PROJECT_BUDDY_LLOCATOR_H
 #define PROJECT_BUDDY_LLOCATOR_H
 
-#define MIN_ORDER 12
-#define MAX_ORDER 24
-#define BLOCK_LISTS_SIZE (MAX_ORDER-MIN_ORDER+1)
-#define PAGE_SIZE (1 << MIN_ORDER)
+#define PAGE_ORDER 12
+#define MAX_LEVEL 32
+#define PAGE_SIZE (1 << PAGE_ORDER)
 
 
 #include "../../../lib/hw.h"
@@ -23,26 +22,26 @@ namespace kernel::memory
         {
             FreeBlock* prev;
             FreeBlock* next;
-            unsigned int order;
-            void setOrder(unsigned int order);
-            FreeBlock* getBuddy() const;
+            int level;
+            void setLevel(int level);
         };
-        static_assert(sizeof(FreeBlock) <= (1 << MIN_ORDER));
+        static_assert(sizeof(FreeBlock) <= (1 << PAGE_ORDER));
 
         BuddyAllocator();
 
+        FreeBlock* getBuddy(FreeBlock* block) const;
         FreeBlock* removeBlock(FreeBlock* block);
         void insertBlock(FreeBlock* block);
-        bool trySplitInto(unsigned int order);
+        bool trySplitInto(int level);
         bool isBuddyFree(FreeBlock* block) const;
         void recursiveJoinBuddies(FreeBlock* block);
     public:
         static BuddyAllocator& getInstance();
         static void initialize(void* space, int block_num);
 
-        void* allocate(unsigned int order,
+        void* allocate(int order,
             MemoryErrorManager& emg);
-        void deallocate(void* addr, unsigned int order,
+        void deallocate(void* addr, int order,
             MemoryErrorManager& emg);
 
         void printBlockTable() const;
@@ -50,11 +49,17 @@ namespace kernel::memory
         bool initialized = false;
         void* start_address = nullptr;
         void* end_address = nullptr;
+        int num_of_levels = 0;
 
-        FreeBlock* blockLists[BLOCK_LISTS_SIZE];
-
-        inline FreeBlock*& operator[](size_t i);
-        inline FreeBlock* const& operator[](size_t i) const;
+        FreeBlock* freeLists[MAX_LEVEL];
+        size_t totalSize() const;
+        size_t sizeOfLevel(int level) const;
+        size_t indexInLevelOf(void* block, int level) const;
+        /*
+            Use to try and optimze checking buddy's status;
+            One bit per buddy pair is enough to keep track of
+            their status
+        */
     };
 }
 

@@ -2,9 +2,11 @@
 #include "../h/syscall_cpp.hpp"
 #include "../h/ConsoleUtils.h"
 #include "studentMain.h"
+#include "testAllocators.h"
+#include "../h/kernel/Memory/BuddyAllocator.h"
 
 void userMain()
 {
-    printString("Hello world!\n");
-    studentMain();
+    // studentMain();
+    testMain();
 }

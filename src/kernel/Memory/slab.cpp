@@ -8,7 +8,7 @@
 
 static kmem_cache_t* kmem_cache_cache = nullptr;
 static kernel::memory::Cache* cache_list = nullptr;
-static kmem_cache_t* buffer_caches[BLOCK_LISTS_SIZE];
+static kmem_cache_t* buffer_caches[17 - 5 + 1];
 static int last_api_error;
 
 /* HELPER FUNCTIONS */
@@ -74,7 +74,7 @@ void kmem_init(void* space, int block_num)
     /* Add the kmem_cache cache to the cache_list*/
     insertIntoCacheList(kmem_cache_cache);
 
-    for (size_t i = 0; i < BLOCK_LISTS_SIZE; i++)
+    for (size_t i = 0; i < BUFFER_TYPE_COUNT; i++)
     {
         buffer_caches[i] = nullptr;
     }
@@ -234,7 +234,7 @@ void kfree(const void* objp)
             getAPIErrorCode(APIError::DEALLOCATE_NULLPTR);
         return;
     }
-    for (size_t i = 0; i < BLOCK_LISTS_SIZE; i++)
+    for (size_t i = 0; i < BUFFER_TYPE_COUNT; i++)
     {
         if (buffer_caches[i] == nullptr) continue;
         auto cache = (kernel::memory::Cache*)buffer_caches[i];

@@ -20,13 +20,15 @@ namespace kernel::memory
             : startAddress(start), endAddress(end)
         { }
 
-        uint64 size() const;
+        size_t size() const;
     };
 
+    void* nextPage(void const* page);
+
+    MemorySection RAMSection();
     MemorySection dataSectionBounds();
     MemorySection kernelSectionBounds();
     MemorySection heapSectionBounds();
-
 } // namespace kernel
 
 #endif

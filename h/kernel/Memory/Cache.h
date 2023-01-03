@@ -10,6 +10,7 @@
 #define M_NAME_MAX_LENGTH 31
 #define BUFFER_MIN_ORDER 5
 #define BUFFER_MAX_ORDER 17
+#define BUFFER_TYPE_COUNT (BUFFER_MAX_ORDER-BUFFER_MIN_ORDER+1)
 
 namespace kernel::memory
 {
