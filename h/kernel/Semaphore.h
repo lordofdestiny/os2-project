@@ -5,6 +5,7 @@
 #ifndef PROJECT_SEMAPHORE_H
 #define PROJECT_SEMAPHORE_H
 #include "./Thread.h"
+#include "./Memory/slab.h"
 
 namespace kernel
 {
@@ -31,6 +32,9 @@ namespace kernel
 
         long int value;
         Thread* head = nullptr, * tail = nullptr;
+        static kmem_cache_t* object_cache;
+    public:
+        static void initialize();
     };
 
 } // kernel

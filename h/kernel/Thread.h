@@ -5,6 +5,7 @@
 #ifndef PROJECT_THREAD_H
 #define PROJECT_THREAD_H
 #include "../../lib/hw.h"
+#include "./Memory/slab.h"
 
 #define CONTEXT Thread::getRunning()->getContext()
 #define RUNNING_REGISTERS CONTEXT.getRegisters()
@@ -71,6 +72,7 @@ namespace kernel
         static uint64 sstatusGetInitial(Mode mode);
         static uint64 pcGetInitial(Task function);
 
+        static kmem_cache_t* object_cache;
         static Thread* mainThread;
         static Thread* runningThread asm("__runningThread");
         static time_t runningTimeLeft;

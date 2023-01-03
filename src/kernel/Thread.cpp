@@ -10,6 +10,7 @@
 
 namespace kernel
 {
+    kmem_cache_t* Thread::object_cache = nullptr;
     Thread* Thread::mainThread = nullptr;
     Thread* Thread::runningThread = nullptr;
     time_t Thread::runningTimeLeft = DEFAULT_TIME_SLICE;
@@ -32,16 +33,20 @@ namespace kernel
 
     void* Thread::operator new(size_t size) noexcept
     {
-        return ALLOCATOR.allocateBytes(size);
+        return kmem_cache_alloc(object_cache);
     }
 
     void Thread::operator delete(void* ptr) noexcept
     {
-        ALLOCATOR.deallocateBlocks(ptr);
+        kmem_cache_free(object_cache, ptr);
     }
 
     void Thread::initialize()
     {
+        object_cache = kmem_cache_create(
+            "thread_t", sizeof(Thread),
+            nullptr, nullptr);
+
         runningThread = getMainThread();
         runningTimeLeft = DEFAULT_TIME_SLICE;
     }

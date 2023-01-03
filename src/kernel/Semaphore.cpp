@@ -8,15 +8,25 @@
 
 namespace kernel
 {
+    kmem_cache_t* Semaphore::object_cache = nullptr;
+    void Semaphore::initialize()
+    {
+        object_cache =
+            kmem_cache_create(
+                "sem",
+                sizeof(Semaphore),
+                nullptr, nullptr);
+    }
+
 
     void* Semaphore::operator new(size_t size) noexcept
     {
-        return ALLOCATOR.allocateBytes(size);
+        return kmem_cache_alloc(object_cache);
     }
 
     void Semaphore::operator delete(void* ptr) noexcept
     {
-        ALLOCATOR.deallocateBlocks(ptr);
+        kmem_cache_free(object_cache, ptr);
     }
 
     Semaphore::Semaphore(int value):

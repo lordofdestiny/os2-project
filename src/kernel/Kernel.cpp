@@ -36,6 +36,7 @@ namespace kernel
 
         setTrapHandler(block);
         SYSTEMCALLS.initialize();
+        Semaphore::initialize();
         Thread::initialize();
         CONSOLE.initialize();
         enableInterrupts();
