@@ -20,6 +20,7 @@ namespace kernel::memory
     {
         start_address = nullptr;
         end_address = nullptr;
+        isAllocated = nullptr;
         for (int i = 0; i < num_of_levels; i++)
         {
             freeLists[i] = nullptr;
@@ -28,17 +29,46 @@ namespace kernel::memory
 
     void BuddyAllocator::initialize(void* space, int block_num)
     {
-        auto& instance = getInstance();
-        if (!instance.initialized)
+        if (!initialized)
         {
-            instance.start_address = space;
-            instance.end_address = ((char*)space + block_num * PAGE_SIZE);
-            instance.num_of_levels = kernel::utils::log2(block_num) + 1;
-            instance.freeLists[0] = (FreeBlock*)space;
-            instance.freeLists[0]->prev = nullptr;
-            instance.freeLists[0]->next = nullptr;
-            instance.freeLists[0]->level = 0;
-            instance.initialized = true;
+            start_address = space;
+            end_address = ((char*)space + block_num * PAGE_SIZE);
+            num_of_levels = kernel::utils::log2(block_num) + 1;
+            freeLists[0] = (FreeBlock*)space;
+            freeLists[0]->prev = nullptr;
+            freeLists[0]->next = nullptr;
+            freeLists[0]->level = 0;
+
+            // Allocate 2^num_of_levels ( -1 ) bytes
+            auto order = num_of_levels - 3 - PAGE_ORDER;
+            if (order < 0) order = 0;
+            const int level = num_of_levels - order - 1;
+
+            for (int clevel = 0; clevel < level; )
+            {
+                auto block1 = removeBlock(freeLists[clevel]);
+
+                clevel += 1;
+                block1->setLevel(clevel);
+                auto block2 = getBuddy(block1);
+                block2->setLevel(clevel);
+
+                insertBlock(block2);
+                insertBlock(block1);
+            }
+            isAllocated = (char*)removeBlock(freeLists[level]);
+            /*Initialize isAllocated*/
+            isAllocated[0] = 0;
+            for (int i = 0; i < 1 << (num_of_levels - 3); i++)
+            {
+                isAllocated[i] = 0;
+            }
+            for (int lvl = 1; lvl < num_of_levels; lvl++)
+            {
+                setIsAllocated((1 << lvl) - 1);
+            }
+
+            initialized = true;
         }
     }
 
@@ -97,8 +127,7 @@ namespace kernel::memory
         if (freeLists[level] != nullptr) return true;
 
         int clevel = level;
-        while (clevel >= 0
-            && freeLists[clevel] == nullptr)
+        while (clevel >= 0 && freeLists[clevel] == nullptr)
         {
             clevel--;
         }
@@ -107,31 +136,32 @@ namespace kernel::memory
 
         while (clevel < level)
         {
-            auto block1 = removeBlock(freeLists[clevel]);
+            // Set as allocated
+            const auto block = freeLists[clevel];
+            setIsAllocated(index(block));
+            auto block1 = removeBlock(block);
+
             clevel += 1;
             block1->setLevel(clevel);
             auto block2 = getBuddy(block1);
             block2->setLevel(clevel);
 
+            setIsNotAllocated(index(block2));
             insertBlock(block2);
+            setIsNotAllocated(index(block1));
             insertBlock(block1);
         }
 
         return true;
     }
 
-    // O(n) --> must go to O(1), needs 2^12 booleans
+    // O(1)
     bool  BuddyAllocator::isBuddyFree(FreeBlock* block) const
     {
-        auto buddy = getBuddy(block);
-
-        auto curr = freeLists[block->level];
-        while (curr != nullptr)
-        {
-            if ((char*)curr == (char*)buddy) return true;
-            curr = curr->next;
-        }
-        return false;
+        return isNotAllocatedBlock(
+            index(block) % 2 == 0
+            ? index(block) - 1
+            : index(block) + 1);
     }
 
     // O(1) - at most does 12 joins
@@ -141,7 +171,9 @@ namespace kernel::memory
         auto current = block;
         do
         {
+            // set allocated buddy of current
             const auto buddy = getBuddy(current);
+            setIsAllocated(index(buddy));
             removeBlock(buddy);
 
             current = current < buddy
@@ -151,6 +183,8 @@ namespace kernel::memory
 
         } while (isBuddyFree(current));
 
+        // Set as free
+        setIsNotAllocated(index(current));
         insertBlock(current);
     }
 
@@ -174,10 +208,13 @@ namespace kernel::memory
             return nullptr;
         }
 
-        return removeBlock(freeLists[blockLevel]);
+        // set allocated buddy of current
+        const auto block = freeLists[blockLevel];
+        setIsAllocated(index(block));
+        return removeBlock(block);
     }
 
-    // O(1) +? O(isBuddyFree)*O(recursiveJoinBuddies)
+    // O(1)
     void BuddyAllocator::deallocate(
         void* addr, int order,
         MemoryErrorManager& errmng)
@@ -210,8 +247,11 @@ namespace kernel::memory
         {
             recursiveJoinBuddies(block);
         }
-        else insertBlock(block);
-
+        else
+        {
+            setIsNotAllocated(index(block));
+            insertBlock(block); // set block as free
+        }
     }
 
     void BuddyAllocator::printBlockTable() const
@@ -221,22 +261,16 @@ namespace kernel::memory
             printInt(i);
             printString(". ");
             printAddress(freeLists[i]);
+            printString(" || ");
+            auto p = freeLists[i];
+            while (p != nullptr)
+            {
+                printAddress(p);
+                printString(", ");
+                p = p->next;
+            }
             printString("\n");
         }
     }
 
-    size_t BuddyAllocator::totalSize() const
-    {
-        return (1 << (num_of_levels - 1)) * PAGE_SIZE;
-    }
-
-    size_t BuddyAllocator::sizeOfLevel(int level) const
-    {
-        return totalSize() / (1 << level);
-    }
-
-    size_t BuddyAllocator::indexInLevelOf(void* block, int level) const
-    {
-        return ((uint64)block - (uint64)start_address) / sizeOfLevel(level);
-    }
 }

@@ -37,7 +37,7 @@ namespace kernel::memory
         void recursiveJoinBuddies(FreeBlock* block);
     public:
         static BuddyAllocator& getInstance();
-        static void initialize(void* space, int block_num);
+        void initialize(void* space, int block_num);
 
         void* allocate(int order,
             MemoryErrorManager& emg);
@@ -52,14 +52,42 @@ namespace kernel::memory
         int num_of_levels = 0;
 
         FreeBlock* freeLists[MAX_LEVEL];
-        size_t totalSize() const;
-        size_t sizeOfLevel(int level) const;
-        size_t indexInLevelOf(void* block, int level) const;
-        /*
-            Use to try and optimze checking buddy's status;
-            One bit per buddy pair is enough to keep track of
-            their status
-        */
+
+        inline size_t totalSize() const
+        {
+            return 1 << (num_of_levels - 1 + PAGE_ORDER);
+        }
+        inline size_t sizeOfLevel(int level) const
+        {
+            return totalSize() >> level;
+        }
+        inline size_t indexInLevelOf(void* block, int level) const
+        {
+            return ((uint64)block - (uint64)start_address) / sizeOfLevel(level);
+        }
+        inline size_t index(FreeBlock* block) const
+        {
+            return (1 << block->level) + indexInLevelOf(block, block->level) - 1;
+        }
+
+        void setIsAllocated(size_t index) const
+        {
+            isAllocated[index / 8] |= 1 << (index % 8);
+        }
+
+        void setIsNotAllocated(size_t index) const
+        {
+            isAllocated[index / 8] &= ~(1 << (index % 8));
+        }
+
+        bool isNotAllocatedBlock(size_t index) const
+        {
+            return (isAllocated[index / 8] & (1 << (index % 8))) == 0;
+        }
+
+        /* Points to page(s) of this buffer that are used to track
+         * whether the buddies are free or not. Each pair of buddies requires a single bit */
+        char* isAllocated;
     };
 }
 

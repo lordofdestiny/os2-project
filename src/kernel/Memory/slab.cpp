@@ -67,7 +67,7 @@ void kmem_init(void* space, int block_num)
 {
     using namespace kernel::memory;
     /* Assign memory space to kernel allocator*/
-    BuddyAllocator::initialize(space, block_num);
+    BuddyAllocator::getInstance().initialize(space, block_num);
 
     Cache::initializeCacheCache();
     kmem_cache_cache = (kmem_cache_t*)&Cache::kmem_cache_Cache;

@@ -31,7 +31,7 @@ namespace kernel::memory
     Slab* Slab::allocateSmallSlab(Cache* owner)
     {
         auto slab = (Slab*)BuddyAllocator::getInstance()
-            .allocate(0, owner->errmng);
+            .allocate(owner->slabBlockOrder, owner->errmng);
         /* No need for error logging here, it's already done in the allocate() */
         if (slab == nullptr) return nullptr;
 
@@ -99,7 +99,7 @@ namespace kernel::memory
     {
         slab->destroyAll();
         BuddyAllocator::getInstance()
-            .deallocate(slab, 0, slab->owner->errmng);
+            .deallocate(slab, slab->owner->slabBlockOrder, slab->owner->errmng);
     }
     void Slab::deallocateLargeSlab(Slab* slab)
     {
