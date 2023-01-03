@@ -23,7 +23,7 @@ namespace kernel::memory
     void MemoryErrorManager::ErrorScope::setError(CacheError ce) { cause |= (int)ce; }
     void MemoryErrorManager::clear() { errorCode = 0; };
     bool MemoryErrorManager::hasError() const { return errorCode != 0; }
-    const char* MemoryErrorManager::getOperation()const
+    const char* MemoryErrorManager::getOrigin() const
     {
         auto org = (ErrorOrigin)(errorCode & ORIGIN_MASK);
         switch (org)
@@ -40,7 +40,7 @@ namespace kernel::memory
             return "unknown";
         }
     }
-    const char* MemoryErrorManager::getOrigin() const
+    const char* MemoryErrorManager::getOperation()const
     {
         auto org = (Operation)(errorCode & OPERATION_MASK);
         switch (org)

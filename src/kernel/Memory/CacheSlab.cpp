@@ -149,20 +149,9 @@ namespace kernel::memory
         auto escope = owner->errmng
             .getScope(ErrorOrigin::SLAB, Operation::ALLOCATE);
         const auto obj_size = owner->obj_size;
-        printString("BUFFER=");
-        printAddress(buffer);
-        printString(" | ");
-        printInt(m_capacity);
-        printString("\n");
+
         for (size_t i = 0; i < m_capacity; i++)
         {
-            printInt(i);
-            printString(". ");
-            printString(owner->name());
-            printString(" | ");
-            printString("Allocating: ");
-            printAddress(buffer + i * obj_size);
-            printString("\n");
             if (allocated[i]) continue;
 
             allocated[i] = true;
