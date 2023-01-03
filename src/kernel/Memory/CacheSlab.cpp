@@ -1,5 +1,4 @@
 #include "../../../h/kernel/Memory/CacheSlab.h"
-#include "../../../h/ConsoleUtils.h"
 #include "../../../h/kernel/Memory/slab.h"
 
 namespace kernel::memory
