@@ -23,7 +23,6 @@ namespace kernel::memory
             FreeBlock* prev;
             FreeBlock* next;
             int level;
-            void setLevel(int level);
         };
         static_assert(sizeof(FreeBlock) <= (1 << PAGE_ORDER));
 
@@ -70,24 +69,24 @@ namespace kernel::memory
             return (1 << block->level) + indexInLevelOf(block, block->level) - 1;
         }
 
-        void setIsAllocated(size_t index) const
+        void setAllocated(size_t index)
         {
-            isAllocated[index / 8] |= 1 << (index % 8);
+            allocationIndex[index >> 3] |= 1 << (index % 8);
         }
 
-        void setIsNotAllocated(size_t index) const
+        void setFree(size_t index)
         {
-            isAllocated[index / 8] &= ~(1 << (index % 8));
+            allocationIndex[index >> 3] &= ~(1 << (index % 8));
         }
 
-        bool isNotAllocatedBlock(size_t index) const
+        bool isFree(size_t index) const
         {
-            return (isAllocated[index / 8] & (1 << (index % 8))) == 0;
+            return (allocationIndex[index >> 3] & (1 << (index % 8))) == 0;
         }
 
         /* Points to page(s) of this buffer that are used to track
          * whether the buddies are free or not. Each pair of buddies requires a single bit */
-        char* isAllocated;
+        char* allocationIndex;
     };
 }
 
