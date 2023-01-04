@@ -56,7 +56,7 @@ CFLAGS += -fno-pie -nopie
 endif
 
 CXXFLAGS  = -Wall -Werror -Og -ggdb
-CXXFLAGS += -nostdlib -std=c++11
+CXXFLAGS += -nostdlib -std=c++11 -fcheck-new
 CXXFLAGS += -march=rv64ima -mabi=lp64 -mcmodel=medany -mno-relax
 CXXFLAGS += -fno-omit-frame-pointer -ffreestanding -fno-common
 CXXFLAGS += -fno-rtti -fno-threadsafe-statics

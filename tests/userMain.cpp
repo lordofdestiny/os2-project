@@ -5,8 +5,8 @@
 #include "testAllocators.h"
 #include "../h/kernel/Memory/BuddyAllocator.h"
 
-void userMain()
-{
-    // studentMain();
-    testMain();
-}
+// void userMain()
+// {
+//     studentMain();
+//     // testMain();
+// }
