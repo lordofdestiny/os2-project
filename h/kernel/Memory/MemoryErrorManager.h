@@ -67,7 +67,7 @@ namespace kernel::memory
             ErrorScope(Mng* m, ErrorOrigin eo, Operation op)
                 :mng(m), base_code((int)eo | (int)op), cause(0)
             { }
-            ErrorScope(ErrorScope const& es) :
+            ErrorScope(ErrorScope const& es):
                 mng(es.mng), base_code(es.base_code),
                 cause(0)
             { }

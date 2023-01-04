@@ -54,20 +54,21 @@ namespace kernel::memory
          * 1. small (obj_size< PAGE_SIZE / 8)
          * 2. large (obj_size>= PAGE_SIZE / 8)
          *
-         *  In the first case, a whole page is allocated,
-         * Slab data from this object is placed in front,
-         * and rest of the page is used to store bool vector "allocated"
-         * that tracks wheter objects are free or not, and the "buffer"
-         * that points to the start of the data
+         * In the first case, a whole page is allocated,
+         * Slab header from this object is placed in front.
+         * The rest of the page is used to store a vectorized representation
+         * of a list "is_allocated", that keeps track of allocated object
+         * and for the of data pointed to by the "buffer"* .
          *
          * In the second case, this object is allocated from size-N
          * buffer of appropriate size, and it then allocates a page
          * to store the objects into
-         * "buffer" points to this page, "allocated" still points to the
-         * start of the bool vector
+         * "buffer" points to this page.
          */
+        uint16 allocated_head = 0;
+        uint16* is_allocated;
         char* buffer;
-        bool* allocated;
+        static constexpr uint16 BUFFCTL_END = -1;
     };
 
 } // namespace kernel::memory
