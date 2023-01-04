@@ -10,6 +10,9 @@
 #include "./MemoryManager.h"
 #include  "./MemoryErrorManager.h"
 
+/* Implementation is based on the following link :
+ * https://github.com/red-rocket-computing/buddy-alloc/blob/master/doc/bitsquid-buddy-allocator-design.md
+*/
 namespace kernel::memory
 {
     class BuddyAllocator

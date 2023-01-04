@@ -233,6 +233,7 @@ namespace kernel::memory
             return;
         }
 
+        /* Refactor this*/
         auto block = (FreeBlock*)addr;
         block->level = level;
         if (isBuddyFree(block))
