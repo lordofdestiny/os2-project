@@ -9,10 +9,19 @@
 #include "../../../lib/hw.h"
 #include "./MemoryManager.h"
 #include  "./MemoryErrorManager.h"
+#include "../Kernel.h"
 
 /* Implementation is based on the following link :
  * https://github.com/red-rocket-computing/buddy-alloc/blob/master/doc/bitsquid-buddy-allocator-design.md
 */
+
+
+namespace kernel
+{
+    class Kernel;
+} // namespace kernel
+
+
 namespace kernel::memory
 {
     class BuddyAllocator
@@ -47,13 +56,18 @@ namespace kernel::memory
             MemoryErrorManager& emg);
 
         void printBlockTable() const;
+        friend class kernel::Kernel;
     private:
         bool initialized = false;
         void* start_address = nullptr;
         void* end_address = nullptr;
         int num_of_levels = 0;
-
         FreeBlock* freeLists[MAX_LEVEL];
+        /* Points to page(s) of this buffer that are used to track
+         * whether the buddies are free or not. Each pair of buddies requires a single bit */
+        char* allocationIndex;
+        size_t total_blocks = 0;
+        size_t free_blocks = 0;
 
         inline size_t totalSize() const
         {
@@ -61,7 +75,7 @@ namespace kernel::memory
         }
         inline size_t sizeOfLevel(int level) const
         {
-            return totalSize() >> level;
+            return 1 << (num_of_levels - 1 + PAGE_ORDER - level);
         }
         inline size_t indexInLevelOf(void* block, int level) const
         {
@@ -72,24 +86,20 @@ namespace kernel::memory
             return (1 << block->level) + indexInLevelOf(block, block->level) - 1;
         }
 
-        void setAllocated(size_t index)
+        inline void setAllocated(size_t index)
         {
             allocationIndex[index >> 3] |= 1 << (index % 8);
         }
 
-        void setFree(size_t index)
+        inline void setFree(size_t index)
         {
             allocationIndex[index >> 3] &= ~(1 << (index % 8));
         }
 
-        bool isFree(size_t index) const
+        inline bool isFree(size_t index) const
         {
             return (allocationIndex[index >> 3] & (1 << (index % 8))) == 0;
         }
-
-        /* Points to page(s) of this buffer that are used to track
-         * whether the buddies are free or not. Each pair of buddies requires a single bit */
-        char* allocationIndex;
     };
 }
 

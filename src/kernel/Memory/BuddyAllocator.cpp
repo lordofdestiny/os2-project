@@ -29,6 +29,8 @@ namespace kernel::memory
         start_address = space;
         end_address = ((char*)space + block_num * PAGE_SIZE);
         num_of_levels = kernel::utils::log2(block_num) + 1;
+        total_blocks = block_num;
+        free_blocks = block_num;
         freeLists[0] = (FreeBlock*)space;
         freeLists[0]->prev = nullptr;
         freeLists[0]->next = nullptr;
@@ -52,6 +54,7 @@ namespace kernel::memory
             insertBlock(block2);
             insertBlock(block1);
         }
+        free_blocks -= (1 << order);
         allocationIndex = (char*)removeBlock(freeLists[level]);
         /*Initialize index*/
         const auto indexSize = 1 << (num_of_levels - 3);
@@ -200,6 +203,7 @@ namespace kernel::memory
 
         const auto block = freeLists[level];
         setAllocated(index(block));
+        free_blocks -= (1 << order);
         return removeBlock(block);
     }
 
@@ -245,6 +249,7 @@ namespace kernel::memory
             setFree(index(block));
             insertBlock(block);
         }
+        free_blocks += (1 << order);
     }
 
     void BuddyAllocator::printBlockTable() const

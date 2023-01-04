@@ -2,7 +2,7 @@
 
 namespace kernel::memory
 {
-    Cache Cache::kmem_cache_Cache;
+    Cache Cache::obj_cache;
     bool Cache::initialized = false;
 
     void Cache::initializeCacheCache()
@@ -13,13 +13,13 @@ namespace kernel::memory
             const auto blockOrder = Slab::getSlabBlockOrder(obj_size);
             const auto blockCap = Slab::getSlabCapacity(obj_size, blockOrder);
 
-            kmem_cache_Cache.obj_size = obj_size;
-            kmem_cache_Cache.allocateSlab = Slab::getSlabAllocator(obj_size);
-            kmem_cache_Cache.deallocateSlab = Slab::getSlabDeallocator(obj_size);
-            kmem_cache_Cache.slabBlockOrder = blockOrder;
-            kmem_cache_Cache.slabCapacity = blockCap;
+            obj_cache.obj_size = obj_size;
+            obj_cache.allocateSlab = Slab::getSlabAllocator(obj_size);
+            obj_cache.deallocateSlab = Slab::getSlabDeallocator(obj_size);
+            obj_cache.slabBlockOrder = blockOrder;
+            obj_cache.slabCapacity = blockCap;
 
-            utils::strcpy(kmem_cache_Cache.m_name, "kmem_cache_t");
+            utils::strcpy(obj_cache.m_name, "kmem_cache_t");
 
             initialized = true;
         }
@@ -27,12 +27,12 @@ namespace kernel::memory
 
     void* Cache:: operator new(size_t)
     {
-        return kmem_cache_Cache.allocate();
+        return obj_cache.allocate();
     }
 
     void Cache:: operator delete(void* ptr)
     {
-        return kmem_cache_Cache.deallocate(ptr);
+        return obj_cache.deallocate(ptr);
     }
 
     Cache::Cache(const char* name, size_t size, FunPtr ctor, FunPtr dtor)

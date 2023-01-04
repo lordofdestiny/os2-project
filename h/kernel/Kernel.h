@@ -5,6 +5,8 @@
 #ifndef PROJECT_KERNEL_H
 #define PROJECT_KERNEL_H
 #include "./Memory/HeapAllocator.h"
+#include "./Memory/Cache.h"
+#include "./Memory/slab.h"
 #include "./Scheduler.h"
 #include "./TrapHandlers.h"
 #include "./Utils/BitMasks.h"
@@ -12,6 +14,10 @@
 
 namespace kernel
 {
+    namespace memory
+    {
+        class Cache;
+    }
     class Kernel
     {
     public:
@@ -30,6 +36,14 @@ namespace kernel
 
         static sem_t userMainDone;
         static thread_t userMainThread;
+        static kernel::memory::Cache* cache_list;
+        static constexpr int free_pages_low = 20;
+        static constexpr int free_pages_high = 40;
+    public:
+        static bool isValidCache(void* cachep);
+        static void insertIntoCacheList(void* cache);
+        static void removeFromCacheList(void* cache);
+
     };
 } // kernel
 

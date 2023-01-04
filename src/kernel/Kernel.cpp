@@ -18,13 +18,14 @@ const static bool block = true;
 const static bool block = false;
 #endif
 
+
 namespace kernel
 {
     uint8* Kernel::kernelStack = nullptr;
     uint8* Kernel::kernelStackTopAddress = nullptr;
     sem_t Kernel::userMainDone = nullptr;
     thread_t Kernel::userMainThread = nullptr;
-
+    memory::Cache* Kernel::cache_list = nullptr;
 
     void Kernel::initialize()
     {
@@ -57,7 +58,7 @@ namespace kernel
             {
                 {
                     auto sh = (Shadow*)args;
-                    enter_user_mode();
+                    // enter_user_mode();
                     sh->main();
                     sem_signal(sh->sem);
                 }
@@ -96,5 +97,51 @@ namespace kernel
         {
             thread_dispatch();
         }
+    }
+
+    bool Kernel::isValidCache(void* cachep)
+    {
+        if (cachep == nullptr) return false;
+        auto cache = (memory::Cache*)cache_list;
+        do
+        {
+            if (cache == cachep) return true;
+            cache = cache->next;
+        } while (cache != cache_list);
+        return false;
+    }
+
+    void Kernel::insertIntoCacheList(void* cachep)
+    {
+        if (cachep == nullptr) return;
+        auto cache = (memory::Cache*)cachep;
+        if (cache_list == nullptr)
+        {
+            cache->prev = cache;
+            cache->next = cache;
+            cache_list = cache;
+            return;
+        }
+
+        cache->next = cache_list;
+        cache->prev = cache_list->prev;
+        cache_list->prev->next = cache;
+        cache_list->prev = cache;
+    }
+
+    void Kernel::removeFromCacheList(void* cachep)
+    {
+        if (cachep == nullptr || cache_list == nullptr) return;
+        auto cache = (memory::Cache*)cachep;
+
+        const bool one = cache == cache->next;
+        if (not one)
+        {
+            cache->prev->next = cache->next;
+            cache->next->prev = cache->prev;
+        }
+        cache->prev = nullptr;
+        cache->next = nullptr;
+        if (one) cache_list = nullptr;
     }
 } // kernel

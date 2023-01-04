@@ -1,78 +1,30 @@
 #include "../../../h/kernel/Memory/slab.h"
-#include "../../../h/kernel/Memory/Cache.h"
 #include "../../../h/kernel/Utils/Utils.h"
 #include "../../../h/ConsoleUtils.h"
-#include "../../../h/syscall_cpp.hpp"
+#include "../../../h/syscall_c.h"
 #include "../../../h/kernel/Memory/MemoryErrorManager.h"
 #include "../../../h/kernel/Memory/BuddyAllocator.h"
 
 static kmem_cache_t* kmem_cache_cache = nullptr;
-static kernel::memory::Cache* cache_list = nullptr;
-static kmem_cache_t* buffer_caches[17 - 5 + 1];
-static int last_api_error;
+static kmem_cache_t* buffer_caches[
+    BUFFER_MAX_ORDER - BUFFER_MIN_ORDER + 1
+];
+static int last_api_error = 0;
 
 /* HELPER FUNCTIONS */
-
-bool isValidCache(kernel::memory::Cache* cachep)
-{
-    if (cachep == nullptr) return false;
-    auto cache = (kernel::memory::Cache*)cache_list;
-    while (cache != nullptr)
-    {
-        if (cache == cachep) return true;
-        cache = cache->next;
-    }
-    return false;
-}
-
-void insertIntoCacheList(kernel::memory::Cache* cache)
-{
-    if (cache == nullptr) return;
-    if (cache_list != nullptr)
-    {
-        cache_list->prev = cache;
-    }
-    cache->next = cache_list;
-    cache->prev = nullptr;
-    cache_list = cache;
-}
-
-void insertIntoCacheList(kmem_cache_t* cachep)
-{
-    insertIntoCacheList((kernel::memory::Cache*)cachep);
-}
-
-void removeFromCacheList(kernel::memory::Cache* cache)
-{
-    if (cache == nullptr || cache_list == nullptr) return;
-
-    if (cache_list == cache)
-    {
-        cache_list = cache->next;
-    }
-
-    if (cache->next != nullptr)
-    {
-        cache->next->prev = cache->prev;
-    }
-
-    if (cache->prev != nullptr)
-    {
-        cache->prev->next = cache->next;
-    }
-}
 
 /* API IMPLEMENTATION */
 void kmem_init(void* space, int block_num)
 {
-    using namespace kernel::memory;
+    using namespace kernel;
+    using namespace memory;
     /* Assign memory space to kernel allocator*/
     BuddyAllocator::getInstance().initialize(space, block_num);
 
     Cache::initializeCacheCache();
-    kmem_cache_cache = (kmem_cache_t*)&Cache::kmem_cache_Cache;
+    kmem_cache_cache = (kmem_cache_t*)&Cache::obj_cache;
     /* Add the kmem_cache cache to the cache_list*/
-    insertIntoCacheList(kmem_cache_cache);
+    Kernel::insertIntoCacheList(kmem_cache_cache);
 
     for (size_t i = 0; i < BUFFER_TYPE_COUNT; i++)
     {
@@ -124,7 +76,7 @@ kmem_cache_t* kmem_cache_create(
     const auto cache =
         new kernel::memory::Cache(name, size, ctor, dtor);
 
-    insertIntoCacheList(cache);
+    kernel::Kernel::insertIntoCacheList(cache);
 
     return (kmem_cache_t*)cache;
 }
@@ -136,7 +88,7 @@ int kmem_cache_shrink(kmem_cache_t* cachep)
     auto cache = (kernel::memory::Cache*)cachep;
     cache->getErrorManager().clear();
 
-    if (!isValidCache(cache))
+    if (!kernel::Kernel::isValidCache(cache))
     {
         using namespace kernel::memory;
         last_api_error = MemoryErrorManager::
@@ -152,7 +104,7 @@ void* kmem_cache_alloc(kmem_cache_t* cachep)
 
     auto cache = (kernel::memory::Cache*)cachep;
     cache->getErrorManager().clear();
-    if (!isValidCache(cache))
+    if (!kernel::Kernel::isValidCache(cache))
     {
         using namespace kernel::memory;
         last_api_error = MemoryErrorManager::
@@ -168,7 +120,7 @@ void kmem_cache_free(kmem_cache_t* cachep, void* objp)
 
     auto cache = (kernel::memory::Cache*)cachep;
     cache->getErrorManager().clear();
-    if (!isValidCache(cache))
+    if (!kernel::Kernel::isValidCache(cache))
     {
         using namespace kernel::memory;
         last_api_error = MemoryErrorManager::
@@ -254,7 +206,7 @@ void kmem_cache_destroy(kmem_cache_t* cachep)
 {
     last_api_error = 0;
 
-    if (!isValidCache((kernel::memory::Cache*)cachep))
+    if (!kernel::Kernel::isValidCache(cachep))
     {
         using namespace kernel::memory;
         last_api_error = MemoryErrorManager::
@@ -266,7 +218,7 @@ void kmem_cache_destroy(kmem_cache_t* cachep)
     auto cache = (kernel::memory::Cache*)cachep;
     cache->getErrorManager().clear();
 
-    removeFromCacheList(cache);
+    kernel::Kernel::removeFromCacheList(cache);
 
     cache->destroyAllObjects();
     kmem_cache_free(kmem_cache_cache, cachep);
@@ -275,7 +227,7 @@ void kmem_cache_destroy(kmem_cache_t* cachep)
 uint64 cache_info_lock = 0;
 void kmem_cache_info(kmem_cache_t* cachep)
 {
-    if (!isValidCache((kernel::memory::Cache*)cachep))
+    if (!kernel::Kernel::isValidCache(cachep))
     {
         using namespace kernel::memory;
         last_api_error = MemoryErrorManager::
@@ -319,7 +271,7 @@ int kmem_cache_error(kmem_cache_t* cachep)
 
         return last_api_error;
     }
-    if (!isValidCache((kernel::memory::Cache*)cachep))
+    if (!kernel::Kernel::isValidCache(cachep))
     {
         using namespace kernel::memory;
         last_api_error = MemoryErrorManager::

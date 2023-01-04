@@ -6,11 +6,19 @@
 #include "./BuddyAllocator.h"
 #include "../Utils/Utils.h"
 #include "./MemoryErrorManager.h"
+#include "../Kernel.h"
+#include "../../../h/syscall_c.h"
 
 #define M_NAME_MAX_LENGTH 31
 #define BUFFER_MIN_ORDER 5
 #define BUFFER_MAX_ORDER 17
 #define BUFFER_TYPE_COUNT (BUFFER_MAX_ORDER-BUFFER_MIN_ORDER+1)
+
+namespace kernel
+{
+    class Kernel;
+} // namespace kernel
+
 
 namespace kernel::memory
 {
@@ -33,6 +41,7 @@ namespace kernel::memory
     class Cache
     {
     public:
+        friend class kernel::Kernel;
         friend void ::insertIntoCacheList(kernel::memory::Cache* cache);
         friend bool ::isValidCache(kernel::memory::Cache* cachep);
         friend void ::removeFromCacheList(kernel::memory::Cache* cache);
@@ -100,7 +109,7 @@ namespace kernel::memory
         char m_name[NAME_MAX_LENGTH + 1];
 
         friend void ::kmem_init(void*, int);
-        static Cache kmem_cache_Cache;
+        static Cache obj_cache;
         static bool initialized;
     public:
         static void initializeCacheCache();
