@@ -80,7 +80,8 @@ namespace kernel::memory
         size_t totalSize() const;
         size_t slabCount() const;
         size_t objectsPerSlab() const;
-        int totalUsage() const;
+        size_t freeSlots() const;
+        size_t totalSlots() const;
         MemoryErrorManager& getErrorManager();
         MemoryErrorManager const& getErrorManager() const;
     private:

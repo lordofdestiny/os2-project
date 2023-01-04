@@ -272,25 +272,22 @@ namespace kernel::memory
     }
     size_t Cache::objectsPerSlab() const
     {
-        return obj_size < (PAGE_SIZE >> 3)
-            ? (PAGE_SIZE - sizeof(Slab))
-            / (obj_size + sizeof(bool))
-            : (PAGE_SIZE + obj_size - 1) / obj_size;
+        return slabCapacity;
     }
-    int Cache::totalUsage() const
+    size_t Cache::freeSlots() const
     {
-        const auto totalCount = slabCount() * objectsPerSlab();
-        if (totalCount == 0) return 0;
-
-        auto freeCount = getListSize(free) * objectsPerSlab();
+        auto freeCount = slabCapacity * getListSize(free);
         auto slab = partial;
         while (slab != 0)
         {
             freeCount += slab->freeSlotCount;
             slab = slab->next;
         }
-
-        return (totalCount - freeCount) * 100 / totalCount;
+        return freeCount;
+    }
+    size_t Cache::totalSlots() const
+    {
+        return slabCapacity * slabCount();
     }
 
     MemoryErrorManager&
