@@ -19,9 +19,11 @@ namespace kernel
     {
         thread_init(&thread, &outputTask, nullptr);
         sem_open(&inputItemAvailable, 0);
-        sem_open(&outputSpaceAvailable, 1024);
+        sem_open(&outputSpaceAvailable, BufferSize);
         sem_open(&outputItemAvailable, 0);
         sem_open(&finished, 0);
+        inputBuffer = new Buffer<BufferSize>;
+        outputBuffer = new Buffer<BufferSize>;
         thread_start(&thread);
     }
 
@@ -41,24 +43,24 @@ namespace kernel
 
     char Console::readChar()
     {
-        return inputBuffer.get();
+        return inputBuffer->get();
     }
 
     void Console::writeChar(char c)
     {
         if (c == '\r') c = '\n';
-        outputBuffer.put(c);
+        outputBuffer->put(c);
         ((Semaphore*)outputItemAvailable)->signal();
     }
 
     void Console::handle()
     {
-        while (ConsoleController::isReadable() && !inputBuffer.full())
+        while (ConsoleController::isReadable() && !inputBuffer->full())
         {
             auto c = ConsoleController::receiveData();
-            if (!inputBuffer.full())
+            if (!inputBuffer->full())
             {
-                inputBuffer.put(c); // Add handling overfilling buffer
+                inputBuffer->put(c); // Add handling overfilling buffer
                 ((Semaphore*)inputItemAvailable)->signal();
                 if (c != 0x1b)
                 {
@@ -72,7 +74,7 @@ namespace kernel
     {
         while (true)
         {
-            if (Thread::isMainFinished() && CONSOLE.outputBuffer.empty())
+            if (CONSOLE.outputBuffer != nullptr && Thread::isMainFinished() && CONSOLE.outputBuffer->empty())
             {
                 sem_signal(CONSOLE.finished);
                 break;
@@ -80,11 +82,11 @@ namespace kernel
 
             SREGISTER_CLEAR_BITS(sstatus, BitMasks::sstatus::SIE);
             thread_dispatch();
-            while (ConsoleController::isWritable() && !CONSOLE.outputBuffer.empty())
+            while (CONSOLE.outputBuffer != nullptr && ConsoleController::isWritable() && !CONSOLE.outputBuffer->empty())
             {
                 sem_wait(CONSOLE.outputItemAvailable);
 
-                auto c = CONSOLE.outputBuffer.get();
+                auto c = CONSOLE.outputBuffer->get();
                 ConsoleController::transmitData(c);
 
                 sem_signal(CONSOLE.outputSpaceAvailable);

@@ -19,6 +19,7 @@ namespace kernel
     class Console final
     {
     public:
+        static constexpr size_t BufferSize = 1024;
         Console() = default;
         Console(Console const&) = delete;
         Console& operator=(Console const&) = delete;
@@ -43,7 +44,8 @@ namespace kernel
         sem_t outputSpaceAvailable;
         sem_t outputItemAvailable;
         sem_t finished;
-        Buffer<1024> inputBuffer, outputBuffer;
+        Buffer<BufferSize>* inputBuffer;
+        Buffer<BufferSize>* outputBuffer;
         thread_t thread;
     };
 
