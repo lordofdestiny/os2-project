@@ -243,23 +243,23 @@ void kmem_cache_info(kmem_cache_t* cachep)
     printInt(cache->objectSize());
 
     printString("B; OBJECT/SLAB=");
-    printInt(cache->objectsPerSlab());
+    printInt(cache->slabCapacity());
 
     printString(" | TOTAL_SIZE=");
-    printUInt64(cache->totalSize());
+    printUInt64(cache->memory() / BLOCK_SIZE);
 
     printString("B; SLAB_CNT=");
-    printInt(cache->slabCount());
+    printInt(cache->slabs());
 
-    const auto totalSlots = cache->totalSlots();
-    const auto freeSlots = cache->freeSlots();
+    const auto totalSlots = cache->capacity();
+    const auto freeSlots = cache->available();
     const auto usedSlots = totalSlots - freeSlots;
     printString("; USAGE= ");
-    printInt(totalSlots - freeSlots);
+    printInt(usedSlots);
     printString("/");
-    printInt(cache->totalSlots());
-    printString("( ");
-    printInt(totalSlots > 0 ? usedSlots / totalSlots : 0);
+    printInt(cache->capacity());
+    printString(" ( ");
+    printInt(cache->usage());
     printString("% )\n");
     copy_and_swap(cache_info_lock, 1, 0);
 }

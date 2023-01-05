@@ -3,21 +3,27 @@
 namespace kernel::memory
 {
     Cache Cache::obj_cache;
-    bool Cache::initialized = false;
 
-    void Cache::initializeCacheCache()
+    void Cache::initialize()
     {
         if (!initialized)
         {
-            const auto obj_size = sizeof(Cache);
+            obj_size = sizeof(Cache);
             const auto blockOrder = Slab::getSlabBlockOrder(obj_size);
             const auto blockCap = Slab::getSlabCapacity(obj_size, blockOrder);
+            allocateSlab = Slab::getSlabAllocator(obj_size);
+            deallocateSlab = Slab::getSlabDeallocator(obj_size);
+            slabBlockOrder = blockOrder;
+            m_slabCapacity = blockCap;
 
-            obj_cache.obj_size = obj_size;
-            obj_cache.allocateSlab = Slab::getSlabAllocator(obj_size);
-            obj_cache.deallocateSlab = Slab::getSlabDeallocator(obj_size);
-            obj_cache.slabBlockOrder = blockOrder;
-            obj_cache.slabCapacity = blockCap;
+            free = nullptr;
+            partial = nullptr;
+            full = nullptr;
+            freeSlabs = 0;
+            partialSlabs = 0;
+            fullSlabs = 0;
+            prev = nullptr;
+            next = nullptr;
 
             utils::strcpy(obj_cache.m_name, "kmem_cache_t");
 
@@ -40,7 +46,7 @@ namespace kernel::memory
         allocateSlab(Slab::getSlabAllocator(size)),
         deallocateSlab(Slab::getSlabDeallocator(size)),
         slabBlockOrder(Slab::getSlabBlockOrder(size)),
-        slabCapacity(Slab::getSlabCapacity(size, slabBlockOrder))
+        m_slabCapacity(Slab::getSlabCapacity(size, slabBlockOrder))
     {
         kernel::utils::strcpy(this->m_name, name);
     }
@@ -81,6 +87,7 @@ namespace kernel::memory
             // the partial list immediately
 
             insertIntoList(partial, new_slab);
+            partialSlabs++;
 
             slab = new_slab;
         }
@@ -94,7 +101,9 @@ namespace kernel::memory
         if (slab->isEmpty())
         {
             removeFromList(partial, slab);
+            partialSlabs--;
             insertIntoList(full, slab);
+            fullSlabs++;
         }
 
         return obj;
@@ -120,7 +129,9 @@ namespace kernel::memory
         if (slab->isEmpty())
         {
             removeFromList(full, slab);
+            fullSlabs--;
             insertIntoList(partial, slab);
+            partialSlabs++;
         }
 
         // Return it to the slab
@@ -130,7 +141,9 @@ namespace kernel::memory
         if (slab->isFull())
         {
             removeFromList(partial, slab);
+            partialSlabs--;
             insertIntoList(free, slab);
+            freeSlabs++;
         }
     }
 
@@ -148,6 +161,7 @@ namespace kernel::memory
             auto slab = free;
             removeFromList(free, slab);
             deallocateSlab(slab);
+            freeSlabs--;
             cnt++;
         }
 
@@ -171,7 +185,9 @@ namespace kernel::memory
              */
             auto slab = free;
             removeFromList(free, slab);
+            freeSlabs--;
             insertIntoList(partial, slab);
+            partialSlabs++;
             return slab; // return first free slab
         }
         auto min_slab = partial;
@@ -241,17 +257,6 @@ namespace kernel::memory
         }
     }
 
-    size_t Cache::getListSize(Slab const* head)
-    {
-        size_t size = 0;
-        while (head != nullptr)
-        {
-            size++;
-            head = head->next;
-        }
-        return size;
-    }
-
     const char* Cache::name() const
     {
         return m_name;
@@ -260,23 +265,21 @@ namespace kernel::memory
     {
         return obj_size;
     }
-    size_t Cache::slabCount() const
+    size_t Cache::slabs() const
     {
-        return getListSize(free)
-            + getListSize(partial)
-            + getListSize(full);
+        return freeSlabs + partialSlabs + fullSlabs;
     }
-    size_t Cache::totalSize() const
+    size_t Cache::memory() const
     {
-        return PAGE_SIZE * (1 << slabBlockOrder) * slabCount();
+        return PAGE_SIZE * (1 << slabBlockOrder) * slabs();
     }
-    size_t Cache::objectsPerSlab() const
+    size_t Cache::slabCapacity() const
     {
-        return slabCapacity;
+        return m_slabCapacity;
     }
-    size_t Cache::freeSlots() const
+    size_t Cache::available() const
     {
-        auto freeCount = slabCapacity * getListSize(free);
+        auto freeCount = m_slabCapacity * freeSlabs;
         auto slab = partial;
         while (slab != 0)
         {
@@ -285,9 +288,17 @@ namespace kernel::memory
         }
         return freeCount;
     }
-    size_t Cache::totalSlots() const
+    size_t Cache::capacity() const
     {
-        return slabCapacity * slabCount();
+        return m_slabCapacity * slabs();
+    }
+
+    size_t Cache::usage() const
+    {
+        const auto total = capacity();
+        if (total == 0) return 0;
+        const auto used = total - available();
+        return used * 100 / total;
     }
 
     MemoryErrorManager&

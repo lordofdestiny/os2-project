@@ -71,17 +71,17 @@ namespace kernel::memory
         Slab* findOwningSlab(void const* ptr) const;
         void insertIntoList(Slab*& list_ptr, Slab* slab);
         void removeFromList(Slab*& list_ptr, Slab* slab);
-        static size_t getListSize(Slab const* head);
     public:
         static constexpr size_t NAME_MAX_LENGTH = M_NAME_MAX_LENGTH;
 
         const char* name() const;
         size_t objectSize() const;
-        size_t totalSize() const;
-        size_t slabCount() const;
-        size_t objectsPerSlab() const;
-        size_t freeSlots() const;
-        size_t totalSlots() const;
+        size_t memory() const;
+        size_t slabs() const;
+        size_t slabCapacity() const;
+        size_t available() const;
+        size_t capacity() const;
+        size_t usage() const;
         MemoryErrorManager& getErrorManager();
         MemoryErrorManager const& getErrorManager() const;
     private:
@@ -91,6 +91,9 @@ namespace kernel::memory
         Slab* free = nullptr;
         Slab* partial = nullptr;
         Slab* full = nullptr;
+        size_t freeSlabs = 0;
+        size_t partialSlabs = 0;
+        size_t fullSlabs = 0;
 
         Cache* prev = nullptr;
         Cache* next = nullptr;
@@ -103,7 +106,7 @@ namespace kernel::memory
         SlabCtorPtr allocateSlab;
         SlabDtorPtr deallocateSlab;
         unsigned int slabBlockOrder;
-        size_t slabCapacity;
+        size_t m_slabCapacity;
 
         MemoryErrorManager errmng{};
 
@@ -111,9 +114,9 @@ namespace kernel::memory
 
         friend void ::kmem_init(void*, int);
         static Cache obj_cache;
-        static bool initialized;
-    public:
-        static void initializeCacheCache();
+        bool initialized;
+    private:
+        void initialize();
     };
 }
 #endif
