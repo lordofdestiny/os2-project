@@ -4,7 +4,7 @@ namespace kernel::memory
 {
     void* Slab::getElement(size_t index)
     {
-        static auto size = owner->obj_size;
+        const auto size = owner->obj_size;
         return buffer + index * size;
     }
 
@@ -196,7 +196,7 @@ namespace kernel::memory
 
     bool Slab::owns(void const* obj) const
     {
-        return buffer <= obj && obj < buffer + PAGE_SIZE;
+        return buffer <= obj && obj < buffer + m_capacity * owner->obj_size;//Ne valja
     }
 
 } // namespace kernem::memory
