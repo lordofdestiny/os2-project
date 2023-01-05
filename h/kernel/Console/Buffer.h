@@ -11,26 +11,27 @@
 
 namespace kernel
 {
-    template<size_t Capacity = 256>
+    template<size_t Size = 256>
     class Buffer
     {
     public:
+        Buffer() { }
         void put(char c)
         {
             buffer[head++] = c;
-            head %= Capacity;
+            head %= Size;
             count++;
         }
         char get()
         {
             auto c = buffer[tail++];
-            tail %= Capacity;
+            tail %= Size;
             count--;
             return c;
         }
         size_t capacity() const
         {
-            return Capacity;
+            return Size;
         }
         bool empty() const
         {
@@ -38,7 +39,7 @@ namespace kernel
         }
         bool full() const
         {
-            return count == Capacity;
+            return count == Size;
         }
     public:
         static void* operator new(size_t size)
@@ -53,6 +54,9 @@ namespace kernel
         size_t head = 0;
         size_t tail = 0;
         size_t count = 0;
+        static constexpr size_t HeaderSize = 3 * sizeof(size_t);
+        static constexpr size_t Capacity = Size < HeaderSize
+            ? 0 : Size - HeaderSize;
         char buffer[Capacity];
     };
 };
