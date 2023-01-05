@@ -16,7 +16,7 @@ void operator delete (void* ptr)
 
 Thread::Thread(void (*body)(void*), void* arg)
 {
-    thread_init(&myHadnle, body, arg);
+    thread_init(&myHandle, body, arg);
 }
 
 Thread::~Thread() = default;
