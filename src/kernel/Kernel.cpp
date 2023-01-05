@@ -1,8 +1,9 @@
 //
 // Created by os on 7/19/22.
 //
-
 #include "../../h/kernel/Kernel.h"
+#include "../../h/kernel/TrapHandlers.h"
+#include "../../h/kernel/Utils/BitMasks.h"
 #include "../../h/kernel/Memory/slab.h"
 #include "../../h/kernel/Memory/MemoryManager.h"
 #include "../../h/kernel/Utils/RegisterUtils.h"

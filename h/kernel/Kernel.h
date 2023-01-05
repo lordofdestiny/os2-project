@@ -4,12 +4,8 @@
 
 #ifndef PROJECT_KERNEL_H
 #define PROJECT_KERNEL_H
-#include "./Memory/HeapAllocator.h"
 #include "./Memory/Cache.h"
 #include "./Memory/slab.h"
-#include "./Scheduler.h"
-#include "./TrapHandlers.h"
-#include "./Utils/BitMasks.h"
 #include "../../h/syscall_c.h"
 
 namespace kernel

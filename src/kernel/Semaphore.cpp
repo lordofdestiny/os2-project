@@ -4,7 +4,6 @@
 
 #include "../../h/kernel/Semaphore.h"
 #include "../../h/kernel/Scheduler.h"
-#include "../../h/kernel/Memory/HeapAllocator.h"
 
 namespace kernel
 {

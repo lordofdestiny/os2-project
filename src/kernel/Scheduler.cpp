@@ -3,7 +3,6 @@
 //
 
 #include "../../h/kernel/Scheduler.h"
-#include "../../h/kernel/Memory/HeapAllocator.h"
 
 namespace kernel
 {
