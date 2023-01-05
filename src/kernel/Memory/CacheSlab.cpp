@@ -118,14 +118,14 @@ namespace kernel::memory
 
     SlabCtorPtr Slab::getSlabAllocator(size_t obj_size)
     {
-        return obj_size < PAGE_SIZE >> 3
+        return obj_size < SMALL_SLAB_LIMIT
             ? allocateSmallSlab
             : allocateLargeSlab;
 
     }
     SlabDtorPtr Slab::getSlabDeallocator(size_t obj_size)
     {
-        return obj_size < PAGE_SIZE >> 3
+        return obj_size < SMALL_SLAB_LIMIT
             ? Slab::deallocateSmallSlab
             : deallocateLargeSlab;
     }
@@ -140,7 +140,7 @@ namespace kernel::memory
 
     size_t Slab::getSlabCapacity(size_t obj_size, unsigned int block_order)
     {
-        return obj_size < PAGE_SIZE >> 3
+        return obj_size < SMALL_SLAB_LIMIT
             ? (PAGE_SIZE - sizeof(Slab)) / (obj_size + sizeof(uint16))
             : PAGE_SIZE * (1 << block_order) / obj_size;
     }

@@ -69,6 +69,8 @@ namespace kernel::memory
         uint16* is_allocated;
         char* buffer;
         static constexpr uint16 BUFFCTL_END = -1;
+    public:
+        static constexpr size_t SMALL_SLAB_LIMIT = PAGE_SIZE >> 3;
     };
 
 } // namespace kernel::memory
