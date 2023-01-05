@@ -281,7 +281,7 @@ namespace kernel::memory
     {
         auto freeCount = m_slabCapacity * freeSlabs;
         auto slab = partial;
-        while (slab != 0)
+        while (slab != nullptr)
         {
             freeCount += slab->freeSlotCount;
             slab = slab->next;
