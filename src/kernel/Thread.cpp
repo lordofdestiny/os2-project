@@ -170,7 +170,9 @@ namespace kernel
         }
         if (this == runningThread) runningThread = nullptr;
         if (stack != nullptr)
-        {
+        {   // Could crash if thread is idleThread
+            // of mainThread because their stacks
+            // are allocated in higer addresses
             ALLOCATOR.deallocateBlocks(stack);
         }
     }
