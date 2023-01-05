@@ -106,10 +106,11 @@ namespace kernel
     {
         if (idleThread == nullptr)
         {
-            void* stack = ALLOCATOR.allocateBytes(DEFAULT_STACK_SIZE);
             auto task = [](void* arg) { while (true); };
-            idleThread = new Thread(task, nullptr,
-                stack, Thread::Mode::SYSTEM);
+            idleThread = new Thread(
+                task, nullptr,
+                kmalloc(DEFAULT_STACK_SIZE),
+                Thread::Mode::SYSTEM);
         }
         return idleThread;
     }
