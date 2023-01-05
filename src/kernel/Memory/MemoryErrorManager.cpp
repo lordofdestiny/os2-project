@@ -82,7 +82,7 @@ namespace kernel::memory
         }
     };
     int MemoryErrorManager::ecode() const { return errorCode; }
-    const char* MemoryErrorManager::getAPIErrrorMessage(int api_error)
+    const char* MemoryErrorManager::getAPIErrorMessage(int api_error)
     {
         auto apie = (APIError)(api_error & CAUSE_MASK);
         switch (apie)

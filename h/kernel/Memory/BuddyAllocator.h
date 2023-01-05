@@ -5,6 +5,7 @@
 #define MAX_LEVEL 32
 #define PAGE_SIZE (1 << PAGE_ORDER)
 
+#define BLOCKS BuddyAllocator::getInstance()
 
 #include "../../../lib/hw.h"
 #include "./MemoryManager.h"

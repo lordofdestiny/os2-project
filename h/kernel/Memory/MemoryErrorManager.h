@@ -95,7 +95,7 @@ namespace kernel::memory
         const char* getErrorMessage() const;
         int ecode() const;
         void clear(); // Needs to be called before each cache operation
-        static const char* getAPIErrrorMessage(int api_error);
+        static const char* getAPIErrorMessage(int api_error);
         static int getAPIErrorCode(APIError apie);
     private:
         int errorCode;

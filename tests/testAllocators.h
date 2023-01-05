@@ -30,7 +30,7 @@ void testMain()
     printMemorySection("HEAP", memory::heapSectionBounds());
     printString("*************************************************************************\n");
 
-    auto& allocator = memory::BuddyAllocator::getInstance();
+    auto& allocator = memory::BLOCKS;
     allocator.printBlockTable();
     memory::MemoryErrorManager em;
     int pagesToAllocate = 8;
