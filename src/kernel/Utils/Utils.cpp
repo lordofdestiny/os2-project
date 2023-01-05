@@ -2,7 +2,7 @@
 
 namespace kernel::utils
 {
-    uint64 log2(uint64 x)
+    uint64 floor_log2(uint64 x)
     {
         if (x == 0) return (uint64)-1;
         if (x == 1) return 0;
@@ -13,6 +13,12 @@ namespace kernel::utils
             result += 1;
         }
         return result;
+    }
+
+    uint64 ceil_log2(uint64 x)
+    {
+        auto const lg = floor_log2(x);
+        return lg + (x != (1ull << lg));
     }
 
     char* strcpy(char* dest, const char* src)

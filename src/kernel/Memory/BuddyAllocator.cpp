@@ -28,7 +28,7 @@ namespace kernel::memory
 
         start_address = space;
         end_address = ((char*)space + block_num * PAGE_SIZE);
-        num_of_levels = kernel::utils::log2(block_num) + 1;
+        num_of_levels = utils::floor_log2(block_num) + 1;
         total_blocks = block_num;
         free_blocks = block_num;
         freeLists[0] = (FreeBlock*)space;

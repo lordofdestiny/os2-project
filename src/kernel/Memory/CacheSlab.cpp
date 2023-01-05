@@ -134,7 +134,7 @@ namespace kernel::memory
     {
         using fptr = int(*)(int, int);
         static fptr max = [](int a, int b) { return a > b ? a : b; };
-        const auto buffer_order = utils::log2((obj_size << 1) - 1);
+        const auto buffer_order = utils::ceil_log2(obj_size);
         return max(buffer_order - PAGE_ORDER, 0);
     }
 
