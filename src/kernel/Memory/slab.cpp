@@ -5,6 +5,48 @@
 #include "../../../h/kernel/Memory/MemoryErrorManager.h"
 #include "../../../h/kernel/Memory/BuddyAllocator.h"
 
+
+#define FAIL_VOID(COND, ERROR) \
+do{ \
+if(COND) \
+{\
+    using namespace kernel::memory; \
+    last_api_error = MemoryErrorManager::getAPIErrorCode(ERROR); \
+    return; \
+}}while(0)\
+
+#define VALID_CACHE_VOID(cache) \
+    FAIL_VOID(!kernel::Kernel::isValidCache(cache),\
+    APIError::NON_EXISTENT_CACHE);\
+
+
+#define FAIL_VAL(COND, ERROR, RETVAL) \
+do{ \
+if(COND) \
+{\
+    using namespace kernel::memory; \
+    last_api_error = MemoryErrorManager\
+        ::getAPIErrorCode(ERROR); \
+    return RETVAL; \
+}}while(0)\
+
+#define VALID_CACHE_VAL(cache, RETVAL) \
+    FAIL_VAL(!kernel::Kernel::isValidCache(cache),\
+    APIError::NON_EXISTENT_CACHE,\
+    RETVAL);\
+
+
+#define AS_CACHE(ptr) ((kernel::memory::Cache*)ptr)
+
+
+#define SHRINK(cache) \
+do{\
+if (AS_CACHE(cachep)->usage() > 70)\
+{\
+    kmem_cache_shrink(cachep);\
+}}while(0)\
+
+
 static kmem_cache_t* kmem_cache_cache = nullptr;
 static kmem_cache_t* buffer_caches[
     BUFFER_MAX_ORDER - BUFFER_MIN_ORDER + 1
@@ -21,7 +63,7 @@ void kmem_init(void* space, int block_num)
     /* Assign memory space to kernel allocator*/
     BLOCKS.initialize(space, block_num);
 
-    Cache::initializeCacheCache();
+    Cache::obj_cache.initialize();
     kmem_cache_cache = (kmem_cache_t*)&Cache::obj_cache;
     /* Add the kmem_cache cache to the cache_list*/
     Kernel::insertIntoCacheList(kmem_cache_cache);
@@ -41,37 +83,21 @@ kmem_cache_t* kmem_cache_create(
     using kernel::memory::Cache;
     using kernel::utils::strlen;
 
-    if (name == nullptr)
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::NAME_UNDEFINED);
-        return nullptr;
-    }
+    FAIL_VAL(
+        name == nullptr,
+        APIError::NAME_UNDEFINED, nullptr);
 
-    if (strlen(name) > Cache::NAME_MAX_LENGTH)
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::NAME_TOO_LONG);
-        return nullptr;
-    }
+    FAIL_VAL(
+        strlen(name) > Cache::NAME_MAX_LENGTH,
+        APIError::NAME_TOO_LONG, nullptr);
 
-    if (size > 1 << BUFFER_MAX_ORDER)
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::OUT_OF_SIZE_RANGE);
-        return nullptr;
-    }
+    FAIL_VAL(
+        size > 1 << BUFFER_MAX_ORDER,
+        APIError::OUT_OF_SIZE_RANGE, nullptr);
 
-    if (dtor != nullptr && ctor == nullptr)
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::CACHE_INVALID_CTOR);
-        return nullptr;
-    }
+    FAIL_VAL(
+        dtor != nullptr && ctor == nullptr,
+        APIError::CACHE_INVALID_CTOR, nullptr);
 
     const auto cache =
         new kernel::memory::Cache(name, size, ctor, dtor);
@@ -84,91 +110,68 @@ kmem_cache_t* kmem_cache_create(
 int kmem_cache_shrink(kmem_cache_t* cachep)
 {
     last_api_error = 0;
+    VALID_CACHE_VAL(cachep, 0);
+    AS_CACHE(cachep)->getErrorManager().clear();
 
-    auto cache = (kernel::memory::Cache*)cachep;
-    cache->getErrorManager().clear();
-
-    if (!kernel::Kernel::isValidCache(cache))
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::NON_EXISTENT_CACHE);
-        return 0;
-    }
-    return cache->freeEmptySlabs();
+    return AS_CACHE(cachep)->freeEmptySlabs();
 }
 
 void* kmem_cache_alloc(kmem_cache_t* cachep)
 {
     last_api_error = 0;
+    VALID_CACHE_VAL(cachep, nullptr);
+    AS_CACHE(cachep)->getErrorManager().clear();
+    SHRINK(cachep);
 
-    auto cache = (kernel::memory::Cache*)cachep;
-    cache->getErrorManager().clear();
-    if (!kernel::Kernel::isValidCache(cache))
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::NON_EXISTENT_CACHE);
-        return nullptr;
-    }
-    return cache->allocate();
+    return AS_CACHE(cachep)->allocate();
 }
 
 void kmem_cache_free(kmem_cache_t* cachep, void* objp)
 {
     last_api_error = 0;
+    VALID_CACHE_VOID(cachep);
+    AS_CACHE(cachep)->getErrorManager().clear();
 
-    auto cache = (kernel::memory::Cache*)cachep;
-    cache->getErrorManager().clear();
-    if (!kernel::Kernel::isValidCache(cache))
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::NON_EXISTENT_CACHE);
-        return;
-    }
-    cache->deallocate(objp);
+    AS_CACHE(cachep)->deallocate(objp);
+
+    SHRINK(cachep);
 }
 
 void* kmalloc(size_t size)
 {
     last_api_error = 0;
 
-    const auto size_index = kernel::utils::log2((size << 1) - 1);
-    if (BUFFER_MIN_ORDER > size_index
-        || BUFFER_MAX_ORDER < size_index)
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::INVALID_BUFFER_SIZE);
-        return nullptr;
-    }
+    const auto size_order = kernel::utils::ceil_log2(size);
+
+    FAIL_VAL(
+        BUFFER_MIN_ORDER > size_order
+        || BUFFER_MAX_ORDER < size_order,
+        APIError::INVALID_BUFFER_SIZE, nullptr);
+
+    const auto size_index = size_order - BUFFER_MIN_ORDER;
 
     if (buffer_caches[size_index] == nullptr)
     {
         char name_buffer[10] = "size-\0\0";
-        if (size_index < 10)
+        if (size_order < PAGE_ORDER - 3)
         {
-            name_buffer[5] = '0' + size_index;
+            name_buffer[5] = '0' + size_order;
         }
         else
         {
-            name_buffer[5] = '0' + size_index / 10;
-            name_buffer[6] = '0' + size_index % 10;
+            name_buffer[5] = '0' + size_order / 10;
+            name_buffer[6] = '0' + size_order % 10;
         }
 
-        auto new_cache = kmem_cache_create(
-            name_buffer,
-            1 << size_index,
-            nullptr, nullptr);
+        const auto new_cache =
+            kmem_cache_create(
+                name_buffer,
+                1 << size_order,
+                nullptr, nullptr);
 
-        if (new_cache == nullptr)
-        {
-            using namespace kernel::memory;
-            last_api_error = MemoryErrorManager::
-                getAPIErrorCode(APIError::SIZE_N_ALLOC_FAILED);
-            return nullptr;
-        }
+        FAIL_VAL(
+            new_cache == nullptr,
+            APIError::SIZE_N_ALLOC_FAILED, nullptr);
 
         buffer_caches[size_index] = new_cache;
     }
@@ -179,41 +182,24 @@ void kfree(const void* objp)
 {
     last_api_error = 0;
 
-    if (objp == nullptr)
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::DEALLOCATE_NULLPTR);
-        return;
-    }
+    FAIL_VOID(objp == nullptr, APIError::DEALLOCATE_NULLPTR);
+
     for (size_t i = 0; i < BUFFER_TYPE_COUNT; i++)
     {
         if (buffer_caches[i] == nullptr) continue;
-        auto cache = (kernel::memory::Cache*)buffer_caches[i];
+        if (!AS_CACHE(buffer_caches[i])->owns(objp)) continue;
 
-        if (cache->owns(objp))
-        {
-            kmem_cache_free(buffer_caches[i], (void*)objp);
-            return;
-        }
+        kmem_cache_free(buffer_caches[i], (void*)objp);
+        return;
     }
-    using namespace kernel::memory;
-    last_api_error = MemoryErrorManager::
-        getAPIErrorCode(APIError::INVALID_DEALLOCATION_ADDRESS);
+    FAIL_VOID(true, APIError::INVALID_DEALLOCATION_ADDRESS);
 }
 
 void kmem_cache_destroy(kmem_cache_t* cachep)
 {
     last_api_error = 0;
 
-    if (!kernel::Kernel::isValidCache(cachep))
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::NON_EXISTENT_CACHE);
-        return;
-    }
-
+    VALID_CACHE_VOID(cachep);
 
     auto cache = (kernel::memory::Cache*)cachep;
     cache->getErrorManager().clear();
@@ -227,13 +213,8 @@ void kmem_cache_destroy(kmem_cache_t* cachep)
 uint64 cache_info_lock = 0;
 void kmem_cache_info(kmem_cache_t* cachep)
 {
-    if (!kernel::Kernel::isValidCache(cachep))
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::NON_EXISTENT_CACHE);
-        return;
-    }
+    VALID_CACHE_VOID(cachep);
+
     auto cache = (kernel::memory::Cache*)cachep;
     copy_and_swap(cache_info_lock, 0, 1);
     printString("NAME=");
@@ -266,11 +247,11 @@ void kmem_cache_info(kmem_cache_t* cachep)
 
 int kmem_cache_error(kmem_cache_t* cachep)
 {
-    if (cachep == nullptr)
+    if (cachep == nullptr && last_api_error == 0) return 0;
+    if (last_api_error != 0)
     {
-        if (last_api_error == 0) return 0;
         const char* msg = kernel::memory::MemoryErrorManager::
-            getAPIErrrorMessage(last_api_error);
+            getAPIErrorMessage(last_api_error);
         copy_and_swap(cache_info_lock, 0, 1);
         printString("errmsg: ");
         printString(msg);
@@ -278,20 +259,13 @@ int kmem_cache_error(kmem_cache_t* cachep)
 
         return last_api_error;
     }
-    if (!kernel::Kernel::isValidCache(cachep))
-    {
-        using namespace kernel::memory;
-        last_api_error = MemoryErrorManager::
-            getAPIErrorCode(APIError::NON_EXISTENT_CACHE);
-        return -last_api_error;
-    }
-    auto cache = (kernel::memory::Cache*)cachep;
-    if (not cache->getErrorManager().hasError())
-    {
-        return 0;
-    }
+
+    VALID_CACHE_VAL(cachep, -last_api_error);
+
+    if (!AS_CACHE(cachep)->getErrorManager().hasError()) return 0;
+
     copy_and_swap(cache_info_lock, 0, 1);
-    auto const& emng = cache->getErrorManager();
+    auto const& emng = AS_CACHE(cachep)->getErrorManager();
     printString("origin: ");
     printString(emng.getOrigin());
     printString(" | op: ");
@@ -301,5 +275,5 @@ int kmem_cache_error(kmem_cache_t* cachep)
     putc('\n');
     copy_and_swap(cache_info_lock, 1, 0);
 
-    return cache->getErrorManager().ecode();
+    return AS_CACHE(cachep)->getErrorManager().ecode();
 }
