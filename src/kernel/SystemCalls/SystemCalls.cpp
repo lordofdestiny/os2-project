@@ -114,6 +114,7 @@ namespace kernel
         auto task = ACCEPT(Thread::Task, 2);
         auto argument = ACCEPT(void*, 3);
         auto stack = ACCEPT(void*, 4);
+        RETURN_IF(stack == nullptr, -0x3);
         auto mode = Thread::getRunning()->getMode();
         auto thread = new Thread(task, argument, stack, mode);
         if (thread == nullptr)
@@ -131,14 +132,19 @@ namespace kernel
     void SystemCalls::thread_start()
     {
         auto thread = (Thread*)*ACCEPT(thread_t*, 1);
+        if (thread == nullptr)
+        {
+            RETURN(-0x01);
+            return;
+        }
         switch (thread->getStatus())
         {
         case Thread::Status::CREATED:
             thread->setStatus(Thread::Status::READY);
         case Thread::Status::READY:
-            return SCHEDULER.put(thread);
-        case Thread::Status::RUNNING:
-        case Thread::Status::BLOCKED:
+            SCHEDULER.put(thread);
+            RETURN(0);
+        default:
             return;
         }
     }
