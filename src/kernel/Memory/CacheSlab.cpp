@@ -2,13 +2,19 @@
 
 namespace kernel::memory
 {
+    void* Slab::getElement(size_t index)
+    {
+        static auto size = owner->obj_size;
+        return buffer + index * size;
+    }
+
     void Slab::initialize(Cache* owner, char* buff, char* alloc)
     {
         allocated_head = 0;
         prev = nullptr;
         next = nullptr;
         this->owner = owner;
-        m_capacity = owner->slabCapacity;
+        m_capacity = owner->m_slabCapacity;
         freeSlotCount = m_capacity;
         buffer = buff;
         is_allocated = (uint16*)alloc;
@@ -20,24 +26,24 @@ namespace kernel::memory
         is_allocated[m_capacity - 1] = BUFFCTL_END;
 
         const auto constructor = owner->constructor;
-        const auto obj_size = owner->obj_size;
         if (constructor == nullptr) return;
 
         for (size_t i = 0; i < m_capacity; i++)
         {
-            constructor(buffer + i * obj_size);
+            constructor(getElement(i));
         }
     }
 
     Slab* Slab::allocateSmallSlab(Cache* owner)
     {
-        auto slab = (Slab*)BuddyAllocator::getInstance()
-            .allocate(owner->slabBlockOrder, owner->errmng);
+        auto slab = (Slab*)BLOCKS.allocate(
+            owner->slabBlockOrder,
+            owner->errmng);
         /* No need for error logging here, it's already done in the allocate() */
         if (slab == nullptr) return nullptr;
 
         const auto obj_size = owner->obj_size;
-        const auto capacity = owner->slabCapacity;
+        const auto capacity = owner->m_slabCapacity;
 
         const auto buffer_ptr = (char*)slab +
             (PAGE_SIZE - capacity * obj_size);
@@ -54,7 +60,7 @@ namespace kernel::memory
         auto escope = owner->errmng
             .getScope(ErrorOrigin::CACHE, Operation::ALLOCATE);
 
-        const auto capacity = owner->slabCapacity;
+        const auto capacity = owner->m_slabCapacity;
 
         const auto header_size = sizeof(Slab) + capacity * sizeof(uint16);
 
@@ -66,8 +72,9 @@ namespace kernel::memory
         }
 
         /* No need for error logging here, it's already done in the allocate() */
-        const auto buffer = (char*)BuddyAllocator::getInstance()
-            .allocate(owner->slabBlockOrder, owner->errmng);
+        const auto buffer = (char*)BLOCKS.allocate(
+            owner->slabBlockOrder,
+            owner->errmng);
 
         if (buffer == nullptr)
         {
@@ -86,27 +93,28 @@ namespace kernel::memory
     void Slab::destroyAll()
     {
         const auto destructor = owner->destructor;
-        const auto obj_size = owner->obj_size;
-        if (destructor != nullptr)
+        if (destructor == nullptr) return;
+
+        for (size_t i = 0; i < m_capacity; i++)
         {
-            for (size_t i = 0; i < m_capacity; i++)
-            {
-                destructor(buffer + i * obj_size);
-            }
+            destructor(getElement(i));
         }
+
     }
 
     void Slab::deallocateSmallSlab(Slab* slab)
     {
         slab->destroyAll();
-        BuddyAllocator::getInstance()
-            .deallocate(slab, slab->owner->slabBlockOrder, slab->owner->errmng);
+        BLOCKS.deallocate(
+            slab,
+            slab->owner->slabBlockOrder,
+            slab->owner->errmng);
     }
     void Slab::deallocateLargeSlab(Slab* slab)
     {
         slab->destroyAll();
 
-        BuddyAllocator::getInstance()
+        BLOCKS
             .deallocate(
                 slab->buffer,
                 slab->owner->slabBlockOrder,
@@ -148,7 +156,6 @@ namespace kernel::memory
     {
         auto escope = owner->errmng
             .getScope(ErrorOrigin::SLAB, Operation::ALLOCATE);
-        const auto obj_size = owner->obj_size;
 
         if (allocated_head == BUFFCTL_END)
         {
@@ -156,7 +163,7 @@ namespace kernel::memory
             return nullptr;
         }
 
-        auto obj = buffer + allocated_head * obj_size;
+        const auto obj = buffer + allocated_head * owner->obj_size;
         allocated_head = is_allocated[allocated_head];
         freeSlotCount--;
         return obj;
@@ -173,10 +180,9 @@ namespace kernel::memory
         }
 
         const auto obj_size = owner->obj_size;
-        const auto index =
-            ((uint64)(ptr)-(uint64)buffer + obj_size - 1) / obj_size;
+        const auto index = ((char*)(ptr)-buffer + obj_size - 1) / obj_size;
 
-        if (!owns(ptr) || ptr != (void*)(buffer + index * obj_size))
+        if (!owns(ptr) || ptr != getElement(index))
         {
             escope.setError(SlabError::INVALID_DEALLOCATION_ADDRESS);
             return;

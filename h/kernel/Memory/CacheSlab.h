@@ -20,6 +20,7 @@ namespace kernel::memory
         static Slab* allocateSmallSlab(Cache* owner);
         static Slab* allocateLargeSlab(Cache* owner);
         void initialize(Cache* owner, char* buff, char* alloc);
+        void* getElement(size_t index);
 
         static void deallocateSmallSlab(Slab* slab);
         static void deallocateLargeSlab(Slab* slab);
