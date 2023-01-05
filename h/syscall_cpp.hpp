@@ -26,7 +26,7 @@ protected:
     virtual void run() { }
 
 private:
-    thread_t myHadnle;
+    thread_t myHandle = nullptr;
 
     static void taskWrapper(void* arg);
 };

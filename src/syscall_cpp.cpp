@@ -23,7 +23,7 @@ Thread::~Thread() = default;
 
 int Thread::start()
 {
-    return thread_start(&myHadnle);
+    return thread_start(&myHandle);
 }
 
 void Thread::dispatch()
@@ -38,7 +38,7 @@ int Thread::sleep(time_t time)
 
 Thread::Thread()
 {
-    thread_init(&myHadnle, &taskWrapper, this);
+    thread_init(&myHandle, &taskWrapper, this);
 }
 
 void Thread::taskWrapper(void* arg)
