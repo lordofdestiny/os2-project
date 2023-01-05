@@ -67,9 +67,13 @@ namespace kernel::memory
         /* Points to page(s) of this buffer that are used to track
          * whether the buddies are free or not. Each pair of buddies requires a single bit */
         char* allocationIndex;
+
         size_t total_blocks = 0;
         size_t free_blocks = 0;
-
+    public:
+        struct UsageStats { size_t allocated, total; };
+        UsageStats stats() const { return { total_blocks - free_blocks, total_blocks }; }
+    private:
         inline size_t totalSize() const
         {
             return 1 << (num_of_levels - 1 + PAGE_ORDER);
