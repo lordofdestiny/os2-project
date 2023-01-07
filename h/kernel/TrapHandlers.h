@@ -21,7 +21,10 @@ namespace kernel
             IllegalReadAddress = 0x05,
             IllegalWriteAddress = 0x07,
             UserEnvironmentCall = 0x08,
-            SystemEnvironmentCall = 0x09
+            SystemEnvironmentCall = 0x09,
+            InstructionPageFault = 0xC,
+            LoadPageFault = 0xD,
+            StorePageFault = 0xF
         };
 
         void supervisorTrap() asm("__supervisorTrap__");
