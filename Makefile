@@ -6,6 +6,7 @@ DEBUG_FLAG = -D DEBUG_PRINT=0
 
 KERNEL_IMG = kernel
 KERNEL_ASM = kernel.asm
+LINKER_BINDINGS = linker.txt
 
 LIBS = ${DIR_LIBS}/hw.lib
 
@@ -66,7 +67,7 @@ CXXFLAGS += ${DEBUG_FLAG}
 CXXFLAGS += -MMD -MP -MF"${@:%.o=%.d}"
 
 LDSCRIPT = kernel.ld
-LDFLAGS  = -z max-page-size=4096 --script ${LDSCRIPT}
+LDFLAGS  = -z max-page-size=4096 --script ${LDSCRIPT} --print-map
 LDLIBS   = --library-path . $(patsubst %,--library=:%,${LIBS})
 
 OBJECTS =
@@ -86,7 +87,7 @@ vpath %.cpp $(sort $(dir ${SOURCES_CPP}))
 all: ${KERNEL_IMG}
 
 ${KERNEL_IMG}: ${LIBS} ${OBJECTS} ${LDSCRIPT} | ${DIR_BUILD}
-	${LD} ${LDFLAGS} -o ${@} ${OBJECTS} ${LDLIBS} ${LDLIBS}
+	${LD} ${LDFLAGS} -o ${@} ${OBJECTS} ${LDLIBS} ${LDLIBS} > ${LINKER_BINDINGS}
 	${OBJDUMP} --source ${KERNEL_IMG} > ${KERNEL_ASM}
 
 ${DIR_BUILD}/%.o: %.cpp Makefile | ${DIR_BUILD}
@@ -106,7 +107,7 @@ ${DIR_BUILD}:
 
 clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg
-	rm -f ${KERNEL_IMG} ${KERNEL_ASM}
+	rm -f ${KERNEL_IMG} ${KERNEL_ASM} ${LINKER_BINDINGS}
 	rm -fr ${DIR_BUILD}
 	rm -f .gdbinit
 

@@ -5,3 +5,4 @@ kernel.asm
 .gdbinit
 .vscode
 *.s
+linker.txt
