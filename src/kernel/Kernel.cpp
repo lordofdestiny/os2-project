@@ -30,8 +30,8 @@ namespace kernel
 
     void Kernel::initialize()
     {
-        auto kmem = memory::kernelSectionBounds();
-        kmem_init(kmem.startAddress, kmem.size() / BLOCK_SIZE);
+        auto kmem = memory::KernelHeap();
+        kmem_init(kmem.start, kmem.size() / BLOCK_SIZE);
 
         /* allocate kernel stack */
         kernelStack = (uint8*)kmalloc(Kernel::stackSize);
