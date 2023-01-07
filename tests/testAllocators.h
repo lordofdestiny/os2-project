@@ -9,25 +9,27 @@ void printMemorySection(
     kernel::memory::MemorySection const& section)
 {
     printString(name);
-    printString("_START_ADDR=");
-    printAddress(section.startAddress);
-    putc('\n');
-    printString(name);
-    printString("_END_ADDR=");
-    printAddress(section.endAddress);
-    putc('\n');
-    printString("TOTAL_SIZE=");
-    printUInt64(section.size(), 16);
-    putc('\n');
+    printString(": ");
+    printAddress(section.start);
+    printString(" - ");
+    printAddress(section.end);
+    printString("\n");
     printString("----------------------------------------\n");
 }
 
 void testMain()
 {
     using namespace kernel;
-    printMemorySection("DATA", memory::dataSectionBounds());
-    printMemorySection("KERNEL", memory::kernelSectionBounds());
-    printMemorySection("HEAP", memory::heapSectionBounds());
+    printMemorySection("Memory", memory::Memory());
+    printMemorySection("Code", memory::AllCode());
+    printMemorySection("Kernel code", memory::KernelCode());
+    printMemorySection("Kernel data", memory::KernelData());
+    printMemorySection("SysteCall code", memory::SysCallCode());
+    printMemorySection("SysteCall data", memory::SysCallData());
+    printMemorySection("User code", memory::UserCode());
+    printMemorySection("User data", memory::UserData());
+    printMemorySection("User heap", memory::UserHeap());
+    printMemorySection("Kernel memory", memory::KernelHeap());
     printString("*************************************************************************\n");
 
     auto& allocator = memory::BLOCKS;

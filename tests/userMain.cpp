@@ -5,8 +5,23 @@
 #include "testAllocators.h"
 #include "../h/kernel/Memory/BuddyAllocator.h"
 
-// void userMain()
-// {
-//     studentMain();
-//     // testMain();
-// }
+const int hex = 0x69;
+static int alfa;
+int b = 4;
+
+int test()
+{
+    return hex + alfa * b;
+}
+static int f = 1;
+const int k = 0;
+void userMain()
+{
+    f++;
+    alfa = 10;
+    int c = f * k;
+    printInt(c + test());
+    printString("\n");
+    // studentMain();
+    testMain();
+}

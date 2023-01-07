@@ -115,14 +115,14 @@ void runs(void(*work)(void*), struct data_s* data, int num)
 	}
 }
 
-void userMain()
-{
-	kmem_cache_t* shared = kmem_cache_create("shared object", shared_size, construct, NULL);
+// void userMain()
+// {
+// 	kmem_cache_t* shared = kmem_cache_create("shared object", shared_size, construct, NULL);
 
-	struct data_s data;
-	data.shared = shared;
-	data.iterations = ITERATIONS;
-	runs(work, &data, RUN_NUM);
+// 	struct data_s data;
+// 	data.shared = shared;
+// 	data.iterations = ITERATIONS;
+// 	runs(work, &data, RUN_NUM);
 
-	kmem_cache_destroy(shared);
-}
+// 	kmem_cache_destroy(shared);
+// }

@@ -90,7 +90,7 @@ SECTIONS
   PROVIDE(user_start = . );
   .text.user : {
     PROVIDE(user_code_start = . );
-    */tests/*.o  *(.text .text*)
+    *(*/tests/*.o)  *(.text .text*)
     . = ALIGN(0x1000) ;
     PROVIDE(user_code_end = . );
   }
@@ -98,23 +98,23 @@ SECTIONS
   PROVIDE(user_data_start = . );
   .rodata.user : {
     . = ALIGN(16);
-    */tests/*.o *(.srodata .srodata.*)
+    *(*/tests/*.o) *(.srodata .srodata.*)
     . = ALIGN(16);
-    */tests/*.o *(.rodata .rodata.*)
+    *(*/tests/*.o) *(.rodata .rodata.*)
   }
   
   .data.user : {
     . = ALIGN(16);
-    */tests/*.o *(.sdata .sdata.*)
+    *(*/tests/*.o) *(.sdata .sdata.*)
     . = ALIGN(16);
-    */tests/*.o *(.data .data.*)
+    *(*/tests/*.o) *(.data .data.*)
   }
 
   .bss.user :{
     . = ALIGN(16);
-    */tests/*.o *(.sbss .sbss.*)
+    *(*/tests/*.o) *(.sbss .sbss.*)
     . = ALIGN(16);
-    */tests/*.o *(.bss .bss.*)
+    *(*/tests/*.o) *(.bss .bss.*)
   }
   . = ALIGN(0x1000);
   PROVIDE(user_data_end = .);
