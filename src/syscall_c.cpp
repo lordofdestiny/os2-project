@@ -83,6 +83,13 @@ int thread_start(thread_t* handle)
     RETURN_AS(int);
 }
 
+void thread_destroy(thread_t* handle)
+{
+    REGISTER_WRITE(a1, handle);
+    REGISTER_WRITE(a0, CallType::ThreadDestroy);
+    ECALL();
+}
+
 int sem_open(sem_t* handle, unsigned init)
 {
     REGISTER_WRITE(a2, init);

@@ -6,6 +6,9 @@
 #define PROJECT_THREAD_H
 #include "../../lib/hw.h"
 #include "./Memory/slab.h"
+#include "./Semaphore.h"
+#include "./Scheduler.h"
+#include "../syscall_c.h"
 
 #define CONTEXT Thread::getRunning()->getContext()
 #define RUNNING_REGISTERS CONTEXT.getRegisters()
@@ -52,6 +55,9 @@ namespace kernel
             void setsstatus(uint64 value) { sstatus = value; }
         };
     public:
+        friend class Semaphore;
+        friend class Scheduler;
+
         static void* operator new(size_t size) noexcept;
         static void operator delete(void* ptr) noexcept;
 
@@ -66,6 +72,7 @@ namespace kernel
         static Thread* getRunning();
         static void shelveRunning();
         static uint64 getCount(Mode mode);
+
     private:
         static void taskWrapper();
 
@@ -79,8 +86,9 @@ namespace kernel
 
         static bool mainFinished;
         static uint64 threadIdSource;
-        static uint64 userThreadCount;
-        static uint64 systemThreadCount;
+        static uint64 threadCounter[2];
+
+        static Thread* createdHead;
     private:
         Context context;
         Task task;
@@ -91,11 +99,15 @@ namespace kernel
         Status status = Status::CREATED;
         uint64 sleepingTime = 0;
         Thread* next = nullptr;
+        Thread* prev = nullptr;
+        thread_t* my_handle;
     public:
         Thread(Task function, void* argument, void* stack, Mode mode);
         Thread(Thread const&) = delete;
         Thread& operator=(Thread const&) = delete;
         ~Thread();
+
+        void setHandle(thread_t* handle) { my_handle = handle; }
 
         void skipInstruction() { context.pc += 4; }
 
@@ -112,8 +124,6 @@ namespace kernel
         void setSleepingTime(uint64 time) { sleepingTime = time; }
         void tick();
         void enterUserMode();
-        Thread* getNext() { return next; }
-        void setNext(Thread* thread) { next = thread; }
     };
 } // kernel
 

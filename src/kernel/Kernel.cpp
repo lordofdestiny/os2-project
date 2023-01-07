@@ -10,6 +10,7 @@
 #include "../../h/kernel/SystemCalls/SystemCalls.h"
 #include "../../h/kernel/Console/Console.h"
 #include "../../h/kernel/Memory/BuddyAllocator.h"
+#include "../../h/syscall_cpp.hpp"
 
 #define BLOCK_ON_ERROR
 
@@ -24,8 +25,6 @@ namespace kernel
 {
     uint8* Kernel::kernelStack = nullptr;
     uint8* Kernel::kernelStackTopAddress = nullptr;
-    sem_t Kernel::userMainDone = nullptr;
-    thread_t Kernel::userMainThread = nullptr;
     memory::Cache* Kernel::cache_list = nullptr;
 
     void Kernel::initialize()
@@ -43,33 +42,36 @@ namespace kernel
         Thread::initialize();
         CONSOLE.initialize();
         enableInterrupts();
-        sem_open(&Kernel::userMainDone, 0);
     }
 
     void Kernel::execute(TMain userMain)
     {
-        struct Shadow
+        struct Runner: ::Thread
         {
             TMain main;
             sem_t sem;
-        } argument{ userMain, userMainDone };
-
-        thread_create(&userMainThread,
-            [](void* args)
+            Runner(TMain main)
+                :Thread(), main(main)
             {
-                {
-                    auto sh = (Shadow*)args;
-                    // enter_user_mode();
-                    sh->main();
-                    sem_signal(sh->sem);
-                }
-            }, &argument);
-        sem_wait(userMainDone);
+                sem_open(&sem, 0);
+                start();
+            }
+            void run() override
+            {
+                enter_user_mode();
+                main();
+                sem_signal(sem);
+            }
+            ~Runner() override
+            {
+                sem_wait(sem);
+                sem_close(sem);
+            }
+        } main{ userMain };
     }
 
     void Kernel::finalize()
     {
-        sem_close(userMainDone);
         waitForUserThreads();
         Thread::setMainFinished();
         CONSOLE.join();
@@ -94,7 +96,7 @@ namespace kernel
 
     void Kernel::waitForUserThreads()
     {
-        while (Thread::getCount(Thread::Mode::USER) > 1)
+        while (Thread::getCount(Thread::Mode::USER) > 0)
         {
             thread_dispatch();
         }

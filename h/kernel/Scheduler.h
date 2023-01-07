@@ -11,6 +11,8 @@
 
 namespace kernel
 {
+    class Thread;
+
     class Scheduler final
     {
     public:

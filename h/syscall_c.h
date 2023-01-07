@@ -18,6 +18,7 @@ int thread_exit();
 void thread_dispatch();
 int thread_init(thread_t* handle, void(*start_routine)(void*), void* arg);
 int thread_start(thread_t*);
+void thread_destroy(thread_t*);
 
 class _sem;
 typedef _sem* sem_t;

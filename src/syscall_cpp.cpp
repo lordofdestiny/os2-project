@@ -19,7 +19,13 @@ Thread::Thread(void (*body)(void*), void* arg)
     thread_init(&myHandle, body, arg);
 }
 
-Thread::~Thread() = default;
+Thread::~Thread()
+{
+    if (myHandle != nullptr)
+    {
+        thread_destroy(&myHandle);
+    }
+};
 
 int Thread::start()
 {

@@ -9,6 +9,8 @@
 
 namespace kernel
 {
+    class Thread;
+
     class Semaphore final
     {
     public:

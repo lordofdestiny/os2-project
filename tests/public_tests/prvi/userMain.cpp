@@ -78,16 +78,20 @@ private:
 };
 
 
-// void userMain()
-// {
-//     ForkThread thread(1);
+void userMain()
+{
+    thread_t handle;
+    thread_init(&handle, [](void*) { }, nullptr);
+    ForkThread thread(1);
 
-//     thread.start();
+    thread.start();
 
-//     while (!thread.isFinished())
-//     {
-//         thread_dispatch();
-//     }
+    while (!thread.isFinished())
+    {
+        thread_dispatch();
+    }
 
-//     printString("User main finished\n");
-// }
+
+    printString("User main finished\n");
+    thread_destroy(&handle);
+}

@@ -43,6 +43,7 @@ namespace kernel
         ThreadDispatch = 0x13,
         ThreadInit = 0x14,
         ThreadStart = 0x15,
+        ThreadDestroy = 0x16,
         SemaphoreOpen = 0x21,
         SemaphoreClose = 0x22,
         SemaphoreWait = 0x23,
@@ -68,6 +69,7 @@ namespace kernel
         static void thread_dispatch();
         static void thread_init();
         static void thread_start();
+        static void thread_destroy();
         static void sem_open();
         static void sem_close();
         static void sem_wait();

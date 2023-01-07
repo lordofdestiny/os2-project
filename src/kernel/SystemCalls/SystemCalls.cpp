@@ -57,6 +57,7 @@ namespace kernel
         registerSystemCall(CallType::ThreadDispatch, &thread_dispatch);
         registerSystemCall(CallType::ThreadInit, &thread_init);
         registerSystemCall(CallType::ThreadStart, &thread_start);
+        registerSystemCall(CallType::ThreadDestroy, &thread_destroy);
         registerSystemCall(CallType::SemaphoreOpen, &sem_open);
         registerSystemCall(CallType::SemaphoreClose, &sem_close);
         registerSystemCall(CallType::SemaphoreWait, &sem_wait);
@@ -112,6 +113,7 @@ namespace kernel
         auto handle = ACCEPT(thread_t*, 1);
         RETURN_IF(handle == nullptr, -0x01);
         auto task = ACCEPT(Thread::Task, 2);
+        RETURN_IF(task == nullptr, -0x4);
         auto argument = ACCEPT(void*, 3);
         auto stack = ACCEPT(void*, 4);
         RETURN_IF(stack == nullptr, -0x3);
@@ -124,6 +126,7 @@ namespace kernel
         else
         {
             *handle = (thread_t)thread;
+            thread->setHandle(handle); // to ensure not to delete thread tha was completed
         }
         RETURN_IF(thread == nullptr, -0x01);
         RETURN(0x00);
@@ -146,6 +149,17 @@ namespace kernel
             RETURN(0);
         default:
             return;
+        }
+    }
+
+    void SystemCalls::thread_destroy()
+    {
+        auto handle = ACCEPT(thread_t*, 1);
+        auto thread = (Thread*)*handle;
+        RETURN_IF(thread == nullptr, -0x01);
+        if (thread->getStatus() == Thread::Status::CREATED)
+        {
+            delete thread;
         }
     }
 

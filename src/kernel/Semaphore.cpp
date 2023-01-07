@@ -39,7 +39,7 @@ namespace kernel
         {
             curr->getContext().getRegisters().a0 = -0x02;
             SCHEDULER.put(curr);
-            curr = curr->getNext();
+            curr = curr->next;
         }
     }
 
@@ -77,7 +77,7 @@ namespace kernel
         }
         else
         {
-            tail->setNext(thread);
+            tail->next = thread;
         }
         tail = thread;
     }
@@ -86,9 +86,9 @@ namespace kernel
     {
         if (head == nullptr) return nullptr;
         auto thread = head;
-        head = head->getNext();
+        head = head->next;
         if (head == nullptr) tail = nullptr;
-        thread->setNext(nullptr);
+        thread->next = nullptr;
         return thread;
     }
 } // kernel

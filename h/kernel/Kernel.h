@@ -30,9 +30,7 @@ namespace kernel
         static uint8* kernelStack;
         static uint8* kernelStackTopAddress asm("__kernelStack");
 
-        static sem_t userMainDone;
-        static thread_t userMainThread;
-        static kernel::memory::Cache* cache_list;
+        static memory::Cache* cache_list;
         static constexpr int free_pages_low = 20;
         static constexpr int free_pages_high = 40;
     public:

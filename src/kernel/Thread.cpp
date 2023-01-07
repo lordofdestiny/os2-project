@@ -16,8 +16,7 @@ namespace kernel
     time_t Thread::runningTimeLeft = DEFAULT_TIME_SLICE;
     bool Thread::mainFinished = false;
     uint64 Thread::threadIdSource = 0;
-    uint64 Thread::userThreadCount = 0;
-    uint64 Thread::systemThreadCount = 0;
+    uint64 Thread::threadCounter[2] = { 0, 0 };
 
     Thread::Context::Context(uint64 pc, uint64 status):
         pc(pc), sstatus(status), registers()
@@ -90,15 +89,9 @@ namespace kernel
 
     uint64 Thread::getCount(Thread::Mode mode)
     {
-        if (mode == Mode::USER)
-        {
-            return userThreadCount;
-        }
-        else
-        {
-            return systemThreadCount;
-        }
+        return threadCounter[(int)mode];
     }
+
 
     void Thread::taskWrapper()
     {
@@ -147,27 +140,12 @@ namespace kernel
             auto stackTop = (uint64)((char*)this->stack + DEFAULT_STACK_SIZE);
             context.registers.sp = stackTop;
         }
-
-        if (mode == Mode::USER)
-        {
-            userThreadCount++;
-        }
-        else
-        {
-            systemThreadCount++;
-        }
+        threadCounter[(int)mode]++;
     }
 
     Thread::~Thread()
     {
-        if (this->mode == Mode::USER)
-        {
-            userThreadCount--;
-        }
-        else
-        {
-            systemThreadCount--;
-        }
+        threadCounter[(int)mode]--;
         if (this == runningThread) runningThread = nullptr;
         if (stack != nullptr)
         {   // Could crash if thread is idleThread
@@ -175,6 +153,7 @@ namespace kernel
             // are allocated in higer addresses
             ALLOCATOR.deallocateBlocks(stack);
         }
+        *my_handle = nullptr;
     }
 
     void Thread::tick()
@@ -199,8 +178,8 @@ namespace kernel
 
             mode = Mode::USER;
 
-            systemThreadCount--;
-            userThreadCount++;
+            threadCounter[(int)Mode::SYSTEM]--;
+            threadCounter[(int)Mode::USER]++;
         }
     }
 

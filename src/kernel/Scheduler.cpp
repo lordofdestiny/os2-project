@@ -25,7 +25,7 @@ namespace kernel
         }
         else
         {
-            readyTail->setNext(thread);
+            readyTail->next = thread;
         }
         readyTail = thread;
     }
@@ -35,12 +35,12 @@ namespace kernel
         if (readyHead == nullptr) return getIdleThread();
 
         auto thread = readyHead;
-        readyHead = readyHead->getNext();
+        readyHead = readyHead->next;
         if (readyHead == nullptr)
         {
             readyTail = nullptr;
         }
-        thread->setNext(nullptr);
+        thread->next = nullptr;
         return thread;
     }
 
@@ -60,7 +60,7 @@ namespace kernel
             }
             ticks -= curr->getSleepingTime();
             prev = curr;
-            curr = curr->getNext();
+            curr = curr->next;
         }
 
         if (prev == nullptr)
@@ -70,9 +70,9 @@ namespace kernel
         }
         else
         {
-            prev->setNext(thread);
+            prev->next = thread;
         }
-        thread->setNext(curr);
+        thread->next = curr;
 
         thread->setSleepingTime(ticks);
         if (curr != nullptr)
@@ -95,8 +95,8 @@ namespace kernel
         while (sleepingHead != nullptr && sleepingHead->getSleepingTime() == 0)
         {
             auto awake = sleepingHead;
-            sleepingHead = sleepingHead->getNext();
-            awake->setNext(nullptr);
+            sleepingHead = sleepingHead->next;
+            awake->next = nullptr;
             put(awake);
         }
     }
@@ -110,6 +110,7 @@ namespace kernel
                 task, nullptr,
                 kmalloc(DEFAULT_STACK_SIZE),
                 Thread::Mode::SYSTEM);
+            Thread::threadCounter[(int)Thread::Mode::SYSTEM]++;
         }
         return idleThread;
     }
