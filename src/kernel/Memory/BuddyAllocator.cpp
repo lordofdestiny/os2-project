@@ -179,6 +179,43 @@ namespace kernel::memory
     }
 
     // O(1)
+    void* BuddyAllocator::allocate()
+    {
+        const auto level = num_of_levels - 1;
+
+        if (!trySplitInto(level)) return nullptr;
+
+        const auto block = freeLists[level];
+        setAllocated(index(block));
+        free_blocks -= 1;
+        return removeBlock(block);
+    }
+
+    // O(1)
+    void BuddyAllocator::deallocate(void* addr)
+    {
+        const auto level = num_of_levels - 1;
+        if (addr == nullptr) return;
+        if (start_address > addr || addr >= end_address)
+        {
+            return;
+        }
+        /* Refactor this*/
+        auto block = (FreeBlock*)addr;
+        block->level = level;
+        if (isBuddyFree(block))
+        {
+            recursiveJoinBuddies(block);
+        }
+        else
+        {
+            setFree(index(block));
+            insertBlock(block);
+        }
+        free_blocks += 1;
+    }
+
+    // O(1)
     void* BuddyAllocator::allocate(
         int order,
         MemoryErrorManager& errmng)

@@ -51,6 +51,15 @@ namespace kernel::memory
         static BuddyAllocator& getInstance();
         void initialize(void* space, int block_num);
 
+    private:
+        /* Allocate a single page, no memory managment*/
+        void* allocate();
+        void deallocate(void* addr);
+        friend void* kpgalloc();
+        friend void kpgfree(void*);
+
+    public:
+        /* API for Slabs with error handling*/
         void* allocate(int order,
             MemoryErrorManager& emg);
         void deallocate(void* addr, int order,
