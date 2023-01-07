@@ -86,8 +86,6 @@ namespace kernel::memory
             int base_code;
             int cause = 0;
         };
-        void setOrigin(ErrorOrigin eo);
-        void setOperation(Operation op);
         ErrorScope getScope(ErrorOrigin eo, Operation op);
         bool hasError() const;
         const char* getOperation()const;
