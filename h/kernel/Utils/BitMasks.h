@@ -16,6 +16,8 @@ namespace kernel::BitMasks
 
     enum class sstatus: uint64
     {
+        MXR = maskBit(19),
+        SUM = maskBit(18),
         SPP = maskBit(8),
         SPIE = maskBit(5),
         SIE = maskBit(1),
