@@ -1,15 +1,16 @@
 #include "../../../h/kernel/SystemCalls/SystemCallCode.h"
 #include "../../../h/kernel/SystemCalls/SystemCallGroup.h"
+#include "../../../h/kernel/Memory/slab.h"
 
 namespace kernel
 {
     void* SystemCallHandlerGroup::operator new(size_t size)
     {
-        return ALLOCATOR.allocateBytes(size);
+        return kmalloc(size);
     }
     void SystemCallHandlerGroup::operator delete(void* ptr)
     {
-        ALLOCATOR.deallocateBlocks(ptr);
+        kfree(ptr);
     }
 
     bool SystemCallHandlerGroup::registerCall(SystemCallCode const& code, SystemCallHandler routine)
