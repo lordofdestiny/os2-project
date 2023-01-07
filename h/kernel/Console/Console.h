@@ -19,24 +19,25 @@ namespace kernel
     class Console final
     {
     public:
+        static void* operator new(size_t size);
+        static void operator delete(void* ptr);
         static constexpr size_t BufferSize = 1024;
-        Console() = default;
+        Console();
         Console(Console const&) = delete;
         Console& operator=(Console const&) = delete;
-        ~Console() = default;
+        ~Console();
 
-        void initialize();
         void join();
+        static Console& getInstance();
 
-        sem_t getInputSemaphore() const;
-        sem_t getOutputSemaphore() const;
+        sem_t getInputSemaphore();
+        sem_t getOutputSemaphore();
 
         char readChar();
         void writeChar(char c);
         void handle();
-    public:
-        static Console& getInstance();
 
+        static void initialize();
     private:
         static void outputTask(void* ptr);
     private:
@@ -47,6 +48,7 @@ namespace kernel
         Buffer<BufferSize>* inputBuffer;
         Buffer<BufferSize>* outputBuffer;
         thread_t thread;
+        static Console* instance;
     };
 
 } // kernel

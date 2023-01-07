@@ -6,37 +6,62 @@
 #include "../../../h/kernel/Utils/BitMasks.h"
 #include "../../../h/kernel/Utils/RegisterUtils.h"
 #include "../../../h/syscall_c.h"
+#include "../../../h/kernel/Kernel.h"
 
 namespace kernel
 {
-    Console& Console::getInstance()
+    Console* Console::instance;
+
+    void* Console::operator new(size_t size)
     {
-        static Console instance;
-        return instance;
+        return kmalloc(size);
+    }
+    void Console::operator delete(void* ptr)
+    {
+        return kfree(ptr);
     }
 
     void Console::initialize()
     {
-        thread_init(&thread, &outputTask, nullptr);
+        instance = new Console();
+    }
+
+    Console::Console()
+    {
         sem_open(&inputItemAvailable, 0);
         sem_open(&outputSpaceAvailable, BufferSize);
         sem_open(&outputItemAvailable, 0);
         sem_open(&finished, 0);
         inputBuffer = new Buffer<BufferSize>;
         outputBuffer = new Buffer<BufferSize>;
-        thread_start(&thread);
-    }
+        thread_create(&thread, &outputTask, this);
+    };
+
+    Console::~Console()
+    {
+        sem_close(inputItemAvailable);
+        sem_close(outputSpaceAvailable);
+        sem_close(outputItemAvailable);
+        sem_close(finished);
+        delete inputBuffer;
+        delete outputBuffer;
+    };
 
     void Console::join()
     {
         sem_wait(finished);
     }
 
-    sem_t Console::getInputSemaphore() const
+    Console& Console::getInstance()
+    {
+        return *instance;
+    }
+
+    sem_t Console::getInputSemaphore()
     {
         return inputItemAvailable;
     }
-    sem_t Console::getOutputSemaphore() const
+    sem_t Console::getOutputSemaphore()
     {
         return outputSpaceAvailable;
     }
@@ -55,7 +80,8 @@ namespace kernel
 
     void Console::handle()
     {
-        while (ConsoleController::isReadable() && !inputBuffer->full())
+        while (ConsoleController::isReadable()
+            && !inputBuffer->full())
         {
             auto c = ConsoleController::receiveData();
             if (!inputBuffer->full())
@@ -72,27 +98,32 @@ namespace kernel
 
     void Console::outputTask(void* ptr)
     {
+        auto console = (Console*)ptr;
         while (true)
         {
-            if (CONSOLE.outputBuffer != nullptr && Thread::isMainFinished() && CONSOLE.outputBuffer->empty())
+            if (console->outputBuffer != nullptr
+                && Thread::isMainFinished()
+                && console->outputBuffer->empty())
             {
-                sem_signal(CONSOLE.finished);
                 break;
             }
 
             SREGISTER_CLEAR_BITS(sstatus, BitMasks::sstatus::SIE);
             thread_dispatch();
-            while (CONSOLE.outputBuffer != nullptr && ConsoleController::isWritable() && !CONSOLE.outputBuffer->empty())
+            while (console->outputBuffer != nullptr
+                && ConsoleController::isWritable()
+                && !console->outputBuffer->empty())
             {
-                sem_wait(CONSOLE.outputItemAvailable);
+                sem_wait(console->outputItemAvailable);
 
-                auto c = CONSOLE.outputBuffer->get();
+                const auto c = console->outputBuffer->get();
                 ConsoleController::transmitData(c);
 
-                sem_signal(CONSOLE.outputSpaceAvailable);
+                sem_signal(console->outputSpaceAvailable);
             }
             SREGISTER_SET_BITS(sstatus, BitMasks::sstatus::SIE);
         }
+        sem_signal(console->finished);
     }
 
 } // kernel

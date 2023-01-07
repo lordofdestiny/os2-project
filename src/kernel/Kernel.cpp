@@ -40,7 +40,7 @@ namespace kernel
         SYSTEMCALLS.initialize();
         Semaphore::initialize();
         Thread::initialize();
-        CONSOLE.initialize();
+        Console::initialize();
         enableInterrupts();
     }
 

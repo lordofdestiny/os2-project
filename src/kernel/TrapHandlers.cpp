@@ -7,6 +7,7 @@
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/Console/Console.h"
+#include "../../h/kernel/Kernel.h"
 
 namespace kernel
 {

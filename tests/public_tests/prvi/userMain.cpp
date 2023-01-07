@@ -80,8 +80,6 @@ private:
 
 void userMain()
 {
-    thread_t handle;
-    thread_init(&handle, [](void*) { }, nullptr);
     ForkThread thread(1);
 
     thread.start();
@@ -93,5 +91,4 @@ void userMain()
 
 
     printString("User main finished\n");
-    thread_destroy(&handle);
 }
