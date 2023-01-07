@@ -12,9 +12,7 @@ namespace kernel::memory
     class HeapAllocator
     {
     private:
-        HeapAllocator(
-            const void* heap_start_address,
-            const void* heap_end_address);
+        HeapAllocator();
         struct FreeBlock
         {
             FreeBlock* prev, * next;

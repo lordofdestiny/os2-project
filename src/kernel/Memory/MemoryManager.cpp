@@ -1,5 +1,6 @@
 #include "../../../h/kernel/Memory/BuddyAllocator.h"
 #include "../../../h/kernel/Memory/MemoryManager.h"
+#include "../../../h/kernel/Memory/Mapping.h"
 #include "../../../h/kernel/Utils/Utils.h"
 #include "../../../h/ConsoleUtils.h"
 #include "../../../lib/hw.h"
@@ -8,44 +9,78 @@ namespace kernel::memory
 {
     size_t MemorySection::size() const
     {
-        return (size_t)endAddress - (size_t)startAddress;
+        return (size_t)end - (size_t)start;
     }
 
-    void* nextPage(void const* page)
+    MemorySection AllCode()
     {
-        return (void*)(((uint64)(page) & ((uint64)-1 << (PAGE_ORDER - 1))) + PAGE_SIZE);
+        return { begin, end };
     }
 
-    MemorySection RAMSection()
+    MemorySection KernelCode()
     {
         return {
-            (void*)MEMORY_SECOND_HALF,
-            (void*)HEAP_END_ADDR
+            kernel_text_start,
+            kernel_text_end
         };
     }
 
-    MemorySection dataSectionBounds()
+    MemorySection KernelData()
+    {
+        return {
+            kernel_data_start,
+            kernel_data_end
+        };
+    }
+
+    MemorySection SysCallCode()
+    {
+        return {
+            syscall_text_start,
+            syscall_text_end
+        };
+    }
+    MemorySection SysCallData()
+    {
+        return {
+            syscall_data_start,
+            syscall_data_end
+        };
+    }
+
+
+    MemorySection UserCode()
+    {
+        return {
+            user_code_start,
+            user_code_end
+        };
+    }
+
+    MemorySection UserData()
+    {
+        return {
+            user_data_start,
+            user_data_end
+        };
+    }
+
+    MemorySection Memory()
+    {
+        return { begin, (void*)PHYSTOP };
+    }
+
+    MemorySection UserHeap()
     {
         return {
             (void*)HEAP_START_ADDR,
-            (void*)HEAP_END_ADDR
+            (char*)Memory().start + 7 * (Memory().size() >> 3)
         };
     }
 
-    MemorySection kernelSectionBounds()
+    MemorySection KernelHeap()
     {
-        return {
-            (char*)(MEMORY_SECOND_HALF)+7 * (RAMSection().size() >> 3),
-            (void*)HEAP_END_ADDR
-        };
-    }
-
-    MemorySection heapSectionBounds()
-    {
-        return {
-            (void*)nextPage(HEAP_START_ADDR),
-            (char*)(MEMORY_SECOND_HALF)+7 * (RAMSection().size() >> 3)
-        };
+        return { UserHeap().end,  (void*)PHYSTOP };
     }
 
 } // namespace kernel::memory

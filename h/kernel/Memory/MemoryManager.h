@@ -7,28 +7,29 @@
 #define PROJECT_MEMORYMANAGER_H
 #include "../../../lib/hw.h"
 
-constexpr uint64 MEMORY_SECOND_HALF = 1ull << 31;
-
-
 namespace kernel::memory
 {
     struct MemorySection
     {
-        void* const startAddress;
-        void* const endAddress;
-        MemorySection(void* const start, void* const end)
-            : startAddress(start), endAddress(end)
+        void* const start;
+        void* const end;
+        inline MemorySection(void* start, void* end)
+            : start(start), end(end)
         { }
 
         size_t size() const;
     };
+    MemorySection AllCode();
+    MemorySection KernelCode();
+    MemorySection SysCallCode();
+    MemorySection KernelData();
+    MemorySection UserCode();
+    MemorySection SysCallData();
+    MemorySection UserData();
 
-    void* nextPage(void const* page);
-
-    MemorySection RAMSection();
-    MemorySection dataSectionBounds();
-    MemorySection kernelSectionBounds();
-    MemorySection heapSectionBounds();
+    MemorySection Memory();
+    MemorySection KernelHeap();
+    MemorySection UserHeap();
 } // namespace kernel
 
 #endif

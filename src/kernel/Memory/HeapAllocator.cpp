@@ -7,13 +7,11 @@
 
 namespace kernel::memory
 {
-    HeapAllocator::HeapAllocator(
-        const void* heap_start_address,
-        const void* heap_end_address)
+    HeapAllocator::HeapAllocator()
     {
-        auto heapByteSize = (uint64)heap_end_address - (uint64)heap_start_address;
+        auto heapByteSize = UserHeap().size();
         auto heapBlockCount = heapByteSize / MEM_BLOCK_SIZE;
-        head = (FreeBlock*)HEAP_START_ADDR;
+        head = (FreeBlock*)UserHeap().start;
         head->size = heapBlockCount;
         head->prev = nullptr;
         head->next = nullptr;
@@ -21,14 +19,13 @@ namespace kernel::memory
 
     HeapAllocator& HeapAllocator::getInstance()
     {
-        static auto section = heapSectionBounds();
-        static HeapAllocator instance(section.startAddress, section.endAddress);
+        static HeapAllocator instance{};
         return instance;
     }
 
     size_t HeapAllocator::byteSizeToBlockCount(size_t blocks)
     {
-        return (blocks + 2 * sizeof(size_t) + MEM_BLOCK_SIZE - 1) / MEM_BLOCK_SIZE;
+        return (blocks + sizeof(size_t) + MEM_BLOCK_SIZE - 1) / MEM_BLOCK_SIZE;
     }
 
     /* Algorithm: Best Fit*/
@@ -90,14 +87,14 @@ namespace kernel::memory
 
         *((size_t*)block) = count; // Upisi velicinu
 
-        return (char*)block + 2 * sizeof(size_t);
+        return (char*)block + sizeof(size_t);
     }
 
     int HeapAllocator::deallocateBlocks(void* ptr)
     {
         if (ptr == nullptr) return -1;
 
-        auto address = (char*)ptr - 2 * sizeof(size_t);
+        auto address = (char*)ptr - sizeof(size_t);
 
         // If ptr was not in heap range
         if (HEAP_START_ADDR > address || address >= HEAP_END_ADDR)
