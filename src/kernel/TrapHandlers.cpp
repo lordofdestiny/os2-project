@@ -48,7 +48,7 @@ namespace kernel
 
         void systemCallHandler()
         {
-            auto type = ACCEPT(CallType, 0);
+            auto type = ACCEPT(SystemCallCode, 0);
 
             NEXT_INSTRUCTION();
 

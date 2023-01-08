@@ -15,7 +15,7 @@ namespace kernel
     {
         class Cache;
     }
-    class Kernel
+    class Kernel final
     {
     public:
         using TMain = void (*)(void);

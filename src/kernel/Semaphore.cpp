@@ -4,6 +4,7 @@
 
 #include "../../h/kernel/Semaphore.h"
 #include "../../h/kernel/Scheduler.h"
+#include "../../h/kernel/Utils/Utils.h"
 
 namespace kernel
 {
@@ -11,8 +12,7 @@ namespace kernel
     void Semaphore::initialize()
     {
         object_cache =
-            kmem_cache_create(
-                "sem",
+            kmem_cache_create("sem_t",
                 sizeof(Semaphore),
                 nullptr, nullptr);
     }
@@ -37,7 +37,9 @@ namespace kernel
         auto curr = head;
         while (curr != nullptr)
         {
-            curr->getContext().getRegisters().a0 = -0x02;
+            curr->getContext()
+                .getRegisters()
+                .a0 = -0x02;
             SCHEDULER.put(curr);
             curr = curr->next;
         }
@@ -85,8 +87,7 @@ namespace kernel
     Thread* Semaphore::dequeue()
     {
         if (head == nullptr) return nullptr;
-        auto thread = head;
-        head = head->next;
+        auto thread = utils::exchange(head, head->next);
         if (head == nullptr) tail = nullptr;
         thread->next = nullptr;
         return thread;

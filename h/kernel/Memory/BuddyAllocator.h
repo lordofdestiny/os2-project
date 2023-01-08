@@ -37,7 +37,6 @@ namespace kernel::memory
             FreeBlock* next;
             int level;
         };
-        static_assert(sizeof(FreeBlock) <= (1 << PAGE_ORDER));
 
         BuddyAllocator();
 

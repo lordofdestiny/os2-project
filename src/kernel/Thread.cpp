@@ -4,8 +4,11 @@
 
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/Scheduler.h"
+#include "../../h/kernel/Memory/MemoryManager.h"
 #include "../../h/kernel/Memory/HeapAllocator.h"
 #include "../../h/kernel/Utils/BitMasks.h"
+#include "../../h/kernel/Utils/Utils.h"
+#include "../../h/kernel/Memory/slab.h"
 #include "../../h/syscall_c.h"
 
 namespace kernel
@@ -24,10 +27,7 @@ namespace kernel
 
     Thread::Context::Registers::Registers()
     {
-        for (int i = 0; i < 32; i++)
-        {
-            ((uint64*)this)[i] = 0;
-        }
+        utils::memset(this, 0, sizeof(*this));
     }
 
     void* Thread::operator new(size_t size) noexcept
@@ -55,7 +55,8 @@ namespace kernel
 
         auto oldThread = runningThread;
 
-        if (oldThread && oldThread->status != Status::BLOCKED)
+        if (oldThread &&
+            oldThread->status != Status::BLOCKED)
         {
             SCHEDULER.put(oldThread);
         }
@@ -71,7 +72,8 @@ namespace kernel
     {
         if (mainThread == nullptr)
         {
-            mainThread = new Thread(nullptr, nullptr,
+            mainThread = new Thread(
+                nullptr, nullptr,
                 nullptr, Mode::SYSTEM);
         }
         return mainThread;
@@ -103,15 +105,15 @@ namespace kernel
     {
         using namespace BitMasks;
         using BitMasks::sstatus;
-        auto status =
+        const auto status =
             runningThread == nullptr
             ? (uint64)sstatus::SPIE
             : runningThread->context.sstatus;
-        auto SPP =
+        const auto SPP =
             mode == Mode::SYSTEM
             ? (uint64)sstatus::SPP
             : 0x00;
-        auto SPIE = status & (uint64)sstatus::SPIE;
+        const auto SPIE = status & (uint64)sstatus::SPIE;
         return SPP | SPIE | (uint64)sstatus::SIE;
     }
 
@@ -146,19 +148,31 @@ namespace kernel
     Thread::~Thread()
     {
         threadCounter[(int)mode]--;
-        if (this == runningThread) runningThread = nullptr;
+        if (this == runningThread)
+        {
+            runningThread = nullptr;
+        }
         if (stack != nullptr)
-        {   // Could crash if thread is idleThread
-            // of mainThread because their stacks
-            // are allocated in higer addresses
-            ALLOCATOR.deallocateBlocks(stack);
+        {
+            using namespace memory;
+            if (UserHeap().start <= stack
+                && stack < UserHeap().end)
+            {
+                ALLOCATOR.deallocateBlocks(stack);
+            }
+            else if (KernelHeap().start <= stack
+                && stack < KernelHeap().end)
+            {
+                kfree(stack);
+            }
         }
         *my_handle = nullptr;
     }
 
     void Thread::tick()
     {
-        if (this == runningThread && --runningTimeLeft == 0)
+        if (this == runningThread
+            && --runningTimeLeft == 0)
         {
             dispatch();
         }
@@ -173,7 +187,10 @@ namespace kernel
         if (this->mode == Mode::SYSTEM)
         {
             using namespace BitMasks;
-            auto newsstatus = context.sstatus & (~(uint64)sstatus::SPP);
+            auto newsstatus =
+                context.sstatus
+                & (~(uint64)sstatus::SPP);
+
             context.sstatus = newsstatus;
 
             mode = Mode::USER;

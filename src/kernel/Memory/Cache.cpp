@@ -81,15 +81,14 @@ namespace kernel::memory
         if (slab == nullptr)
         {
             // Error already reported in the buddy allocator
-            const auto new_slab = allocateSlab(this);
-            if (new_slab == nullptr) return nullptr;
+            slab = allocateSlab(this);
+            if (slab == nullptr) return nullptr;
             // One slot will be allocated from this slab, so it can be placed into
             // the partial list immediately
 
-            insertIntoList(partial, new_slab);
+            insertIntoList(partial, slab);
             partialSlabs++;
-
-            slab = new_slab;
+            newAllocations = true;
         }
         // Error already reported in the slab
         const auto obj = slab->allocate();
@@ -111,7 +110,11 @@ namespace kernel::memory
 
     void Cache::deallocate(void* ptr)
     {
-        auto escope = errmng.getScope(ErrorOrigin::CACHE, Operation::DEALLOCATE);
+        auto escope = errmng
+            .getScope(
+                ErrorOrigin::CACHE,
+                Operation::DEALLOCATE);
+
         if (ptr == nullptr)
         {
             escope.setError(CacheError::DEALLOCATE_NULLPTR);
@@ -149,9 +152,9 @@ namespace kernel::memory
 
     size_t Cache::freeEmptySlabs()
     {
-        if (allocationsSinceFree > 0)
+        if (newAllocations)
         {
-            allocationsSinceFree = 0;
+            newAllocations = false;
             return 0;
         }
 
@@ -165,7 +168,7 @@ namespace kernel::memory
             cnt++;
         }
 
-        allocationsSinceFree = 0;
+        newAllocations = false;
         return cnt;
     }
 

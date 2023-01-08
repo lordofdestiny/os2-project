@@ -4,15 +4,22 @@ namespace kernel::memory
 {
     void* Slab::getElement(size_t index)
     {
-        const auto size = owner->obj_size;
-        return buffer + index * size;
+        return
+            const_cast<void*>
+            (const_cast<const Slab*>
+                (this)->getElement(index));
     }
+
+    void const* Slab::getElement(size_t index) const
+    {
+        return buffer + index * owner->obj_size;
+    }
+
 
     void Slab::initialize(Cache* owner, char* buff, char* alloc)
     {
-        allocated_head = 0;
-        prev = nullptr;
-        next = nullptr;
+        freelist = 0;
+        prev = next = nullptr;
         this->owner = owner;
         m_capacity = owner->m_slabCapacity;
         freeSlotCount = m_capacity;
@@ -105,8 +112,7 @@ namespace kernel::memory
     void Slab::deallocateSmallSlab(Slab* slab)
     {
         slab->destroyAll();
-        BLOCKS.deallocate(
-            slab,
+        BLOCKS.deallocate(slab,
             slab->owner->slabBlockOrder,
             slab->owner->errmng);
     }
@@ -114,12 +120,10 @@ namespace kernel::memory
     {
         slab->destroyAll();
 
-        BLOCKS
-            .deallocate(
-                slab->buffer,
-                slab->owner->slabBlockOrder,
-                slab->owner->errmng);
-
+        BLOCKS.deallocate(
+            slab->buffer,
+            slab->owner->slabBlockOrder,
+            slab->owner->errmng);
         kfree(slab);
     }
 
@@ -139,10 +143,10 @@ namespace kernel::memory
 
     unsigned int Slab::getSlabBlockOrder(size_t obj_size)
     {
-        using fptr = int(*)(int, int);
-        static fptr max = [](int a, int b) { return a > b ? a : b; };
-        const auto buffer_order = utils::ceil_log2(obj_size);
-        return max(buffer_order - PAGE_ORDER, 0);
+        return [](int a, int b)
+        {
+            return a > b ? a : b;
+        }(utils::ceil_log2(obj_size) - PAGE_ORDER, 0);
     }
 
     size_t Slab::getSlabCapacity(size_t obj_size, unsigned int block_order)
@@ -157,14 +161,14 @@ namespace kernel::memory
         auto escope = owner->errmng
             .getScope(ErrorOrigin::SLAB, Operation::ALLOCATE);
 
-        if (allocated_head == BUFFCTL_END)
+        if (freelist == BUFFCTL_END)
         {
             escope.setError(SlabError::ALLOCATION_FAILED);
             return nullptr;
         }
 
-        const auto obj = buffer + allocated_head * owner->obj_size;
-        allocated_head = is_allocated[allocated_head];
+        const auto obj = getElement(freelist);
+        freelist = is_allocated[freelist];
         freeSlotCount--;
         return obj;
     }
@@ -188,15 +192,16 @@ namespace kernel::memory
             return;
         }
 
-        is_allocated[index] = allocated_head;
-        allocated_head = index;
+        is_allocated[index] = freelist;
+        freelist = index;
 
         freeSlotCount++;
     }
 
     bool Slab::owns(void const* obj) const
     {
-        return buffer <= obj && obj < buffer + m_capacity * owner->obj_size;//Ne valja
+        return buffer <= obj &&
+            obj < (char*)getElement(m_capacity);
     }
 
 } // namespace kernem::memory

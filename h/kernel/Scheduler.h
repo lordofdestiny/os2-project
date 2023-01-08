@@ -16,10 +16,12 @@ namespace kernel
     class Scheduler final
     {
     public:
+        friend class Kernel;
+        static Scheduler& getInstance();
+
         Scheduler(Scheduler const&) = delete;
         Scheduler& operator=(Scheduler const&) = delete;
-
-        static Scheduler& getInstance();
+        ~Scheduler() = default;
 
         void put(Thread* thread);
         Thread* get();
@@ -30,6 +32,11 @@ namespace kernel
         void awaken();
         Scheduler() = default;
         Thread* getIdleThread();
+
+        static void initialize();
+        static void* operator new(size_t size);
+        static void operator delete(void* ptr);
+
     private:
         Thread* readyHead = nullptr;
         Thread* readyTail = nullptr;
@@ -37,6 +44,8 @@ namespace kernel
         Thread* sleepingHead = nullptr;
 
         Thread* idleThread = nullptr;
+
+        static Scheduler* instance;
     };
 }
 

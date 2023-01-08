@@ -4,13 +4,16 @@
 
 #include "../../../h/kernel/Memory/HeapAllocator.h"
 #include "../../../h/kernel/Memory/MemoryManager.h"
+#include "../../../h/kernel/Utils/Utils.h"
 
 namespace kernel::memory
 {
     HeapAllocator::HeapAllocator()
     {
-        auto heapByteSize = UserHeap().size();
-        auto heapBlockCount = heapByteSize / MEM_BLOCK_SIZE;
+        const auto heapByteSize = UserHeap().size();
+        const auto heapBlockCount =
+            heapByteSize / MEM_BLOCK_SIZE;
+
         head = (FreeBlock*)UserHeap().start;
         head->size = heapBlockCount;
         head->prev = nullptr;
@@ -47,10 +50,10 @@ namespace kernel::memory
 
         if (block == nullptr) return nullptr;
 
-        auto remainingBlocks = block->size - count;
+        const auto remainingBlocks = block->size - count;
         if (remainingBlocks > 0)
         {
-            auto offset = count * MEM_BLOCK_SIZE;
+            const auto offset = count * MEM_BLOCK_SIZE;
             auto newBlock = (FreeBlock*)((char*)block + offset);
 
             if (block->prev != nullptr)
@@ -94,7 +97,7 @@ namespace kernel::memory
     {
         if (ptr == nullptr) return -1;
 
-        auto address = (char*)ptr - sizeof(size_t);
+        const auto address = (char*)ptr - sizeof(size_t);
 
         // If ptr was not in heap range
         if (HEAP_START_ADDR > address || address >= HEAP_END_ADDR)
@@ -102,8 +105,8 @@ namespace kernel::memory
             return -2;
         }
 
-        auto blockCount = *((size_t*)address);
-        auto byteSize = blockCount * MEM_BLOCK_SIZE;
+        const auto blockCount = *((size_t*)address);
+        const auto byteSize = blockCount * MEM_BLOCK_SIZE;
 
         // If end of ptr is after end of the heap
         if ((char*)address + byteSize >= HEAP_END_ADDR)
@@ -120,7 +123,8 @@ namespace kernel::memory
         }
         else
         {
-            while (curr->next != nullptr && address > (char*)(curr->next))
+            while (curr->next != nullptr
+                && address > (char*)(curr->next))
             {
                 curr = curr->next;
             }
@@ -195,7 +199,7 @@ namespace kernel::memory
 
     void* HeapAllocator::allocateBytes(size_t count)
     {
-        auto blockCount = byteSizeToBlockCount(count);
+        const auto blockCount = byteSizeToBlockCount(count);
         return allocateBlocks(blockCount);
     }
 }

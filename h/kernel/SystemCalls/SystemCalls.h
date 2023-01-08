@@ -4,7 +4,6 @@
 
 #ifndef PROJECT_SYSTEMCALLS_H
 #define PROJECT_SYSTEMCALLS_H
-#include "./SystemCallCode.h"
 #include "./SystemCallGroup.h"
 
 #define ACCEPT(type, index) (type) RUNNING_REGISTERS.a##index
@@ -34,7 +33,7 @@ namespace kernel
         System = 0xF0,
     };
 
-    enum class CallType
+    enum class SystemCallCode
     {
         MemoryAllocate = 0x01,
         MemoryFree = 0x02,
@@ -54,13 +53,21 @@ namespace kernel
         EnterUserMode = 0xFF
     };
 
-    class SystemCalls
+    class SystemCalls final
     {
+        static void* operator new(size_t size);
+        static void operator delete(void* ptr);
+
     public:
-        SystemCallHandler getHandler(CallType type);
+        friend class Kernel;
+        SystemCalls(SystemCalls const&) = delete;
+        SystemCalls& operator=(SystemCalls const&) = delete;
+        ~SystemCalls();
+        static void initialize();
         static SystemCalls& getInstance();
-        SystemCallHandlerGroup* resolveGroup(CallType type);
-        void initialize();
+
+        SystemCallHandler getHandler(SystemCallCode type);
+        CallHandlerGroup* resolveGroup(SystemCallCode type);
     public:
         static void mem_alloc();
         static void mem_free();
@@ -80,15 +87,18 @@ namespace kernel
         static void enter_user_mode();
     private:
         SystemCalls();
-        void registerSystemCall(CallType type, SystemCallHandler hanlder);
-        static const int groupCount = 6;
-        SystemCallHandlerGroup* memoryCalls = new SystemCallHandlerGroup(SystemCallType::Memory);
-        SystemCallHandlerGroup* threadCalls = new SystemCallHandlerGroup(SystemCallType::Thread);
-        SystemCallHandlerGroup* semaphoreCalls = new SystemCallHandlerGroup(SystemCallType::Semaphore);
-        SystemCallHandlerGroup* timerCalls = new SystemCallHandlerGroup(SystemCallType::Timer);
-        SystemCallHandlerGroup* consoleCalls = new SystemCallHandlerGroup(SystemCallType::Console);
-        SystemCallHandlerGroup* systemCalls = new SystemCallHandlerGroup(SystemCallType::System);
-        SystemCallHandlerGroup* systemCallGroups[groupCount];
+        void registerCall(SystemCallCode type, SystemCallHandler hanlder);
+        static constexpr int groupCount = 6;
+        static SystemCalls* instance;
+        CallHandlerGroup* systemCallGroups[groupCount]{
+            new CallHandlerGroup(SystemCallType::Memory),
+            new CallHandlerGroup(SystemCallType::Thread),
+            new CallHandlerGroup(SystemCallType::Semaphore),
+            new CallHandlerGroup(SystemCallType::Timer),
+            new CallHandlerGroup(SystemCallType::Console),
+            new CallHandlerGroup(SystemCallType::System)
+        };
+
     };
 } // kernel
 

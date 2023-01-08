@@ -44,4 +44,14 @@ namespace kernel::utils
         }
         return len;
     }
+
+    void* memset(void* ptr, int value, size_t num)
+    {
+        auto p = (uint8*)ptr;
+        for (size_t i = 0; i < num; i++)
+        {
+            p[i] = (uint8)value;
+        }
+        return ptr;
+    }
 }

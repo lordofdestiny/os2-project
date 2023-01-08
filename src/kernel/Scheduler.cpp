@@ -3,15 +3,28 @@
 //
 
 #include "../../h/kernel/Scheduler.h"
+#include "../../h/kernel/Utils/Utils.h"
 
 namespace kernel
 {
-    //    Scheduler Scheduler::instance{};
+    Scheduler* Scheduler::instance = nullptr;
 
+    void* Scheduler::operator new(size_t size)
+    {
+        return kmalloc(size);
+    }
+    void Scheduler::operator delete(void* ptr)
+    {
+        return kfree(ptr);
+    }
+
+    void Scheduler::initialize()
+    {
+        instance = new Scheduler();
+    }
     Scheduler& Scheduler::getInstance()
     {
-        static Scheduler instance{};
-        return instance;
+        return *instance;
     }
 
     void Scheduler::put(kernel::Thread* thread)
@@ -34,8 +47,10 @@ namespace kernel
     {
         if (readyHead == nullptr) return getIdleThread();
 
-        auto thread = readyHead;
-        readyHead = readyHead->next;
+        auto thread = utils::exchange(
+            readyHead,
+            readyHead->next);
+
         if (readyHead == nullptr)
         {
             readyTail = nullptr;
@@ -54,19 +69,14 @@ namespace kernel
         Thread* curr = sleepingHead;
         while (curr != nullptr)
         {
-            if (ticks <= curr->getSleepingTime())
-            {
-                break;
-            }
+            if (ticks <= curr->getSleepingTime()) break;
             ticks -= curr->getSleepingTime();
-            prev = curr;
-            curr = curr->next;
+            prev = utils::exchange(curr, curr->next);
         }
 
         if (prev == nullptr)
         {
-            curr = sleepingHead;
-            sleepingHead = thread;
+            curr = utils::exchange(sleepingHead, thread);
         }
         else
         {
@@ -94,8 +104,9 @@ namespace kernel
     {
         while (sleepingHead != nullptr && sleepingHead->getSleepingTime() == 0)
         {
-            auto awake = sleepingHead;
-            sleepingHead = sleepingHead->next;
+            auto awake = utils::exchange(
+                sleepingHead,
+                sleepingHead->next);
             awake->next = nullptr;
             put(awake);
         }
@@ -105,12 +116,11 @@ namespace kernel
     {
         if (idleThread == nullptr)
         {
-            auto task = [](void* arg) { while (true); };
             idleThread = new Thread(
-                task, nullptr,
-                kmalloc(DEFAULT_STACK_SIZE),
+                [](void* arg) { while (true); },
+                nullptr,
+                kmalloc(DEFAULT_STACK_SIZE >> 3),
                 Thread::Mode::SYSTEM);
-            Thread::threadCounter[(int)Thread::Mode::SYSTEM]++;
         }
         return idleThread;
     }

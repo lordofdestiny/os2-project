@@ -11,19 +11,29 @@
 
 namespace kernel
 {
-    SystemCallHandler SystemCalls::getHandler(CallType type)
+    SystemCalls* SystemCalls::instance = nullptr;
+
+    SystemCallHandler SystemCalls::getHandler(SystemCallCode type)
     {
         auto group = resolveGroup(type);
-        if (group == nullptr)
-            return nullptr;
+        if (group == nullptr) return nullptr;
         return group->getCall(type);
     }
+
+    void* SystemCalls::operator new(size_t size)
+    {
+        return kmalloc(size);
+    }
+    void SystemCalls::operator delete(void* ptr)
+    {
+        return kfree(ptr);
+    }
+
     SystemCalls& SystemCalls::getInstance()
     {
-        static SystemCalls instance{};
-        return instance;
+        return *instance;
     }
-    SystemCallHandlerGroup* SystemCalls::resolveGroup(CallType type)
+    CallHandlerGroup* SystemCalls::resolveGroup(SystemCallCode type)
     {
         for (auto g : systemCallGroups)
         {
@@ -32,40 +42,47 @@ namespace kernel
         return nullptr;
     }
 
-    void SystemCalls::registerSystemCall(CallType type, SystemCallHandler hanlder)
+    void SystemCalls::registerCall(SystemCallCode type, SystemCallHandler hanlder)
     {
         auto group = resolveGroup(type);
-        if (group == nullptr)
-        {
-            return;
-        }
+        if (group == nullptr) return;
+
         group->registerCall(type, hanlder);
     }
 
+    SystemCalls::~SystemCalls()
+    {
+        for (size_t i = 0; i < groupCount; i++)
+        {
+            delete systemCallGroups[i];
+        }
+    }
+
+
     void SystemCalls::initialize()
     {
-        systemCallGroups[0] = memoryCalls = new SystemCallHandlerGroup(SystemCallType::Memory);
-        systemCallGroups[1] = threadCalls = new SystemCallHandlerGroup(SystemCallType::Thread);
-        systemCallGroups[2] = semaphoreCalls = new SystemCallHandlerGroup(SystemCallType::Semaphore);
-        systemCallGroups[3] = timerCalls = new SystemCallHandlerGroup(SystemCallType::Timer);
-        systemCallGroups[4] = consoleCalls = new SystemCallHandlerGroup(SystemCallType::Console);
-        systemCallGroups[5] = systemCalls = new SystemCallHandlerGroup(SystemCallType::System);
-        registerSystemCall(CallType::MemoryAllocate, &mem_alloc);
-        registerSystemCall(CallType::MemoryFree, &mem_free);
-        registerSystemCall(CallType::ThreadCreate, &thread_create);
-        registerSystemCall(CallType::ThreadExit, &thread_exit);
-        registerSystemCall(CallType::ThreadDispatch, &thread_dispatch);
-        registerSystemCall(CallType::ThreadInit, &thread_init);
-        registerSystemCall(CallType::ThreadStart, &thread_start);
-        registerSystemCall(CallType::ThreadDestroy, &thread_destroy);
-        registerSystemCall(CallType::SemaphoreOpen, &sem_open);
-        registerSystemCall(CallType::SemaphoreClose, &sem_close);
-        registerSystemCall(CallType::SemaphoreWait, &sem_wait);
-        registerSystemCall(CallType::SemaphoreSignal, &sem_signal);
-        registerSystemCall(CallType::TimeSleep, &time_sleep);
-        registerSystemCall(CallType::GetChar, &getc);
-        registerSystemCall(CallType::PutChar, &putc);
-        registerSystemCall(CallType::EnterUserMode, &enter_user_mode);
+        instance = new SystemCalls();
+        instance->registerCall(SystemCallCode::MemoryAllocate, &mem_alloc);
+        instance->registerCall(SystemCallCode::MemoryFree, &mem_free);
+
+        instance->registerCall(SystemCallCode::ThreadCreate, &thread_create);
+        instance->registerCall(SystemCallCode::ThreadExit, &thread_exit);
+        instance->registerCall(SystemCallCode::ThreadDispatch, &thread_dispatch);
+        instance->registerCall(SystemCallCode::ThreadInit, &thread_init);
+        instance->registerCall(SystemCallCode::ThreadStart, &thread_start);
+        instance->registerCall(SystemCallCode::ThreadDestroy, &thread_destroy);
+
+        instance->registerCall(SystemCallCode::SemaphoreOpen, &sem_open);
+        instance->registerCall(SystemCallCode::SemaphoreClose, &sem_close);
+        instance->registerCall(SystemCallCode::SemaphoreWait, &sem_wait);
+        instance->registerCall(SystemCallCode::SemaphoreSignal, &sem_signal);
+
+        instance->registerCall(SystemCallCode::TimeSleep, &time_sleep);
+
+        instance->registerCall(SystemCallCode::GetChar, &getc);
+        instance->registerCall(SystemCallCode::PutChar, &putc);
+
+        instance->registerCall(SystemCallCode::EnterUserMode, &enter_user_mode);
     }
 
     SystemCalls::SystemCalls() = default;

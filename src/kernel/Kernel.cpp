@@ -29,15 +29,16 @@ namespace kernel
 
     void Kernel::initialize()
     {
-        auto kmem = memory::KernelHeap();
-        kmem_init(kmem.start, kmem.size() / BLOCK_SIZE);
+        const auto mem_range = memory::KernelHeap();
+        kmem_init(mem_range.start, mem_range.size() / BLOCK_SIZE);
 
         /* allocate kernel stack */
-        kernelStack = (uint8*)kmalloc(Kernel::stackSize);
+        kernelStack = (uint8*)kmalloc(stackSize);
         kernelStackTopAddress = (uint8*)kernelStack + stackSize;
 
         setTrapHandler(block);
-        SYSTEMCALLS.initialize();
+        SystemCalls::initialize();
+        Scheduler::initialize();
         Semaphore::initialize();
         Thread::initialize();
         Console::initialize();
@@ -75,6 +76,8 @@ namespace kernel
         waitForUserThreads();
         Thread::setMainFinished();
         CONSOLE.join();
+        delete Console::instance;
+        // delete
     }
 
     void Kernel::enableInterrupts()
@@ -134,7 +137,8 @@ namespace kernel
 
     void Kernel::removeFromCacheList(void* cachep)
     {
-        if (cachep == nullptr || cache_list == nullptr) return;
+        if (cachep == nullptr ||
+            cache_list == nullptr) return;
         auto cache = (memory::Cache*)cachep;
 
         const bool one = cache == cache->next;

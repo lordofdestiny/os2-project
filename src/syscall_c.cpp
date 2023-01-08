@@ -13,7 +13,7 @@
 
 #define ECALL() asm volatile("ecall")
 
-using CallType = kernel::CallType;
+using CallType = kernel::SystemCallCode;
 using kernel::memory::HeapAllocator;
 using kernel::Console;
 

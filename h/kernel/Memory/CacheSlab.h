@@ -13,19 +13,21 @@ namespace kernel::memory
     using SlabCtorPtr = Slab * (*)(Cache*);
     using SlabDtorPtr = void (*)(Slab*);
 
-    class Slab
+    class Slab final
     {
-        friend class Cache;
     private:
         static Slab* allocateSmallSlab(Cache* owner);
         static Slab* allocateLargeSlab(Cache* owner);
         void initialize(Cache* owner, char* buff, char* alloc);
         void* getElement(size_t index);
+        void const* getElement(size_t index) const;
+
 
         static void deallocateSmallSlab(Slab* slab);
         static void deallocateLargeSlab(Slab* slab);
         void destroyAll();
     public:
+        friend class Cache;
         static SlabCtorPtr getSlabAllocator(size_t obj_size);
         static SlabDtorPtr getSlabDeallocator(size_t obj_size);
         static unsigned int getSlabBlockOrder(size_t obj_size);
@@ -66,7 +68,7 @@ namespace kernel::memory
          * to store the objects into
          * "buffer" points to this page.
          */
-        uint16 allocated_head = 0;
+        uint16 freelist = 0;
         uint16* is_allocated;
         char* buffer;
         static constexpr uint16 BUFFCTL_END = -1;

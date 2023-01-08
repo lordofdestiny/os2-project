@@ -38,18 +38,19 @@ namespace kernel::memory
     using SlabCtorPtr = Slab * (*)(Cache*);
     using SlabDtorPtr = void (*)(Slab*);
 
-    class Cache
+    class Cache final
     {
     public:
         friend class kernel::Kernel;
+        friend void ::kmem_init(void*, int);
         friend void ::insertIntoCacheList(kernel::memory::Cache* cache);
         friend bool ::isValidCache(kernel::memory::Cache* cachep);
         friend void ::removeFromCacheList(kernel::memory::Cache* cache);
 
         using FunPtr = void(*)(void*);
         // make static make function
-        void* operator new(size_t);
-        void operator delete(void*);
+        static void* operator new(size_t);
+        static void operator delete(void*);
 
     private:
         Cache() = default;
@@ -86,7 +87,7 @@ namespace kernel::memory
         MemoryErrorManager const& getErrorManager() const;
     private:
         friend class Slab;
-        size_t allocationsSinceFree = 0;
+        bool newAllocations = false;
 
         Slab* free = nullptr;
         Slab* partial = nullptr;
@@ -112,7 +113,6 @@ namespace kernel::memory
 
         char m_name[NAME_MAX_LENGTH + 1];
 
-        friend void ::kmem_init(void*, int);
         static Cache obj_cache;
         bool initialized;
     private:

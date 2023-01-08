@@ -19,10 +19,7 @@ namespace kernel
     class Console final
     {
     public:
-        static void* operator new(size_t size);
-        static void operator delete(void* ptr);
-        static constexpr size_t BufferSize = 1024;
-        Console();
+        friend class Kernel;
         Console(Console const&) = delete;
         Console& operator=(Console const&) = delete;
         ~Console();
@@ -39,6 +36,10 @@ namespace kernel
 
         static void initialize();
     private:
+        static void* operator new(size_t size);
+        static void operator delete(void* ptr);
+        static constexpr size_t BufferSize = 1024;
+        Console();
         static void outputTask(void* ptr);
     private:
         sem_t inputItemAvailable;

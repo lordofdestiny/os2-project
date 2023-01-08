@@ -9,7 +9,7 @@
 #include "../../../lib/hw.h"
 namespace kernel::memory
 {
-    class HeapAllocator
+    class HeapAllocator final
     {
     private:
         HeapAllocator();

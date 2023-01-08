@@ -250,7 +250,8 @@ int kmem_cache_error(kmem_cache_t* cachep)
     if (cachep == nullptr && last_api_error == 0) return 0;
     if (last_api_error != 0)
     {
-        const char* msg = kernel::memory::MemoryErrorManager::
+        using namespace kernel::memory;
+        const auto msg = MemoryErrorManager::
             getAPIErrorMessage(last_api_error);
         copy_and_swap(cache_info_lock, 0, 1);
         printString("errmsg: ");
@@ -275,5 +276,6 @@ int kmem_cache_error(kmem_cache_t* cachep)
     putc('\n');
     copy_and_swap(cache_info_lock, 1, 0);
 
-    return AS_CACHE(cachep)->getErrorManager().ecode();
+    return AS_CACHE(cachep)->
+        getErrorManager().ecode();
 }

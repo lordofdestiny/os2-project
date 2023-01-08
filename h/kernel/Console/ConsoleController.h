@@ -6,17 +6,13 @@
 #define PROJECT_CONSOLECONTROLLER_H
 #include "../../../lib/hw.h"
 
-namespace kernel
+namespace kernel::ConsoleController
 {
-    namespace ConsoleController
-    {
-        uint8 status();
-        char receiveData();
-        void transmitData(char data);
-        bool isReadable();
-        bool isWritable();
-    };
-
+    uint8 status();
+    char receiveData();
+    void transmitData(char data);
+    bool isReadable();
+    bool isWritable();
 } // kernel
 
 #endif //PROJECT_CONSOLECONTROLLER_H

@@ -81,7 +81,8 @@ namespace kernel::memory
         ->FreeBlock*
     {
         const auto level = block->level;
-        if (block == nullptr || freeLists[level] == nullptr)
+        if (block == nullptr
+            || freeLists[level] == nullptr)
         {
             return nullptr;
         }
