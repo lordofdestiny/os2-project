@@ -78,17 +78,17 @@ private:
 };
 
 
-// void userMain()
-// {
-//     ForkThread thread(1);
+void userMain()
+{
+    ForkThread thread(1);
 
-//     thread.start();
+    thread.start();
 
-//     while (!thread.isFinished())
-//     {
-//         thread_dispatch();
-//     }
+    while (!thread.isFinished())
+    {
+        thread_dispatch();
+    }
 
 
-//     printString("User main finished\n");
-// }
+    printString("User main finished\n");
+}

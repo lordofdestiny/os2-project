@@ -7,7 +7,6 @@
 
 #include "../Semaphore.h"
 #include "./Buffer.h"
-#include "../Memory/HeapAllocator.h"
 #include "./ConsoleController.h"
 #include "../Scheduler.h"
 #include "../../syscall_c.h"

@@ -15,13 +15,13 @@
 // }
 // static int f = 1;
 // const int k = 0;
-void userMain()
-{
-    // f++;
-    // alfa = 10;
-    // int c = f * k;
-    // printInt(c + test());
-    // printString("\n");
-    // studentMain();
-    testMain();
-}
+// void userMain()
+// {
+//     // f++;
+//     // alfa = 10;
+//     // int c = f * k;
+//     // printInt(c + test());
+//     // printString("\n");
+//     // studentMain();
+//     testMain();
+// }

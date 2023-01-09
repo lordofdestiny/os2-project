@@ -90,14 +90,14 @@ namespace kernel
     void SystemCalls::mem_alloc()
     {
         auto blockCount = ACCEPT(size_t, 1);
-        auto memory = ALLOCATOR.allocateBlocks(blockCount);
+        auto memory = memory::heap::alloc_blocks(blockCount);
         RETURN(memory);
     }
 
     void SystemCalls::mem_free()
     {
         auto memory = ACCEPT(void*, 1);
-        int code = ALLOCATOR.deallocateBlocks(memory);
+        int code = memory::heap::free_blocks(memory);
         RETURN(code);
     }
 
@@ -138,7 +138,7 @@ namespace kernel
         auto thread = new Thread(task, argument, stack, mode);
         if (thread == nullptr)
         {
-            ALLOCATOR.deallocateBlocks(stack);
+            memory::heap::free_blocks(stack);
         }
         else
         {

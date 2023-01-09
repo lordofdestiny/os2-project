@@ -6,6 +6,7 @@
 #include "../../h/kernel/Utils/BitMasks.h"
 #include "../../h/kernel/Memory/slab.h"
 #include "../../h/kernel/Memory/MemoryManager.h"
+#include "../../h/kernel/Memory/HeapAllocator.h"
 #include "../../h/kernel/Utils/RegisterUtils.h"
 #include "../../h/kernel/SystemCalls/SystemCalls.h"
 #include "../../h/kernel/Console/Console.h"
@@ -29,9 +30,10 @@ namespace kernel
 
     void Kernel::initialize()
     {
-        const auto mem_range = memory::KernelHeap();
+        using namespace memory;
+        const auto mem_range = KernelHeap();
         kmem_init(mem_range.start, mem_range.size() / BLOCK_SIZE);
-
+        heap::initialize(UserHeap());
         /* allocate kernel stack */
         kernelStack = (uint8*)kmalloc(stackSize);
         kernelStackTopAddress = (uint8*)kernelStack + stackSize;

@@ -14,12 +14,11 @@
 #define ECALL() asm volatile("ecall")
 
 using CallType = kernel::SystemCallCode;
-using kernel::memory::HeapAllocator;
 using kernel::Console;
 
 void* mem_alloc(size_t size)
 {
-    auto blockCount = HeapAllocator::byteSizeToBlockCount(size);
+    auto blockCount = kernel::memory::heap::bytesToBlocks(size);
     REGISTER_WRITE(a1, blockCount);
     REGISTER_WRITE(a0, CallType::MemoryAllocate);
     ECALL();

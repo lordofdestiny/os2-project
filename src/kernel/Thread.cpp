@@ -158,7 +158,7 @@ namespace kernel
             if (UserHeap().start <= stack
                 && stack < UserHeap().end)
             {
-                ALLOCATOR.deallocateBlocks(stack);
+                heap::free_blocks(stack);
             }
             else if (KernelHeap().start <= stack
                 && stack < KernelHeap().end)
