@@ -3,15 +3,6 @@
 
 namespace kernel::memory
 {
-    void* kpgalloc()
-    {
-        return BLOCKS.allocate();
-    }
-    void kpgfree(void* pg)
-    {
-        return BLOCKS.deallocate(pg);
-    }
-
     void* memset(void* dst, int c, size_t n)
     {
         auto cdst = (char*)dst;
@@ -21,7 +12,7 @@ namespace kernel::memory
 
     pagetable_t kvmmake()
     {
-        auto pagetable = (pagetable_t)kpgalloc();
+        auto pagetable = (pagetable_t)page_alloc(0);
         memset(pagetable, 0, PAGE_SIZE);
 
         /* Map memory need for peripherals */
@@ -45,7 +36,7 @@ namespace kernel::memory
 
     pagetable_t uvmmake()
     {
-        auto pagetable = (pagetable_t)kpgalloc();
+        auto pagetable = (pagetable_t)page_alloc(0);
         memset(pagetable, 0, PAGE_SIZE);
 
         // need to map page with trap handler to separate page
@@ -139,7 +130,7 @@ namespace kernel::memory
             else // Nije list
             {
                 // Ako je pozvato za alokaciju probaj alocirati stranu
-                if (!alloc || (pagetable = (pde_t*)kpgalloc()) == 0)
+                if (!alloc || (pagetable = (pde_t*)page_alloc(0)) == 0)
                     return 0;
                 // ako je alokacija uspesna, inicijalizuj je
                 memset(pagetable, 0, PAGE_SIZE);

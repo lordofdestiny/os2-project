@@ -32,16 +32,14 @@ void testMain()
     printMemorySection("Kernel memory", memory::KernelHeap());
     printString("*************************************************************************\n");
 
-    auto& allocator = memory::BLOCKS;
-    allocator.printBlockTable();
-    memory::MemoryErrorManager em;
+    memory::printBlockTable();
     int pagesToAllocate = 8;
     void* ptrs0[100];
-    auto first = allocator.allocate(pagesToAllocate, em);
+    auto first = memory::page_alloc(pagesToAllocate);
     int allocs = first != nullptr ? 1 : 0;
     if (first != nullptr) ptrs0[0] = first;
     void* temp = nullptr;
-    while ((temp = allocator.allocate(pagesToAllocate, em)) != nullptr)
+    while ((temp = memory::page_alloc(pagesToAllocate)) != nullptr)
     {
         ptrs0[allocs++] = temp;
     }
@@ -52,13 +50,13 @@ void testMain()
     int deallocs = 0;
     for (int i = 0; i < allocs; i++)
     {
-        allocator.deallocate(ptrs0[deallocs++], pagesToAllocate, em);
+        memory::page_free(ptrs0[deallocs++], pagesToAllocate);
     }
     printString("Deallocations: ");
     printInt(deallocs);
     putc('\n');
 
-    allocator.printBlockTable();
+    memory::printBlockTable();
     printString("*************************************************************************\n");
 
     auto cache = kmem_cache_create("Test", 36, nullptr, nullptr);
@@ -79,7 +77,7 @@ void testMain()
     kmem_cache_info(cache);
 
 
-    allocator.printBlockTable();
+    memory::printBlockTable();
     printString("*************************************************************************\n");
 
     kmem_cache_free(cache, (void*)1000);
@@ -118,7 +116,7 @@ void testMain()
         printString("Success\n");
     }
 
-    allocator.printBlockTable();
+    memory::printBlockTable();
     printString("*********************************************\n");
 
     auto big_buff = kmem_cache_create("Big Daddy", 1 << 7, nullptr, nullptr);
@@ -144,7 +142,7 @@ void testMain()
     kmem_cache_info(big_buff);
     kmem_cache_error(big_buff);
     printString("*********************************************\n");
-    allocator.printBlockTable();
+    memory::printBlockTable();
 
     kmem_cache_free(big_buff, ptr);
     kmem_cache_info(big_buff);
@@ -166,5 +164,5 @@ void testMain()
     kmem_cache_error(big_buff);
 
     printString("*********************************************\n");
-    allocator.printBlockTable();
+    memory::printBlockTable();
 }

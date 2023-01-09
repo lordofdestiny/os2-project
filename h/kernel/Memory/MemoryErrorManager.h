@@ -21,15 +21,15 @@ namespace kernel::memory
     {
         DEALLOCATE_NULLPTR = 0x1,
         INVALID_DEALLOCATION_ADDRESS = 0x2,
-        ALLOCATION_FAILED = 0x3,
-        INVALID_PAGES_ORDER = 0x4,
+        INVALID_PAGES_ORDER = 0x3,
+        ALLOCATION_FAILED = 0x4,
     };
 
     enum class SlabError
     {
         DEALLOCATE_NULLPTR = 0x1,
         INVALID_DEALLOCATION_ADDRESS = 0x2,
-        ALLOCATION_FAILED = 0x3,
+        ALLOCATION_FAILED = 0x4,
         UNALLOCATED_OBJECT_FREE = 0x5,
         BIG_SLAB_HEADER_ALLOCATION_FAILED = 0xD,
     };
@@ -54,7 +54,7 @@ namespace kernel::memory
         SIZE_N_ALLOC_FAILED = 0xC
     };
 
-    class MemoryErrorManager
+    class ErrorManager
     {
     public:
         static constexpr int CAUSE_MASK = 0xF;
@@ -63,7 +63,7 @@ namespace kernel::memory
     public:
         struct ErrorScope
         {
-            using Mng = MemoryErrorManager;
+            using Mng = ErrorManager;
             ErrorScope(Mng* m, ErrorOrigin eo, Operation op)
                 :mng(m), base_code((int)eo | (int)op), cause(0)
             { }

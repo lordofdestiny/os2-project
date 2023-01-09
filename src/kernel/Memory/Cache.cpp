@@ -304,12 +304,12 @@ namespace kernel::memory
         return used * 100 / total;
     }
 
-    MemoryErrorManager&
+    ErrorManager&
         Cache::getErrorManager()
     {
         return errmng;
     }
-    MemoryErrorManager const&
+    ErrorManager const&
         Cache::getErrorManager() const
     {
         return errmng;

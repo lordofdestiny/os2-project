@@ -11,7 +11,7 @@ do{ \
 if(COND) \
 {\
     using namespace kernel::memory; \
-    last_api_error = MemoryErrorManager::getAPIErrorCode(ERROR); \
+    last_api_error = ErrorManager::getAPIErrorCode(ERROR); \
     return; \
 }}while(0)\
 
@@ -25,7 +25,7 @@ do{ \
 if(COND) \
 {\
     using namespace kernel::memory; \
-    last_api_error = MemoryErrorManager\
+    last_api_error = ErrorManager\
         ::getAPIErrorCode(ERROR); \
     return RETVAL; \
 }}while(0)\
@@ -61,7 +61,7 @@ void kmem_init(void* space, int block_num)
     using namespace kernel;
     using namespace memory;
     /* Assign memory space to kernel allocator*/
-    BLOCKS.initialize(space, block_num);
+    buddy_init(space, block_num);
 
     Cache::obj_cache.initialize();
     kmem_cache_cache = (kmem_cache_t*)&Cache::obj_cache;
@@ -251,7 +251,7 @@ int kmem_cache_error(kmem_cache_t* cachep)
     if (last_api_error != 0)
     {
         using namespace kernel::memory;
-        const auto msg = MemoryErrorManager::
+        const auto msg = ErrorManager::
             getAPIErrorMessage(last_api_error);
         copy_and_swap(cache_info_lock, 0, 1);
         printString("errmsg: ");

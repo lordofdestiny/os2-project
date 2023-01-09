@@ -13,17 +13,17 @@
 
 namespace kernel::memory
 {
-    auto MemoryErrorManager::getScope(ErrorOrigin eo, Operation op)
+    auto ErrorManager::getScope(ErrorOrigin eo, Operation op)
         ->ErrorScope
     {
         return { this, eo, op };
     }
-    void MemoryErrorManager::ErrorScope::setError(BuddyError be) { cause |= (int)be; }
-    void MemoryErrorManager::ErrorScope::setError(SlabError se) { cause |= (int)se; }
-    void MemoryErrorManager::ErrorScope::setError(CacheError ce) { cause |= (int)ce; }
-    void MemoryErrorManager::clear() { errorCode = 0; };
-    bool MemoryErrorManager::hasError() const { return errorCode != 0; }
-    const char* MemoryErrorManager::getOrigin() const
+    void ErrorManager::ErrorScope::setError(BuddyError be) { cause |= (int)be; }
+    void ErrorManager::ErrorScope::setError(SlabError se) { cause |= (int)se; }
+    void ErrorManager::ErrorScope::setError(CacheError ce) { cause |= (int)ce; }
+    void ErrorManager::clear() { errorCode = 0; };
+    bool ErrorManager::hasError() const { return errorCode != 0; }
+    const char* ErrorManager::getOrigin() const
     {
         auto org = (ErrorOrigin)(errorCode & ORIGIN_MASK);
         switch (org)
@@ -40,7 +40,7 @@ namespace kernel::memory
             return "unknown";
         }
     }
-    const char* MemoryErrorManager::getOperation()const
+    const char* ErrorManager::getOperation()const
     {
         auto org = (Operation)(errorCode & OPERATION_MASK);
         switch (org)
@@ -53,7 +53,7 @@ namespace kernel::memory
             return "unknown";
         }
     }
-    const char* MemoryErrorManager::getErrorMessage() const
+    const char* ErrorManager::getErrorMessage() const
     {
         auto org = (errorCode & CAUSE_MASK);
         switch (org)
@@ -81,8 +81,8 @@ namespace kernel::memory
             return "unknown";
         }
     };
-    int MemoryErrorManager::ecode() const { return errorCode; }
-    const char* MemoryErrorManager::getAPIErrorMessage(int api_error)
+    int ErrorManager::ecode() const { return errorCode; }
+    const char* ErrorManager::getAPIErrorMessage(int api_error)
     {
         auto apie = (APIError)(api_error & CAUSE_MASK);
         switch (apie)
@@ -111,7 +111,7 @@ namespace kernel::memory
         }
     }
 
-    int MemoryErrorManager::getAPIErrorCode(APIError apie)
+    int ErrorManager::getAPIErrorCode(APIError apie)
     {
         return (int)ErrorOrigin::API | (int)apie;
     }

@@ -83,8 +83,8 @@ namespace kernel::memory
         size_t available() const;
         size_t capacity() const;
         size_t usage() const;
-        MemoryErrorManager& getErrorManager();
-        MemoryErrorManager const& getErrorManager() const;
+        ErrorManager& getErrorManager();
+        ErrorManager const& getErrorManager() const;
     private:
         friend class Slab;
         bool newAllocations = false;
@@ -109,7 +109,7 @@ namespace kernel::memory
         unsigned int slabBlockOrder;
         size_t m_slabCapacity;
 
-        MemoryErrorManager errmng{};
+        ErrorManager errmng{};
 
         char m_name[NAME_MAX_LENGTH + 1];
 

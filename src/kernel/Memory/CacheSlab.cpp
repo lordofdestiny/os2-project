@@ -41,9 +41,15 @@ namespace kernel::memory
         }
     }
 
+    /*
+        if __name__ == "__main__":
+            main()
+
+    */
+
     Slab* Slab::allocateSmallSlab(Cache* owner)
     {
-        auto slab = (Slab*)BLOCKS.allocate(
+        auto slab = (Slab*)page_alloc(
             owner->slabBlockOrder,
             owner->errmng);
         /* No need for error logging here, it's already done in the allocate() */
@@ -79,7 +85,7 @@ namespace kernel::memory
         }
 
         /* No need for error logging here, it's already done in the allocate() */
-        const auto buffer = (char*)BLOCKS.allocate(
+        const auto buffer = (char*)page_alloc(
             owner->slabBlockOrder,
             owner->errmng);
 
@@ -112,7 +118,7 @@ namespace kernel::memory
     void Slab::deallocateSmallSlab(Slab* slab)
     {
         slab->destroyAll();
-        BLOCKS.deallocate(slab,
+        page_free(slab,
             slab->owner->slabBlockOrder,
             slab->owner->errmng);
     }
@@ -120,7 +126,7 @@ namespace kernel::memory
     {
         slab->destroyAll();
 
-        BLOCKS.deallocate(
+        page_free(
             slab->buffer,
             slab->owner->slabBlockOrder,
             slab->owner->errmng);
