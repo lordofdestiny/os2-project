@@ -25,7 +25,7 @@ namespace kernel
 
         enum class Status
         {
-            CREATED, READY, RUNNING, BLOCKED
+            CREATED, READY, RUNNING, BLOCKED, COMPLETE
         };
 
         class Context
@@ -100,14 +100,11 @@ namespace kernel
         uint64 sleepingTime = 0;
         Thread* next = nullptr;
         Thread* prev = nullptr;
-        thread_t* my_handle;
     public:
         Thread(Task function, void* argument, void* stack, Mode mode);
         Thread(Thread const&) = delete;
         Thread& operator=(Thread const&) = delete;
         ~Thread();
-
-        void setHandle(thread_t* handle) { my_handle = handle; }
 
         void skipInstruction() { context.pc += 4; }
 
