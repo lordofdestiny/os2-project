@@ -12,6 +12,8 @@
 #include "../../h/kernel/Console/Console.h"
 #include "../../h/kernel/Memory/BuddyAllocator.h"
 #include "../../h/syscall_cpp.hpp"
+#include "../../h/kernel/Memory/Mapping.h"
+#include "../../h/ConsoleUtils.h"
 
 #define BLOCK_ON_ERROR
 
@@ -27,6 +29,8 @@ namespace kernel
     uint8* Kernel::kernelStack = nullptr;
     uint8* Kernel::kernelStackTopAddress = nullptr;
     memory::Cache* Kernel::cache_list = nullptr;
+    uint64  Kernel::kernel_vt = 0;
+    uint64  Kernel::user_vt = 0;
 
     void Kernel::initialize()
     {
@@ -37,6 +41,13 @@ namespace kernel
         /* allocate kernel stack */
         kernelStack = (uint8*)kmalloc(stackSize);
         kernelStackTopAddress = (uint8*)kernelStack + stackSize;
+
+        /* Allocate and mount kernel page table */
+        kernel_vt = MAKE_SATP(memory::kvmmake());
+        user_vt = MAKE_SATP(memory::uvmmake());
+
+        SREGISTER_SET_BITS(sstatus, (uint64)BitMasks::sstatus::SUM);
+        SREGISTER_WRITE(satp, kernel_vt);
 
         setTrapHandler(block);
         SystemCalls::initialize();
@@ -61,6 +72,7 @@ namespace kernel
             }
             void run() override
             {
+                SREGISTER_SET_BITS(sstatus, BitMasks::sstatus::SIE); // test
                 enter_user_mode();
                 main();
                 sem_signal(sem);
@@ -78,7 +90,7 @@ namespace kernel
         waitForUserThreads();
         Thread::setMainFinished();
         CONSOLE.join();
-        delete Console::instance;
+        // delete Console::instance;
         // delete
     }
 

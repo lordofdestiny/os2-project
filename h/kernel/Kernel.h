@@ -30,6 +30,8 @@ namespace kernel
         static constexpr size_t stackSize = DEFAULT_STACK_SIZE;
         static uint8* kernelStack;
         static uint8* kernelStackTopAddress asm("__kernelStack");
+        static uint64 kernel_vt asm("__kernel_vt");
+        static uint64 user_vt asm("__user_vt");
 
         static memory::Cache* cache_list;
     public:

@@ -7,7 +7,7 @@
 #include "../../h/kernel/Thread.h"
 #include "../../h/kernel/Scheduler.h"
 #include "../../h/kernel/Console/Console.h"
-#include "../../h/kernel/Kernel.h"
+#include "../../h/kernel/Memory/Mapping.h"
 
 namespace kernel
 {
@@ -76,7 +76,43 @@ namespace kernel
             case TrapType::IllegalReadAddress:
             case TrapType::IllegalWriteAddress:
                 return instructionErrorHandler();
+            case TrapType::LoadPageFault:
+            case TrapType::StorePageFault:
+            case TrapType::InstructionPageFault:
+            {
+                using namespace kernel;
+                using namespace kernel::memory;
+                uint64 va = 0;
+                SREGISTER_READ(stval, va);
+
+                uint64 v_satp = 0;
+                SREGISTER_READ(satp, v_satp);
+                auto table = (pagetable_t)(v_satp << 12);
+
+                uint64 v_sstatus;
+                SREGISTER_READ(sstatus, v_sstatus);
+
+                auto pte = walk(table, va, 0);
+                if (pte == nullptr)  return instructionErrorHandler();
+
+
+                auto is_user = (int)((v_sstatus & (uint64)BitMasks::sstatus::SPP) == 0);
+
+                uint64 pte_v = 0;
+                REGISTER_WRITE(t0, pte);
+                asm volatile("sfence.vma zero, zero");
+                asm volatile("ld t1, 0(t0)");
+                asm volatile("sfence.vma zero, zero;");
+                REGISTER_READ(t1, pte_v);
+                pte_v = (pte_v & ~PTE_U) | (is_user << PTE_U);
+                REGISTER_WRITE(t1, pte_v);
+                asm volatile("sfence.vma zero, zero");
+                asm volatile("sd t1, 0(t0)");
+                asm volatile("sfence.vma zero, zero;");
+                break;
+            }
             default:
+                while (true);
                 break;
             }
         }

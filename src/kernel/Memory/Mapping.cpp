@@ -39,15 +39,16 @@ namespace kernel::memory
         auto pagetable = (pagetable_t)page_alloc(0);
         memset(pagetable, 0, PAGE_SIZE);
 
-        // need to map page with trap handler to separate page
-        // so that supervisor can use it in interrupt
+        kvmdmap(pagetable, KernelCode(), PTE_R | PTE_X); // should not be mapped
         kvmdmap(pagetable, SysCallCode(), PTE_R | PTE_X | PTE_U);
         kvmdmap(pagetable, UserCode(), PTE_R | PTE_X | PTE_U);
 
+        kvmdmap(pagetable, KernelData(), PTE_R | PTE_X | PTE_U);
         kvmdmap(pagetable, SysCallData(), PTE_R | PTE_W | PTE_U);
         kvmdmap(pagetable, UserData(), PTE_R | PTE_W | PTE_U);
+
         kvmdmap(pagetable, UserHeap(), PTE_R | PTE_W | PTE_U); // switch to on demand paging    
-        // Need to map user stack to separate page as well
+        kvmdmap(pagetable, KernelHeap(), PTE_R | PTE_W | PTE_U); // switch to on demand paging    
 
         return pagetable;
     }
