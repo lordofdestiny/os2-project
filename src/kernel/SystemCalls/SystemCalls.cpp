@@ -143,7 +143,6 @@ namespace kernel
         else
         {
             *handle = (thread_t)thread;
-            thread->setHandle(handle); // to ensure not to delete thread tha was completed
         }
         RETURN_IF(thread == nullptr, -0x01);
         RETURN(0x00);

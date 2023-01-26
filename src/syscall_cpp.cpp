@@ -21,10 +21,7 @@ Thread::Thread(void (*body)(void*), void* arg)
 
 Thread::~Thread()
 {
-    if (myHandle != nullptr)
-    {
-        thread_destroy(&myHandle);
-    }
+    thread_destroy(&myHandle);
 };
 
 int Thread::start()

@@ -98,6 +98,7 @@ namespace kernel
     void Thread::taskWrapper()
     {
         runningThread->task(runningThread->arg);
+        runningThread->status = Status::COMPLETE;
         thread_exit();
     }
 
@@ -148,10 +149,6 @@ namespace kernel
     Thread::~Thread()
     {
         threadCounter[(int)mode]--;
-        if (this == runningThread)
-        {
-            runningThread = nullptr;
-        }
         if (stack != nullptr)
         {
             using namespace memory;
@@ -166,7 +163,10 @@ namespace kernel
                 kfree(stack);
             }
         }
-        *my_handle = nullptr;
+        if (this == runningThread)
+        {
+            runningThread = nullptr;
+        }
     }
 
     void Thread::tick()
