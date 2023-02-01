@@ -1,4 +1,4 @@
-# os1-project
+# os2-project
 Implementation of a kernel for a RISC-V based CPU
 
 
